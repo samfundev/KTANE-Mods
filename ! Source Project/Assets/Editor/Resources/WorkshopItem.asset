@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5cf2299c8864afe4ab42466f546ae20d, type: 3}
+  m_Name: WorkshopItem
+  m_EditorClassIdentifier: 
+  WorkshopPublishedFileID: 0
+  Title: Mod
+  Description: "[h1]About[/h1]\r\n\n\n[h1]Manual[/h1]\r\n\n\r\n[h1]Module ID[/h1]\r\n"
+  PreviewImage: {fileID: 2800000, guid: 0840a265b3ffd364db54f8a6b4160ace, type: 3}
+  Tags: []
