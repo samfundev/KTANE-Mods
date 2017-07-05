@@ -4145,7 +4145,7 @@ GameObject:
   - 33: {fileID: 33000013261569754}
   - 23: {fileID: 23000011922402088}
   - 95: {fileID: 95000010898281878}
-  - 114: {fileID: 114000011738077160}
+  - 114: {fileID: 114000011834565344}
   m_Layer: 0
   m_Name: Component_PuzzleBackground
   m_TagString: Untagged
@@ -11247,19 +11247,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShaderNames:
   - Sprites/Diffuse
---- !u!114 &114000011738077160
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1000014163414832}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: -1005838349, guid: 45b809be76fd7a3468b6f517bced6f28, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ShaderNames:
-  - Mobile/Diffuse
 --- !u!114 &114000011740205270
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -11360,6 +11347,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   HighlightScale: {x: 0, y: 0, z: 0}
   OutlineAmount: 0
+--- !u!114 &114000011834565344
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1000014163414832}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1005838349, guid: 45b809be76fd7a3468b6f517bced6f28, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ShaderNames:
+  - Mobile/Diffuse
 --- !u!114 &114000011855313586
 MonoBehaviour:
   m_ObjectHideFlags: 1

@@ -541,7 +541,7 @@ public class MinesweeperModule : MonoBehaviour
                     }
                     else
                     {
-                        if (Digging && (Time.time - holdStart < 0.3 || cell.Dug))
+                        if (Digging && (Time.time - holdStart < 0.35 || cell.Dug))
                         {
                             if (!cell.Flagged)
                             {
