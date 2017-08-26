@@ -13,6 +13,7 @@ using System.Reflection;
  * Deal with leaderboards. (Somehow. Maybe disable them? Somehow?)
  * ModSelector Profile support.
  * Add back in the reload button.
+ * Hide screen when starting a mission.
  * [Validation]
  * Validate various parts of the json and warn the user if something is wrong.
  */
@@ -115,9 +116,9 @@ public class MissionMaker : MonoBehaviour
         }
     }
 
-    private void LogWarning(string format, params object[] formatting)
+    private void Log(string format, params object[] formatting)
     {
-        Debug.LogWarningFormat("[MissionMaker] " + format, formatting);
+        Debug.LogFormat("[MissionMaker] " + format, formatting);
     }
 
     private List<T> GetAllModObjects<T>()
@@ -147,7 +148,7 @@ public class MissionMaker : MonoBehaviour
             }
             else
             {
-                LogWarning("No source was able to be determined for a pool in the mission located at {0}.", mission.Path);
+                Log("No source was able to be determined for a pool in the mission located at {0}.", mission.Path);
                 return null;
             }
         }
@@ -160,7 +161,7 @@ public class MissionMaker : MonoBehaviour
         {
             if (pool.Group == null)
             {
-                LogWarning("Source was set to Group but no Group parameter found in mission located at {0}.", mission.Path);
+                Log("Source was set to Group but no Group parameter found in mission located at {0}.", mission.Path);
                 return null;
             }
 
@@ -185,7 +186,7 @@ public class MissionMaker : MonoBehaviour
             }
             else
             {
-                LogWarning("Unable to find group {0} for the mission located at {2}.", pool.Group, mission.Path);
+                Log("Unable to find group {0} for the mission located at {2}.", pool.Group, mission.Path);
             }
         }
 
@@ -193,7 +194,7 @@ public class MissionMaker : MonoBehaviour
         {
             if (pool.Pools == null)
             {
-                LogWarning("Source was set to Pools but no Pools parameter found in mission located at {0}.", mission.Path);
+                Log("Source was set to Pools but no Pools parameter found in mission located at {0}.", mission.Path);
                 return null;
             }
 
@@ -238,7 +239,7 @@ public class MissionMaker : MonoBehaviour
         {
             if (pool.Modules == null)
             {
-                LogWarning("Source was set to None but no Modules parameter found in the mission located at {0}.", mission.Path);
+                Log("Source was set to None but no Modules parameter found in the mission located at {0}.", mission.Path);
                 return null;
             }
 
@@ -287,7 +288,7 @@ public class MissionMaker : MonoBehaviour
         {
             if (!pool.Base && !pool.Mods)
             {
-                LogWarning("A source besides None was used but has both base and mods disabled in the mission located at {0}. Skipping pool.", mission.Path);
+                Log("A source besides None was used but has both base and mods disabled in the mission located at {0}. Skipping pool.", mission.Path);
                 return null;
             }
 
@@ -359,7 +360,7 @@ public class MissionMaker : MonoBehaviour
             }
             else
             {
-                LogWarning("Unkown source format of {0} was found in the mission located at {1}.", pool.Source, mission.Path);
+                Log("Unkown source format of {0} was found in the mission located at {1}.", pool.Source, mission.Path);
                 return null;
             }
         }
@@ -442,7 +443,7 @@ public class MissionMaker : MonoBehaviour
             }
             catch (Exception error)
             {
-                LogWarning("Unable to read mission at {0}! Error: {1}", path, error.Message);
+                Log("Unable to parse JSON for mission at {0}! Error: {1}", path, error.Message);
                 return;
             }
         }
@@ -450,7 +451,12 @@ public class MissionMaker : MonoBehaviour
         foreach (CustomMission customMission in custommissions)
         {
             customMission.Path = path;
-            customMission.ID = path + "_" + customMission.Name;
+
+			if (customMission.ID == null)
+			{
+				Log("A mission called \"{0}\" doesn't have an ID! Skipping mission.", customMission.Name);
+				continue;
+			}
 
             MissionName missionName;
             if (Missions.ContainsKey(customMission.ID))
@@ -500,7 +506,7 @@ public class MissionMaker : MonoBehaviour
             }
             catch (Exception error)
             {
-                LogWarning("Unable to read group at {0}! Error: {1}", path, error.Message);
+                Log("Unable to read group at {0}! Error: {1}", path, error.Message);
                 return;
             }
         }
@@ -508,14 +514,27 @@ public class MissionMaker : MonoBehaviour
         foreach (CustomGroup group in customgroups)
         {
             group.Path = path;
+
+			if (group.ID == null)
+			{
+				Log("A grouped located at \"{0}\" doesn't have an ID! Skipping group.", group.Path);
+				continue;
+			}
+
             group.ID = group.ID.ToLowerInvariant();
 
-            if (Groups.ContainsKey(group.ID))
+			if (Groups.ContainsKey(group.ID))
             {
-                LogWarning("Unable to add the {0} group in {1} because of ID conflicts with the group in {2} having the same ID.", group.ID, group.Path, Groups[group.ID].Path);
+                Log("Unable to add the group with ID \"{0}\" located in {1} because of ID conflicts with the group in {2} having the same ID.", group.ID, group.Path, Groups[group.ID].Path);
             }
             else
             {
+				if (group.Source != null && group.Source.ToLowerInvariant() == "group")
+				{
+					Log("A group with the ID of \"{0}\" has Group as it's source! Skipping group.");
+					continue;
+				}
+
                 Groups.Add(group.ID, group);
             }
         }
@@ -580,13 +599,12 @@ public class MissionMaker : MonoBehaviour
                     }
                     
                     Destroy(mission.gameObject);
-                    break;
                 }
             }
         }
         else
         {
-            Debug.Log("[MissionMaker] Unhandled change type encountered: " + e.ChangeType.ToString());
+            Log("[MissionMaker] Unhandled change type encountered: " + e.ChangeType.ToString());
         }
     }
 
@@ -610,7 +628,7 @@ public class MissionMaker : MonoBehaviour
         }
         else
         {
-            Debug.Log("[MissionMaker] Unhandled change type encountered: " + e.ChangeType.ToString());
+            Log("[MissionMaker] Unhandled change type encountered: " + e.ChangeType.ToString());
         }
     }
 
@@ -623,12 +641,12 @@ public class MissionMaker : MonoBehaviour
 
     IEnumerator WaitForDB()
     {
-        Debug.Log("Waiting for the mission database...");
+        Log("Waiting for the mission database...");
         if (!Application.isEditor)
         {
             yield return new WaitUntil(() => ModMissions != null);
         }
-        Debug.Log("Got database!");
+        Log("Got database!");
 
         InitialLoad();
     }
@@ -660,15 +678,7 @@ public class MissionMaker : MonoBehaviour
 
         GameInfo.OnStateChange += delegate (KMGameInfo.State state)
         {
-            bool enabled = UIEnabled;
-            if (state == KMGameInfo.State.Setup)
-            {
-                enabled = true;
-            }
-            else if (state == KMGameInfo.State.Transitioning)
-            {
-                enabled = false;
-            }
+            bool enabled = (state == KMGameInfo.State.Setup);
 
             if (enabled != UIEnabled)
             {

@@ -3,7 +3,7 @@
 public class CustomMission
 {
     public string Name;
-    public string ID = "";
+    public string ID;
     public string Path = "";
 
     public List<CustomPool> ComponentPools;

@@ -17,9 +17,11 @@ public class MinesweeperModule : MonoBehaviour
 	public GameObject CellBase;
 	public GameObject Grid;
 
+	public GameObject[] Guides;
+
 	public List<Sprite> Sprites;
 
-	static bool loggedLegend = false;
+	bool loggedLegend = false;
 	static int idCounter = 1;
 	int moduleID;
 
@@ -180,11 +182,7 @@ public class MinesweeperModule : MonoBehaviour
 			{
 				Dug = true;
 				UpdateSprite();
-				if (Mine)
-				{
-					_module.HandleStrike();
-				}
-				else
+				if (!Mine)
 				{
 					if (Number == 0)
 					{
@@ -236,16 +234,7 @@ public class MinesweeperModule : MonoBehaviour
 			{
 				if (StartFound)
 				{
-					if (Digging)
-					{
-						bool useful = cell.Around.Sum(c => c.Flagged ? 1 : 0) != cell.Around.Sum(c => !c.Dug ? 1 : 0);
-
-						Children.Add(!cell.Dug || (cell.Number > 0 && useful) ? cell._selectable : null);
-					}
-					else
-					{
-						Children.Add(!cell.Dug ? cell._selectable : null);
-					}
+					Children.Add(!cell.Dug || (cell.Number > 0 && Digging) ? cell._selectable : null);
 				}
 				else
 				{
@@ -321,7 +310,7 @@ public class MinesweeperModule : MonoBehaviour
 
 	void ModuleStarted()
 	{
-	pick_colors:
+		pick_colors:
 		Picks = new List<Cell>() { StartingCell };
 		int total = Random.Range(5, 8);
 
@@ -398,7 +387,7 @@ public class MinesweeperModule : MonoBehaviour
 	{
 		if (!loggedLegend)
 		{
-			Log("Legend:\n+ - Correct flag\n× - Incorrect flag\n• - Unflagged mine\n■ - Covered cell");
+			Log("Legend:\n+ - Correct flag\n× - Incorrect flag\n• - Unflagged mine\n■ - Covered cell\nS - A dug up mine");
 			loggedLegend = true;
 		}
 
@@ -413,7 +402,14 @@ public class MinesweeperModule : MonoBehaviour
 				{
 					if (cell.Mine)
 					{
-						board += "+";
+						if (cell.Dug)
+						{
+							board += "S";
+						}
+						else
+						{
+							board += "+";
+						}
 					}
 					else
 					{
@@ -454,27 +450,33 @@ public class MinesweeperModule : MonoBehaviour
 		Held = true;
 		Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
 
-		if (cell.Dug)
+		if (StartFound)
 		{
-			foreach (Cell c in cell.Around)
+			if (cell.Dug)
 			{
-				if (!c.Dug)
+				foreach (Cell c in cell.Around)
 				{
-					c.Flagged = true;
-					c.UpdateSprite();
+					if (!c.Dug)
+					{
+						c.Flagged = true;
+						c.UpdateSprite();
+					}
 				}
 			}
-		}
-		else
-		{
-			cell.Flagged = !cell.Flagged;
-			cell.UpdateSprite();
+			else
+			{
+				cell.Flagged = !cell.Flagged;
+				cell.UpdateSprite();
+			}
 		}
 	}
 
 	bool Digging = true;
 	bool Held = false;
 	Coroutine _playClick = null;
+	Vector3[] GuideSizes = new Vector3[2];
+	bool GuidesEnabled = false;
+
 	void Start()
 	{
 		moduleID = idCounter++;
@@ -494,6 +496,14 @@ public class MinesweeperModule : MonoBehaviour
 			return false;
 		};
 
+		// Hide Guides
+		int n = 0;
+		foreach (GameObject guide in Guides)
+		{
+			GuideSizes[n++] = guide.transform.localPosition;
+			guide.transform.localPosition = new Vector3();
+		}
+
 		// Generate the cells
 		int Total = (int) GridSize.x * (int) GridSize.y;
 		int Mines = Mathf.RoundToInt(Total * 0.15f);
@@ -507,17 +517,17 @@ public class MinesweeperModule : MonoBehaviour
 			for (int x = 0; x < GridSize.x; x++)
 			{
 				GameObject Cell = Grid.transform.Find(x + " " + y).gameObject; //Instantiate(CellBase);
-				/*
-				Cell.SetActive(true);
-				Transform trans = Cell.transform;
-				trans.parent = Grid.transform;
-				trans.localScale = new Vector3(1 / GridSize.x * scale, 1, 1 / GridSize.y * scale);
+																			   /*
+																			   Cell.SetActive(true);
+																			   Transform trans = Cell.transform;
+																			   trans.parent = Grid.transform;
+																			   trans.localScale = new Vector3(1 / GridSize.x * scale, 1, 1 / GridSize.y * scale);
 
-				float px = x / GridSize.x * 10 - 5 + (1 / GridSize.x) * 5;
-				float pz = y / GridSize.y * -10 + 5 + (1 / GridSize.y) * -5;
-				trans.localPosition = new Vector3(px, 0.001f, pz);
+																			   float px = x / GridSize.x * 10 - 5 + (1 / GridSize.x) * 5;
+																			   float pz = y / GridSize.y * -10 + 5 + (1 / GridSize.y) * -5;
+																			   trans.localPosition = new Vector3(px, 0.001f, pz);
 
-				Cell.name = x + " " + y;*/
+																			   Cell.name = x + " " + y;*/
 
 				Cell cell = new Cell(Game, x, y, Cell, Module, Sprites);
 				Game.Cells.Insert(x + y * (int) GridSize.x, cell);
@@ -569,11 +579,13 @@ public class MinesweeperModule : MonoBehaviour
 										{
 											if (c.Mine)
 											{
+												Log("One of the surrounding cells was actually a mine.");
 												c.Dug = true;
 												c.Flagged = true;
 												c.UpdateSprite();
 												Module.HandleStrike();
 												LogBoard();
+												break;
 											}
 											else
 											{
@@ -586,6 +598,7 @@ public class MinesweeperModule : MonoBehaviour
 								{
 									if (cell.Mine)
 									{
+										Log("A mine was dug!");
 										cell.Dug = true;
 										cell.Flagged = true;
 										cell.UpdateSprite();
@@ -628,7 +641,7 @@ public class MinesweeperModule : MonoBehaviour
 
 		int attempts = 0;
 
-	retry:
+		retry:
 		attempts++;
 
 		if (attempts == 1000)
@@ -753,11 +766,23 @@ public class MinesweeperModule : MonoBehaviour
 	GameObject Slider = null;
 	float sliderAlpha = 0;
 	float targetAlpha = 0;
+	float guideAlpha = 0.75f;
 	void Update()
 	{
 		sliderAlpha = Mathf.Lerp(sliderAlpha, targetAlpha, 0.1f);
 
 		Slider.transform.localPosition = new Vector3(0, 0.0001f, -2.5f + 5f * sliderAlpha);
+
+		if (GuidesEnabled && guideAlpha < 1)
+		{
+			guideAlpha = Mathf.Min(1, guideAlpha + 0.01f);
+
+			int n = 0;
+			foreach (GameObject guide in Guides)
+			{
+				guide.transform.localPosition = Vector3.Lerp(new Vector3(), GuideSizes[n++], guideAlpha);
+			}
+		}
 	}
 
 	public IEnumerator ProcessTwitchCommand(string command)
@@ -801,6 +826,12 @@ public class MinesweeperModule : MonoBehaviour
 				{
 					if (cell.Color == split[1])
 					{
+						GuidesEnabled = true;
+						foreach (GameObject guide in Guides)
+						{
+							guide.SetActive(true);
+						}
+
 						cell.Click();
 						break;
 					}

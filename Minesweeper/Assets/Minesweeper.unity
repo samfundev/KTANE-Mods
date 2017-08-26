@@ -171,6 +171,114 @@ Prefab:
       propertyPath: m_RootOrder
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1000011976148132, guid: 7358bc8dcd67b9e468ff1740ebefedb1, type: 2}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1000014035841352, guid: 7358bc8dcd67b9e468ff1740ebefedb1, type: 2}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 23000010631525402, guid: 7358bc8dcd67b9e468ff1740ebefedb1,
+        type: 2}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: cff757893cbd9b648882d89a500f943d, type: 2}
+    - target: {fileID: 23000010157957576, guid: 7358bc8dcd67b9e468ff1740ebefedb1,
+        type: 2}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: cff757893cbd9b648882d89a500f943d, type: 2}
+    - target: {fileID: 102000010287966306, guid: 7358bc8dcd67b9e468ff1740ebefedb1,
+        type: 2}
+      propertyPath: m_Color.rgba
+      value: 4293980400
+      objectReference: {fileID: 0}
+    - target: {fileID: 102000011560091620, guid: 7358bc8dcd67b9e468ff1740ebefedb1,
+        type: 2}
+      propertyPath: m_Color.rgba
+      value: 4293980400
+      objectReference: {fileID: 0}
+    - target: {fileID: 102000011267796136, guid: 7358bc8dcd67b9e468ff1740ebefedb1,
+        type: 2}
+      propertyPath: m_Color.rgba
+      value: 4293980400
+      objectReference: {fileID: 0}
+    - target: {fileID: 102000010387401894, guid: 7358bc8dcd67b9e468ff1740ebefedb1,
+        type: 2}
+      propertyPath: m_Color.rgba
+      value: 4293980400
+      objectReference: {fileID: 0}
+    - target: {fileID: 102000013567439850, guid: 7358bc8dcd67b9e468ff1740ebefedb1,
+        type: 2}
+      propertyPath: m_Color.rgba
+      value: 4293980400
+      objectReference: {fileID: 0}
+    - target: {fileID: 102000012215962822, guid: 7358bc8dcd67b9e468ff1740ebefedb1,
+        type: 2}
+      propertyPath: m_Color.rgba
+      value: 4293980400
+      objectReference: {fileID: 0}
+    - target: {fileID: 102000011950954636, guid: 7358bc8dcd67b9e468ff1740ebefedb1,
+        type: 2}
+      propertyPath: m_Color.rgba
+      value: 4293980400
+      objectReference: {fileID: 0}
+    - target: {fileID: 102000011578273130, guid: 7358bc8dcd67b9e468ff1740ebefedb1,
+        type: 2}
+      propertyPath: m_Color.rgba
+      value: 4293980400
+      objectReference: {fileID: 0}
+    - target: {fileID: 102000012558503622, guid: 7358bc8dcd67b9e468ff1740ebefedb1,
+        type: 2}
+      propertyPath: m_Color.rgba
+      value: 4293980400
+      objectReference: {fileID: 0}
+    - target: {fileID: 102000010274587824, guid: 7358bc8dcd67b9e468ff1740ebefedb1,
+        type: 2}
+      propertyPath: m_Color.rgba
+      value: 4293980400
+      objectReference: {fileID: 0}
+    - target: {fileID: 102000013365209218, guid: 7358bc8dcd67b9e468ff1740ebefedb1,
+        type: 2}
+      propertyPath: m_Color.rgba
+      value: 4293980400
+      objectReference: {fileID: 0}
+    - target: {fileID: 102000010099749750, guid: 7358bc8dcd67b9e468ff1740ebefedb1,
+        type: 2}
+      propertyPath: m_Color.rgba
+      value: 4293980400
+      objectReference: {fileID: 0}
+    - target: {fileID: 102000013742868396, guid: 7358bc8dcd67b9e468ff1740ebefedb1,
+        type: 2}
+      propertyPath: m_Color.rgba
+      value: 4293980400
+      objectReference: {fileID: 0}
+    - target: {fileID: 102000010595934020, guid: 7358bc8dcd67b9e468ff1740ebefedb1,
+        type: 2}
+      propertyPath: m_Color.rgba
+      value: 4293980400
+      objectReference: {fileID: 0}
+    - target: {fileID: 102000013322717444, guid: 7358bc8dcd67b9e468ff1740ebefedb1,
+        type: 2}
+      propertyPath: m_Color.rgba
+      value: 4293980400
+      objectReference: {fileID: 0}
+    - target: {fileID: 102000013009624948, guid: 7358bc8dcd67b9e468ff1740ebefedb1,
+        type: 2}
+      propertyPath: m_Color.rgba
+      value: 4293980400
+      objectReference: {fileID: 0}
+    - target: {fileID: 102000011412186690, guid: 7358bc8dcd67b9e468ff1740ebefedb1,
+        type: 2}
+      propertyPath: m_Color.rgba
+      value: 4293980400
+      objectReference: {fileID: 0}
+    - target: {fileID: 102000013157488202, guid: 7358bc8dcd67b9e468ff1740ebefedb1,
+        type: 2}
+      propertyPath: m_Color.rgba
+      value: 4293980400
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 7358bc8dcd67b9e468ff1740ebefedb1, type: 2}
   m_IsPrefabParent: 0

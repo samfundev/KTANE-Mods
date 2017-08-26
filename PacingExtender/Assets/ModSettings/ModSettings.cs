@@ -31,7 +31,7 @@ namespace BetterModSettings
                 try
                 {
                     if (!File.Exists(SettingsPath))
-                    {
+					{
                         File.WriteAllText(SettingsPath, JsonConvert.SerializeObject(Activator.CreateInstance(_settingsType), Formatting.Indented));
                     }
 
