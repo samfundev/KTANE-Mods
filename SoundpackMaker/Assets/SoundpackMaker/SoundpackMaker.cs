@@ -164,6 +164,7 @@ public class SoundpackMaker : MonoBehaviour
 	void Start()
 	{
 		ModSettings Soundpacks = new ModSettings("EnabledSoundpacks", typeof(List<string>));
+		List<string> enabledSoundpacks = (List<string>) Soundpacks.Settings;
 
 		if (!Directory.Exists(SoundsDirectory))
 		{
@@ -178,7 +179,7 @@ public class SoundpackMaker : MonoBehaviour
 		object fakeMod = Activator.CreateInstance(Mod, new object[] { Guid.NewGuid().ToString() });
 
 		// Add the new sound effects.
-		foreach (string soundpackName in (List<string>) Soundpacks.Settings)
+		foreach (string soundpackName in enabledSoundpacks)
 		{
 			string soundpackDirectory = Path.Combine(SoundsDirectory, soundpackName);
 			if (Directory.Exists(soundpackDirectory))
