@@ -252,7 +252,6 @@ public class AssetBundler
         }
 
         managedReferences.Add(unityAssembliesLocation + "UnityEngine");
-		managedReferences.Add(unityAssembliesLocation + "UnityEngine.UI");
 
 		//Next we need to grab some type references and use reflection to build things the way Unity does.
 		//Note that EditorUtility.CompileCSharp will do *almost* exactly the same thing, but it unfortunately
