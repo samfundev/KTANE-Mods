@@ -203,8 +203,14 @@ public class SoundpackMaker : MonoBehaviour
 				        KMSoundOverride sOverride = soundOverrides[soundOverride.OverrideEffect];
 				        List<AudioClip> clips = new List<AudioClip>();
 				        clips.Add(soundOverride.AudioClip);
-				        clips.AddRange(soundOverride.AdditionalVariants);
-				        clips.AddRange(sOverride.AdditionalVariants);
+				        if (soundOverride.AdditionalVariants != null)
+				        {
+				            clips.AddRange(soundOverride.AdditionalVariants);
+				        }
+				        if (sOverride.AdditionalVariants != null)
+				        {
+				            clips.AddRange(sOverride.AdditionalVariants);
+				        }
 				        sOverride.AdditionalVariants = clips.ToArray();
 				        soundOverride.AdditionalVariants = null;
 				        soundOverride.AudioClip = null;
