@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
-using BetterModSettings;
 
 [RequireComponent(typeof(KMService))]
 public class SoundpackMaker : MonoBehaviour
@@ -16,27 +15,6 @@ public class SoundpackMaker : MonoBehaviour
 			return Path.Combine(Application.persistentDataPath, "Soundpacks");
 		}
 	}
-
-	public static Type FindType(string qualifiedTypeName)
-	{
-		Type t = Type.GetType(qualifiedTypeName);
-
-		if (t != null)
-		{
-			return t;
-		}
-		else
-		{
-			foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
-			{
-				t = asm.GetType(qualifiedTypeName);
-				if (t != null)
-					return t;
-			}
-			return null;
-		}
-	}
-
 
 	void Log(params object[] objects)
 	{
@@ -60,25 +38,25 @@ public class SoundpackMaker : MonoBehaviour
 		string ext = Path.GetExtension(path);
 		if (audioExtensions.Contains(ext))
 		{
-		    try
-		    {
-		        if (ext == ".mp3")
-		        {
-		            return NAudioPlayer.FromMp3Data(new WWW("file:///" + path).bytes);
-		        }
-		        else
-		        {
-		            AudioClip clip = new WWW("file:///" + path).audioClip;
-		            while (clip.loadState != AudioDataLoadState.Loaded)
-		            {
-		            }
-		            return clip;
-		        }
-		    }
-		    catch (Exception ex)
-		    {
-		        Log("Failed to load sound sound file {0} due to Exception: {1}\nStack Trace {2}", path, ex.Source, ex.StackTrace);
-		    }
+			try
+			{
+				if (ext == ".mp3")
+				{
+					return NAudioPlayer.FromMp3Data(new WWW("file:///" + path).bytes);
+				}
+				else
+				{
+					AudioClip clip = new WWW("file:///" + path).audioClip;
+					while (clip.loadState != AudioDataLoadState.Loaded)
+					{
+					}
+					return clip;
+				}
+			}
+			catch (Exception ex)
+			{
+				Log("Failed to load sound sound file {0} due to Exception: {1}\nStack Trace {2}", path, ex.Source, ex.StackTrace);
+			}
 		}
 		return null;
 	}
@@ -98,7 +76,7 @@ public class SoundpackMaker : MonoBehaviour
 			string fileName = Path.GetFileNameWithoutExtension(file);
 			if (IsDefined(SoundEffect, fileName))
 			{
-			    Log("Creating AudioClip for {0}.", fileName);
+				Log("Creating AudioClip for {0}.", fileName);
 				AudioClip clip = MakeAudioClip(file);
 				if (clip)
 				{
@@ -131,7 +109,7 @@ public class SoundpackMaker : MonoBehaviour
 
 				foreach (string file in Directory.GetFiles(directory))
 				{
-                    Log("Creating AudioClip for {0}\\{1}.", dirName, Path.GetFileName(file));
+					Log("Creating AudioClip for {0}.", Path.Combine(dirName, Path.GetFileName(file)));
 					AudioClip clip = MakeAudioClip(file);
 					if (clip)
 					{
@@ -148,7 +126,7 @@ public class SoundpackMaker : MonoBehaviour
 					}
 					else
 					{
-						Log("Failed to create an AudioClip for {0}\\{1}. Skipping.", dirName, Path.GetFileName(file));
+						Log("Failed to create an AudioClip for {0}. Skipping.", Path.Combine(dirName, Path.GetFileName(file)));
 					}
 				}
 
@@ -184,10 +162,11 @@ public class SoundpackMaker : MonoBehaviour
 			return;
 		}
 
-		Type Mod = FindType("Mod");
+		Type Mod = ReflectionHelper.FindType("Mod");
 		MethodInfo HandleSoundOverride = Mod.GetMethod("HandleSoundOverride", BindingFlags.NonPublic | BindingFlags.Instance);
 		object fakeMod = Activator.CreateInstance(Mod, new object[] { Guid.NewGuid().ToString() });
-	    Dictionary<KMSoundOverride.SoundEffect, KMSoundOverride> soundOverrides = new Dictionary<KMSoundOverride.SoundEffect, KMSoundOverride>();
+		Dictionary<KMSoundOverride.SoundEffect, KMSoundOverride> soundOverrides = new Dictionary<KMSoundOverride.SoundEffect, KMSoundOverride>();
+		
 		// Add the new sound effects.
 		foreach (string soundpackName in enabledSoundpacks)
 		{
@@ -197,38 +176,33 @@ public class SoundpackMaker : MonoBehaviour
 				Log("Adding soundpack: {0}", soundpackName);
 				foreach (KMSoundOverride soundOverride in LoadSoundpack(soundpackDirectory))
 				{
-					//
-				    if (soundOverrides.ContainsKey(soundOverride.OverrideEffect))
-				    {
-				        KMSoundOverride sOverride = soundOverrides[soundOverride.OverrideEffect];
-				        List<AudioClip> clips = new List<AudioClip>();
-				        clips.Add(soundOverride.AudioClip);
-				        if (soundOverride.AdditionalVariants != null)
-				        {
-				            clips.AddRange(soundOverride.AdditionalVariants);
-				        }
-				        if (sOverride.AdditionalVariants != null)
-				        {
-				            clips.AddRange(sOverride.AdditionalVariants);
-				        }
-				        sOverride.AdditionalVariants = clips.ToArray();
-				        soundOverride.AdditionalVariants = null;
-				        soundOverride.AudioClip = null;
-                        Destroy(soundOverride);
-				    }
-				    else
-				    {
-				        soundOverrides[soundOverride.OverrideEffect] = soundOverride;
-				    }
+					if (soundOverrides.ContainsKey(soundOverride.OverrideEffect))
+					{
+						KMSoundOverride sOverride = soundOverrides[soundOverride.OverrideEffect];
+						List<AudioClip> clips = new List<AudioClip>();
+						clips.Add(soundOverride.AudioClip);
+						if (soundOverride.AdditionalVariants != null) clips.AddRange(soundOverride.AdditionalVariants);
+						if (sOverride.AdditionalVariants != null) clips.AddRange(sOverride.AdditionalVariants);
+						sOverride.AdditionalVariants = clips.ToArray();
+						soundOverride.AdditionalVariants = null;
+						soundOverride.AudioClip = null;
+						Destroy(soundOverride);
+					}
+					else
+					{
+						soundOverrides[soundOverride.OverrideEffect] = soundOverride;
+					}
 				}
-			} else
+			}
+			else
 			{
 				Log("There is no soundpack called \"{0}\"", soundpackName);
 			}
 		}
-	    foreach (KMSoundOverride soundOverride in soundOverrides.Values)
-	    {
-	        HandleSoundOverride.Invoke(fakeMod, new object[] { soundOverride });
-        }
+
+		foreach (KMSoundOverride soundOverride in soundOverrides.Values)
+		{
+			HandleSoundOverride.Invoke(fakeMod, new object[] { soundOverride });
+		}
 	}
 }
