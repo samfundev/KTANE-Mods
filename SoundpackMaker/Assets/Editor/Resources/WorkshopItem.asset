@@ -30,7 +30,8 @@ MonoBehaviour:
     sound.\r\n[/list]\r\nWhen you are done, add the soundpack name to list in the
     \"EnabledSoundPacks.json\" configuration file.\r\n\r\n[h1]Enabling Soundpacks[/h1]\r\nIn
     your \u201CModsettings\u201D folder there is a file called \"EnabledSoundpacks.json\"
-    where you can list the names of the soundpacks you want to be enabled.\r\n\r\n[b][u]NOTE:[/u][/b]
+    where you can list the names of the soundpacks you want to be enabled. If multiple
+    soundpacks replace the same sound all of the sounds will be added together.\r\n\r\n[b][u]NOTE:[/u][/b]
     If you modify a soundpack or change the list of enabled soundpacks, you must restart
     the game for those changes to take effect.\r\n\r\n[h1]Sound Names[/h1]\r\nThe
     sound names can be any of the following:\r\n[list]\r\n[*] [b]AlarmClockBeep[/b]
@@ -46,29 +47,29 @@ MonoBehaviour:
     briefcase is opened.\r\n[*] [b]ButtonPress[/b] - Plays when pressing down a button.\r\n[*]
     [b]ButtonRelease[/b] - Plays when releasing a button.\r\n[*] [b]CapacitorPop[/b]
     - Plays when Capacitor Discharge fills up completely.\r\n[*] [b]CorrectChime[/b]
-    - Plays when you solve a module.\r\n[*] [b]DossierOptionPressed[/b] - Plays when
-    you change a setting in the menu folder.\r\n[*] [b]EmergencyAlarm[/b] - Plays
-    when there is less than a minute left on the bomb, this sound loops.\r\n[*] [b]FastestTimerBeep[/b]
-    - Plays when the bomb has at least 2 or more strikes.\r\n[*] [b]FastTimerBeep[/b]
-    - Plays when the bomb has 1 strike.\r\n[*] [b]FreeplayDeviceDrop[/b] - Plays as
-    the freeplay briefcase hits the desk.\r\n[*] [b]GameOverFanfare[/b] - Plays when
-    all bombs are defused. Finishes before the post game screen.\r\n[*] [b]LightBuzz[/b]
-    - Plays when the lights go out.\r\n[*] [b]LightBuzzShort[/b] - Plays when the
-    lights start to come back on.\r\n[*] [b]MenuButtonPressed[/b] - Plays when you
-    start a mission from the mission binder.\r\n[*] [b]MenuDrop[/b] - Plays as the
-    mission folder hits the desk.\r\n[*] [b]NeedyActivated[/b] - Plays when a needy
-    gets activated.\r\n[*] [b]NeedyWarning[/b] - Plays when a needy is running out
-    of time. This sound loops.\r\n[*] [b]NormalTimerBeep[/b] - Plays when the bomb
-    has no strikes.\r\n[*] [b]PageTurn[/b] - Plays when a page is turned in the Missions
-    binder.\r\n[*] [b]SelectionTick[/b] - Plays as you hover over something intractable.\r\n[*]
-    [b]Stamp[/b] - Plays during the post game screen, when either the defused or exploded
-    text is stamped onto the binder.\r\n[*] [b]Strike[/b] - Plays when you get a strike.\r\n[*]
-    [b]Switch[/b] - Plays when a switch is toggled.\r\n[*] [b]TitleMenuPressed[/b]
-    - Currently unknown if it is played in the vanilla game. It is played by the Tic-Tac-Toe
-    module when it is solved.\r\n[*] [b]TypewriterKey[/b] - Plays during the post
-    game screen as the mission information gets typed out.\r\n[*] [b]WireSequenceMechanism[/b]
-    - Plays when switching between sets of wires in Wire Sequence.\r\n[*] [b]WireSnip[/b]
-    - Played when a wire is cut on a module like Complicated Wires.\r\n[/list]"
+    - Plays in the tutorial for completing a step correctly.\r\n[*] [b]DossierOptionPressed[/b]
+    - Plays when you change a setting in the menu folder.\r\n[*] [b]EmergencyAlarm[/b]
+    - Plays when there is less than a minute left on the bomb, this sound loops.\r\n[*]
+    [b]FastestTimerBeep[/b] - Plays when the bomb has at least 2 or more strikes.\r\n[*]
+    [b]FastTimerBeep[/b] - Plays when the bomb has 1 strike.\r\n[*] [b]FreeplayDeviceDrop[/b]
+    - Plays as the freeplay briefcase hits the desk.\r\n[*] [b]GameOverFanfare[/b]
+    - Plays when all bombs are defused. Finishes before the post game screen.\r\n[*]
+    [b]LightBuzz[/b] - Plays when the lights go out.\r\n[*] [b]LightBuzzShort[/b]
+    - Plays when the lights start to come back on.\r\n[*] [b]MenuButtonPressed[/b]
+    - Plays when you start a mission from the mission binder.\r\n[*] [b]MenuDrop[/b]
+    - Plays as the mission folder hits the desk.\r\n[*] [b]NeedyActivated[/b] - Plays
+    when a needy gets activated.\r\n[*] [b]NeedyWarning[/b] - Plays when a needy is
+    running out of time. This sound loops.\r\n[*] [b]NormalTimerBeep[/b] - Plays when
+    the bomb has no strikes.\r\n[*] [b]PageTurn[/b] - Plays when a page is turned
+    in the Missions binder.\r\n[*] [b]SelectionTick[/b] - Plays as you hover over
+    something intractable.\r\n[*] [b]Stamp[/b] - Plays during the post game screen,
+    when either the defused or exploded text is stamped onto the binder.\r\n[*] [b]Strike[/b]
+    - Plays when you get a strike.\r\n[*] [b]Switch[/b] - Plays when a switch is toggled.\r\n[*]
+    [b]TitleMenuPressed[/b] - Plays when pressing a button in one of the tutorials.\r\n[*]
+    [b]TypewriterKey[/b] - Plays during the post game screen as the mission information
+    gets typed out.\r\n[*] [b]WireSequenceMechanism[/b] - Plays when switching between
+    sets of wires in Wire Sequence.\r\n[*] [b]WireSnip[/b] - Played when a wire is
+    cut on a module like Complicated Wires.\r\n[/list]\r"
   PreviewImage: {fileID: 2800000, guid: 6e5aa64ea0dd9da45bf807777a539943, type: 3}
   Tags:
   - Other
