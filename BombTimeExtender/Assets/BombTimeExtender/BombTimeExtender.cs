@@ -2,6 +2,7 @@
 using System;
 using System.Reflection;
 
+[RequireComponent(typeof(KMService))]
 public class BombTimeExtender : MonoBehaviour
 {
 	public static Type FindType(string qualifiedTypeName)
