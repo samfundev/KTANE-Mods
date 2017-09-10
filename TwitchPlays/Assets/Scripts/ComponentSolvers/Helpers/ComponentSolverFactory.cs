@@ -61,6 +61,7 @@ public static class ComponentSolverFactory
 
 		//Misc Modules
 		ModComponentSolverCreators["NumberPad"] = (bombCommander, bombComponent, ircConnection, canceller) => new NumberPadComponentSolver(bombCommander, bombComponent, ircConnection, canceller);
+		ModComponentSolverCreators["switchModule"] = (bombCommander, bombComponent, ircConnection, canceller) => new SwitchesComponentSolver(bombCommander, bombComponent, ircConnection, canceller);
 
 		//Help Messages
 		//ModComponentSolverHelpMessages["spwiz3DMaze"] = "";
