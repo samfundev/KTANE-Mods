@@ -1,113 +1,85 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
-public class ShapeShiftComponentSolver : ComponentSolver
+public class NumberPadComponentSolver : ComponentSolver
 {
-	public ShapeShiftComponentSolver(BombCommander bombCommander, MonoBehaviour bombComponent, IRCConnection ircConnection, CoroutineCanceller canceller) :
+	public NumberPadComponentSolver(BombCommander bombCommander, MonoBehaviour bombComponent, IRCConnection ircConnection, CoroutineCanceller canceller) :
 		base(bombCommander, bombComponent, ircConnection, canceller)
 	{
-		object _component = bombComponent.GetComponent(_componentType);
-		_buttons = (KMSelectable[]) _buttonsField.GetValue(_component);
-		bombComponent.StartCoroutine(GetDisplay(_component));
-		helpMessage = "Submit your anwser with !{0} submit point round. Reset to initial state with !{0} reset. Valid shapes: flat, point, round and ticket.";
+		_buttons = (KMSelectable[]) _buttonsField.GetValue(bombComponent.GetComponent(_componentType));
+		helpMessage = "Submit your anwser with !{0} submit 4236.";
 	}
 
-	private int? ToShapeIndex(string shape)
+	int? ButtonToIndex(string button)
 	{
-		switch (shape)
+		switch (button)
 		{
-			case "flat":
-			case "rectangle":
+			case "enter":
 				return 0;
-			case "round":
-			case "pill":
-			case "circle":
+			case "0":
 				return 1;
-			case "point":
-			case "triangle":
+			case "clear":
 				return 2;
-			case "ticket":
-			case "cut":
-				return 3;
 			default:
-				return null;
+				int i;
+				if (int.TryParse(button, out i))
+				{
+					return i + 2;
+				}
+				else
+				{
+					return null;
+				}
 		}
 	}
 
-	private IEnumerator GetDisplay(object _component)
+	private IEnumerable PressButton(string button)
 	{
-		yield return new WaitUntil(() => (bool) _isActivatedField.GetValue(_component));
-
-		initialL = _displayL = (int) _displayLField.GetValue(_component);
-		initialR = _displayR = (int) _displayRField.GetValue(_component);
-		Debug.Log(_displayL + " " + _displayR);
-	}
-
-	private IEnumerable SetDisplay(int displayIndexL, int displayIndexR)
-	{
-		while (_displayL != displayIndexL)
+		int? buttonIndex = ButtonToIndex(button);
+		if (buttonIndex != null)
 		{
-			DoInteractionStart(_buttons[0]);
-			DoInteractionEnd(_buttons[0]);
-			_displayL = (_displayL + 1) % 4;
-			yield return new WaitForSeconds(0.1f);
-		}
-		
-		while (_displayR != displayIndexR)
-		{
-			DoInteractionStart(_buttons[2]);
-			DoInteractionEnd(_buttons[2]);
-			_displayR = (_displayR + 1) % 4;
+			KMSelectable buttonSelectable = _buttons[(int) buttonIndex];
+
+			DoInteractionStart(buttonSelectable);
+			DoInteractionEnd(buttonSelectable);
 			yield return new WaitForSeconds(0.1f);
 		}
 	}
-
+	
 	protected override IEnumerator RespondToCommandInternal(string inputCommand)
 	{
 		var commands = inputCommand.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-		if (commands.Length == 3 && commands[0].Equals("submit"))
+		if (commands.Length == 2 && commands[0].Equals("submit"))
 		{
-			int? shapeL = ToShapeIndex(commands[1]);
-			int? shapeR = ToShapeIndex(commands[2]);
+			List<string> buttons = commands[1].Select(c => c.ToString()).ToList();
 
-			if (shapeL != null && shapeR != null)
+			if (buttons.Count() == 4 && buttons.All(num => ButtonToIndex(num) != null))
 			{
-				Debug.Log("Trying to submit: " + shapeL + " " + shapeR);
-				foreach (object obj in SetDisplay((int) shapeL, (int) shapeR)) yield return obj;
-
-				DoInteractionStart(_buttons[1]);
-				DoInteractionEnd(_buttons[1]);
+				buttons.Insert(0, "clear");
+				buttons.Add("enter");
+				foreach (string button in buttons)
+				{
+					foreach (object obj in PressButton(button)) yield return obj;
+				}
 			}
-		}
-		else if (commands.Length == 1 && commands[0].Equals("reset"))
-		{
-			foreach (object obj in SetDisplay(initialL, initialR)) yield return obj;
 		}
 
 		yield return null;
 	}
 
-	static ShapeShiftComponentSolver()
+	static NumberPadComponentSolver()
 	{
-		_componentType = ReflectionHelper.FindType("ShapeShiftModule");
+		_componentType = ReflectionHelper.FindType("NumberPadModule");
 		_buttonsField = _componentType.GetField("buttons", BindingFlags.Public | BindingFlags.Instance);
-		_displayLField = _componentType.GetField("displayL", BindingFlags.NonPublic | BindingFlags.Instance);
-		_displayRField = _componentType.GetField("displayR", BindingFlags.NonPublic | BindingFlags.Instance);
-		_isActivatedField = _componentType.GetField("isActivated", BindingFlags.NonPublic | BindingFlags.Instance);
 	}
 
 	private static Type _componentType = null;
 	private static FieldInfo _buttonsField = null;
-	private static FieldInfo _displayLField = null;
-	private static FieldInfo _displayRField = null;
-	private static FieldInfo _isActivatedField = null;
 
 	private KMSelectable[] _buttons = null;
-	private int _displayL;
-	private int _displayR;
-	private int initialL;
-	private int initialR;
 }
