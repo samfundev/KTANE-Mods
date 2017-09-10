@@ -59,6 +59,9 @@ public static class ComponentSolverFactory
 		//Asimir Modules
 		ModComponentSolverCreators["shapeshift"] = (bombCommander, bombComponent, ircConnection, canceller) => new ShapeShiftComponentSolver(bombCommander, bombComponent, ircConnection, canceller);
 
+		//Misc Modules
+		ModComponentSolverCreators["NumberPad"] = (bombCommander, bombComponent, ircConnection, canceller) => new NumberPadComponentSolver(bombCommander, bombComponent, ircConnection, canceller);
+
 		//Help Messages
 		//ModComponentSolverHelpMessages["spwiz3DMaze"] = "";
 		ModComponentSolverHelpMessages["AdjacentLettersModule"] = "Set the Letters with !{0} set W D J S.  (warning, this will unset ALL letters not specified.)  Submit your answer with !{0} submit.";
