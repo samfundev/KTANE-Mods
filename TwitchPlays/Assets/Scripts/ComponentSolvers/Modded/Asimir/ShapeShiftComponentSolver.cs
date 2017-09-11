@@ -68,6 +68,8 @@ public class ShapeShiftComponentSolver : ComponentSolver
 	{
 		var commands = inputCommand.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
+		yield return null;
+
 		if (commands.Length == 3 && commands[0].Equals("submit"))
 		{
 			int? shapeL = ToShapeIndex(commands[1]);
@@ -86,8 +88,6 @@ public class ShapeShiftComponentSolver : ComponentSolver
 		{
 			foreach (object obj in SetDisplay(initialL, initialR)) yield return obj;
 		}
-
-		yield return null;
 	}
 
 	static ShapeShiftComponentSolver()
