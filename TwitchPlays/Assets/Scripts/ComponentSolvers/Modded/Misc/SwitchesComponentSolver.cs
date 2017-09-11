@@ -23,6 +23,8 @@ public class SwitchesComponentSolver : ComponentSolver
 	{
 		var commands = inputCommand.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
+		yield return null;
+
 		if (commands.Length > 1 && (commands[0].Equals("flip") || commands[0].Equals("switch") || commands[0].Equals("press")))
 		{
 			var switches = commands.Where((_, i) => i > 0).Select(n => TryParse(n));
@@ -36,8 +38,6 @@ public class SwitchesComponentSolver : ComponentSolver
 				}
 			}
 		}
-
-		yield return null;
 	}
 
 	static SwitchesComponentSolver()

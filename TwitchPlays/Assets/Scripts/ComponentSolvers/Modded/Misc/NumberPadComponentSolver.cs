@@ -54,6 +54,8 @@ public class NumberPadComponentSolver : ComponentSolver
 	{
 		var commands = inputCommand.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
+		yield return null;
+
 		if (commands.Length == 2 && commands[0].Equals("submit"))
 		{
 			List<string> buttons = commands[1].Select(c => c.ToString()).ToList();
@@ -68,8 +70,6 @@ public class NumberPadComponentSolver : ComponentSolver
 				}
 			}
 		}
-
-		yield return null;
 	}
 
 	static NumberPadComponentSolver()

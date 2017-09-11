@@ -51,6 +51,8 @@ public class ResistorsComponentSolver : ComponentSolver
 	{
 		var commands = inputCommand.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
+		yield return null;
+
 		if (commands.Length >= 3 && commands.Length % 2 == 1 && commands[0].Equals("connect"))
 		{
 			IEnumerable<int?> pins = commands.Where((_, i) => i > 0).Select(pin => PinToIndex(pin));
@@ -78,8 +80,6 @@ public class ResistorsComponentSolver : ComponentSolver
 			DoInteractionEnd(_clearButton);
 			yield return new WaitForSeconds(0.1f);
 		}
-
-		yield return null;
 	}
 
 	static ResistorsComponentSolver()

@@ -36,6 +36,8 @@ public class ThreeDMazeComponentSolver : ComponentSolver
 	{
 		var commands = inputCommand.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
+		yield return null;
+
 		if (commands.Length > 1 && (commands[0].Equals("move") || commands[0].Equals("walk")))
 		{
 			var moves = commands.Where((_, i) => i > 0).Select(dir => ShortenDirection(dir));
@@ -65,8 +67,6 @@ public class ThreeDMazeComponentSolver : ComponentSolver
 				}
 			}
 		}
-
-		yield return null;
 	}
 
 	static ThreeDMazeComponentSolver()
