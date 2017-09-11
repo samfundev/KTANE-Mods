@@ -33,7 +33,11 @@ public class SeaShellsComponentSolver : ComponentSolver
 					IEnumerable<string> matchingLabels = buttonLabels.Where(label => label.Contains(text));
 
 					int matchedCount = matchingLabels.Count();
-					if (matchedCount == 1)
+					if (buttonLabels.Any(label => label.Equals(text)))
+					{
+						fixedLabels.Add(text);
+					}
+					else if (matchedCount == 1)
 					{
 						fixedLabels.Add(matchingLabels.First());
 					}
