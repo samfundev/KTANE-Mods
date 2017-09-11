@@ -58,6 +58,7 @@ public static class ComponentSolverFactory
 
 		//Asimir Modules
 		ModComponentSolverCreators["shapeshift"] = (bombCommander, bombComponent, ircConnection, canceller) => new ShapeShiftComponentSolver(bombCommander, bombComponent, ircConnection, canceller);
+		ModComponentSolverCreators["SeaShells"] = (bombCommander, bombComponent, ircConnection, canceller) => new SeaShellsComponentSolver(bombCommander, bombComponent, ircConnection, canceller);
 
 		//Spare Wizard Modules
 		ModComponentSolverCreators["spwiz3DMaze"] = (bombCommander, bombComponent, ircConnection, canceller) => new ThreeDMazeComponentSolver(bombCommander, bombComponent, ircConnection, canceller);
