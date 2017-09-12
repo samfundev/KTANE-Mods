@@ -26,16 +26,24 @@ public class MicrocontrollerComponentSolver : ComponentSolver
 			int colorIndex = Array.IndexOf(_colors, commands[1]);
 			if (colorIndex > -1)
 			{
-				for (int i = 0; i < colorIndex; i++)
-				{
+				while (currentIndex != colorIndex) {
 					DoInteractionStart(_buttonUp);
 					DoInteractionEnd(_buttonUp);
+					currentIndex = (currentIndex + 1) % 6;
+
 					yield return new WaitForSeconds(0.1f);
 				}
+
+				int lastStrikeCount = StrikeCount;
 
 				DoInteractionStart(_buttonOK);
 				DoInteractionEnd(_buttonOK);
 				yield return new WaitForSeconds(0.1f);
+
+				if (lastStrikeCount == StrikeCount)
+				{
+					currentIndex = 0;
+				}
 			}
 		}
 		else if (commands.Length == 1 && commands[0].Equals("cycle"))
@@ -44,7 +52,7 @@ public class MicrocontrollerComponentSolver : ComponentSolver
 			{
 				DoInteractionStart(_buttonUp);
 				DoInteractionEnd(_buttonUp);
-				yield return new WaitForSeconds(0.1f);
+				yield return new WaitForSeconds(0.2f);
 			}
 		}
 	}
@@ -61,6 +69,7 @@ public class MicrocontrollerComponentSolver : ComponentSolver
 	private static FieldInfo _buttonUpField = null;
 
 	private static string[] _colors = { "white", "red", "yellow", "magenta", "blue", "green" };
+	private int currentIndex = 0;
 
 	private KMSelectable _buttonOK = null;
 	private KMSelectable _buttonUp = null;
