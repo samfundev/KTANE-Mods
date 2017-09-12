@@ -45,7 +45,7 @@ public class ChordQualitiesComponentSolver : ComponentSolver
 		
 		yield return null;
 
-		if (commands.Length == 5 && commands[0].Equals("submit"))
+		if (commands.Length == 5 && (commands[0].Equals("submit") || commands[0].Equals("play")))
 		{
 			string[] notes = commands.Where((_, i) => i > 0).ToArray();
 			if (notes.All(note => Array.IndexOf(noteIndexes, note) > -1))
