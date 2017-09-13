@@ -27,7 +27,7 @@ public class SwitchesComponentSolver : ComponentSolver
 		yield return null;
 
         
-		if (commands.Length > 1 && (commands[0].Equals("flip") || commands[0].Equals("switch") || commands[0].Equals("press")))
+		if (commands.Length > 1 && (commands[0].Equals("flip") || commands[0].Equals("switch") || commands[0].Equals("press") || commands[0].Equals("toggle")))
 		{
 			var switches = commands.Where((_, i) => i > 0).Select(n => TryParse(n));
 			
