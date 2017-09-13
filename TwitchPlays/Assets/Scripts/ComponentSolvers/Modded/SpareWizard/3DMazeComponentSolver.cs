@@ -27,6 +27,11 @@ public class ThreeDMazeComponentSolver : ComponentSolver
 				return "r";
 			case "forward":
 				return "f";
+            case "u-turn":
+            case "uturn":
+            case "turnaround":
+            case "turn-around":
+                return "u";
 			default:
 				return direction;
 		}
@@ -37,12 +42,13 @@ public class ThreeDMazeComponentSolver : ComponentSolver
 		var commands = inputCommand.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
 		yield return null;
+	    var currentStrikes = StrikeCount;
 
 		if (commands.Length > 1 && (commands[0].Equals("move") || commands[0].Equals("walk")))
 		{
 			var moves = commands.Where((_, i) => i > 0).Select(dir => ShortenDirection(dir));
 			
-			if (moves.All(n => n == "l" || n == "r" || n == "f"))
+			if (moves.All(n => n == "l" || n == "r" || n == "f" || n == "u"))
 			{
 				float moveDelay = commands[0].Equals("move") ? 0.1f : 0.4f;
 				foreach (string move in moves)
@@ -59,11 +65,19 @@ public class ThreeDMazeComponentSolver : ComponentSolver
 						case "f":
 							button = _buttonStraight;
 							break;
+                        case "u":
+                            button = _buttonRight;
+                            DoInteractionStart(button);
+                            DoInteractionEnd(button);
+                            break;
 					}
 
 					DoInteractionStart(button);
 					DoInteractionEnd(button);
 					yield return new WaitForSeconds(moveDelay);
+
+				    if (StrikeCount != currentStrikes)
+				        yield break;
 				}
 			}
 		}
