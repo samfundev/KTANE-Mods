@@ -17,6 +17,7 @@ public class SeaShellsComponentSolver : ComponentSolver
 	protected override IEnumerator RespondToCommandInternal(string inputCommand)
 	{
 		var commands = inputCommand.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+	    var currentStrikes = StrikeCount;
 
 		yield return null;
 
@@ -62,6 +63,8 @@ public class SeaShellsComponentSolver : ComponentSolver
 						DoInteractionEnd(button);
 
 						yield return new WaitForSeconds(0.1f);
+					    if (currentStrikes != StrikeCount)
+					        yield break;
 					}
 				}
 			}
