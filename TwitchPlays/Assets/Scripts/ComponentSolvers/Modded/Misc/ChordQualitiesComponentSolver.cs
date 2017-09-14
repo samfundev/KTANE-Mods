@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Reflection;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class ChordQualitiesComponentSolver : ComponentSolver
@@ -26,15 +25,13 @@ public class ChordQualitiesComponentSolver : ComponentSolver
 			int notePosition = Array.IndexOf(noteIndexes, note);
 			while (currentPosition != notePosition)
 			{
-				_wheelButton.OnInteract();
-				_wheelButton.OnInteractEnded();
+				DoInteractionClick(_wheelButton);
 				currentPosition = (currentPosition + 1) % 12;
 
 				yield return new WaitForSeconds(0.1f);
 			}
 
-			_selectButton.OnInteract();
-			_selectButton.OnInteractEnded();
+			DoInteractionClick(_selectButton);
 			yield return new WaitForSeconds(0.1f);
 		}
 	}
@@ -42,8 +39,6 @@ public class ChordQualitiesComponentSolver : ComponentSolver
 	protected override IEnumerator RespondToCommandInternal(string inputCommand)
 	{
 		var commands = inputCommand.ToLowerInvariant().Replace('♯', '#').Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-		
-		yield return null;
 
 		if (commands.Length == 5 && (commands[0].Equals("submit") || commands[0].Equals("play")))
 		{
@@ -52,18 +47,19 @@ public class ChordQualitiesComponentSolver : ComponentSolver
 			{
 				if (notes.Distinct().Count() == 4)
 				{
+					yield return null;
+
 					if (previousNotes != null) // Reset the previously set notes.
 					{
 						foreach (object obj in ToggleNotes(previousNotes)) yield return obj;
 						previousNotes = null;
 					}
 
-
 					foreach (object obj in ToggleNotes(notes)) yield return obj;
 
 					int lastStrikeCount = StrikeCount;
-
-					_submitButton.OnInteract();
+					
+					DoInteractionClick(_submitButton);
 					yield return new WaitForSeconds(0.8f);
 
 					if (lastStrikeCount != StrikeCount)

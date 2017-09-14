@@ -86,7 +86,11 @@ public abstract class ComponentSolver : ICommandResponder
                     yield return new WaitForSeconds(0.5f);
                 }
                 else
-                    responseNotifier.ProcessResponse(CommandResponse.NoResponse);
+				{
+					IRCConnection.SendMessage(string.Format("Sorry @{0}, that command is invalid.", userNickName));
+
+					responseNotifier.ProcessResponse(CommandResponse.NoResponse);
+				}
 
                 _currentResponseNotifier = null;
                 _currentUserNickName = null;
@@ -108,9 +112,12 @@ public abstract class ComponentSolver : ICommandResponder
         int previousStrikeCount = StrikeCount;
         bool parseError = false;
         bool needQuaternionReset = false;
-
-        while (subcoroutine.MoveNext())
+		bool responded = false;
+		
+        while (previousStrikeCount == StrikeCount && !Solved && subcoroutine.MoveNext())
         {
+			responded = true;
+
             object currentValue = subcoroutine.Current;
             if (currentValue is string)
             {
@@ -167,6 +174,11 @@ public abstract class ComponentSolver : ICommandResponder
             }
             else if (currentValue is Quaternion)
             {
+				if (!needQuaternionReset)
+				{
+					BombMessageResponder.moduleCameras.Hide();
+				}
+
                 Quaternion localQuaternion = (Quaternion)currentValue;
                 BombCommander.RotateByLocalQuaternion(localQuaternion);
                 needQuaternionReset = true;
@@ -174,10 +186,16 @@ public abstract class ComponentSolver : ICommandResponder
             yield return currentValue;
         }
 
+		if (!responded)
+		{
+			IRCConnection.SendMessage(string.Format("Sorry @{0}, that command is invalid.", userNickName));
+		}
+
         if (needQuaternionReset)
         {
             BombCommander.RotateByLocalQuaternion(Quaternion.identity);
-        }
+			BombMessageResponder.moduleCameras.Show();
+		}
 
         if (parseError)
         {
@@ -224,10 +242,16 @@ public abstract class ComponentSolver : ICommandResponder
         _interactEndedMethod.Invoke(selectable, null);
         _setHighlightMethod.Invoke(selectable, new object[] { false });
     }
-    #endregion
 
-    #region Private Methods
-    private void HookUpEvents()
+	protected void DoInteractionClick(MonoBehaviour interactable)
+	{
+		DoInteractionStart(interactable);
+		DoInteractionEnd(interactable);
+	}
+	#endregion
+
+	#region Private Methods
+	private void HookUpEvents()
     {
         Delegate gameOnPassDelegate = (Delegate)CommonReflectedTypeInfo.OnPassField.GetValue(BombComponent);
         Delegate internalOnPassDelegate = Delegate.CreateDelegate(CommonReflectedTypeInfo.PassEventType, this, _onPassInternalMethod);
@@ -364,14 +388,14 @@ public abstract class ComponentSolver : ICommandResponder
 
     private int _strikeCount = 0;
     protected int StrikeCount
-    {
-        get
-        {
+	{
+		get
+		{
             return _strikeCount;
-        }
-    }
+		}
+	}
 
-    protected float FocusDistance
+	protected float FocusDistance
     {
         get
         {

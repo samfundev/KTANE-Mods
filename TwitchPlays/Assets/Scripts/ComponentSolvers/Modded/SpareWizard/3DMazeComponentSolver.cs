@@ -14,7 +14,7 @@ public class ThreeDMazeComponentSolver : ComponentSolver
 		_buttonRight = (KMSelectable) _buttonRightField.GetValue(_component);
 		_buttonStraight = (KMSelectable) _buttonStraightField.GetValue(_component);
 
-		helpMessage = "Move around the maze using !{0} move left forward right. Walk slowly around the maze using !{0} walk left forawrd right. Shorten forms of the directions are also acceptable.";
+		helpMessage = "Move around the maze using !{0} move left forward right. Walk slowly around the maze using !{0} walk left forawrd right. Shorten forms of the directions are also acceptable. You can use \"uturn\" or \"u\" to turn around.";
 	}
 
 	private string ShortenDirection(string direction)
@@ -27,6 +27,11 @@ public class ThreeDMazeComponentSolver : ComponentSolver
 				return "r";
 			case "forward":
 				return "f";
+			case "u-turn":
+	        case "uturn":
+		    case "turnaround":
+		    case "turn-around":
+				return "u";
 			default:
 				return direction;
 		}
@@ -36,14 +41,14 @@ public class ThreeDMazeComponentSolver : ComponentSolver
 	{
 		var commands = inputCommand.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-		yield return null;
-
 		if (commands.Length > 1 && (commands[0].Equals("move") || commands[0].Equals("walk")))
 		{
 			var moves = commands.Where((_, i) => i > 0).Select(dir => ShortenDirection(dir));
-			
-			if (moves.All(n => n == "l" || n == "r" || n == "f"))
+
+			if (moves.All(m => validMoves.Contains(m)))
 			{
+				yield return null;
+
 				float moveDelay = commands[0].Equals("move") ? 0.1f : 0.4f;
 				foreach (string move in moves)
 				{
@@ -59,10 +64,13 @@ public class ThreeDMazeComponentSolver : ComponentSolver
 						case "f":
 							button = _buttonStraight;
 							break;
+						case "u":
+							button = _buttonRight;
+							DoInteractionClick(button);
+							break;
 					}
 
-					DoInteractionStart(button);
-					DoInteractionEnd(button);
+					DoInteractionClick(button);
 					yield return new WaitForSeconds(moveDelay);
 				}
 			}
@@ -81,6 +89,8 @@ public class ThreeDMazeComponentSolver : ComponentSolver
 	private static FieldInfo _buttonLeftField = null;
 	private static FieldInfo _buttonRightField = null;
 	private static FieldInfo _buttonStraightField = null;
+
+	private static string[] validMoves = { "f", "l", "r", "u" };
 
 	private KMSelectable _buttonLeft = null;
 	private KMSelectable _buttonRight = null;

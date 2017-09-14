@@ -23,14 +23,13 @@ public class SwitchesComponentSolver : ComponentSolver
 	{
 		var commands = inputCommand.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-		yield return null;
-
-		if (commands.Length > 1 && (commands[0].Equals("flip") || commands[0].Equals("switch") || commands[0].Equals("press")))
+		if (commands.Length > 1 && validCommands.Contains(commands[0]))
 		{
 			var switches = commands.Where((_, i) => i > 0).Select(n => TryParse(n));
-			
 			if (switches.All(n => n != null && n > 0 && n < 6))
 			{
+				yield return null;
+
 				foreach (int? switchIndex in switches)
 				{
 					_OnToggleMethod.Invoke(_component, new object[] { switchIndex - 1 });
@@ -48,6 +47,8 @@ public class SwitchesComponentSolver : ComponentSolver
 
 	private static Type _componentType = null;
 	private static MethodInfo _OnToggleMethod = null;
+
+	private static string[] validCommands = { "flip", "switch", "press", "toggle" };
 
 	private object _component = null;
 }

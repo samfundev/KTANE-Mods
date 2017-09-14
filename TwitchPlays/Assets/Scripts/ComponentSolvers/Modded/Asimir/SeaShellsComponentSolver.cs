@@ -11,14 +11,12 @@ public class SeaShellsComponentSolver : ComponentSolver
 		base(bombCommander, bombComponent, ircConnection, canceller)
 	{
 		_buttons = (KMSelectable[]) _buttonsField.GetValue(bombComponent.GetComponent(_componentType));
-		helpMessage = "Press buttons by typing !{0} press alar llama. You can submit partial text as long it only matches one button.";
+		helpMessage = "Press buttons by typing !{0} press alar llama. You can submit partial text as long it only matches one button. NOTE: Each button press is separated by a space so typing \"burglar alarm\" will press a button twice.";
 	}
 
 	protected override IEnumerator RespondToCommandInternal(string inputCommand)
 	{
 		var commands = inputCommand.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
-		yield return null;
 
 		if (commands.Length >= 2 && commands[0].Equals("press"))
 		{
@@ -26,6 +24,8 @@ public class SeaShellsComponentSolver : ComponentSolver
 
 			if (!buttonLabels.Any(label => label == " "))
 			{
+				yield return null;
+
 				IEnumerable<string> submittedText = commands.Where((_, i) => i > 0);
 				List<string> fixedLabels = new List<string>();
 				foreach (string text in submittedText)
@@ -44,25 +44,21 @@ public class SeaShellsComponentSolver : ComponentSolver
 					else if (matchedCount == 0)
 					{
 						yield return string.Format("sendtochat There isn't any label that contains \"{0}\".", text);
-						break;
+						yield break;
 					}
 					else
 					{
 						yield return string.Format("sendtochat There are multiple labels that contain \"{0}\": {1}.", text, string.Join(", ", matchingLabels.ToArray()));
-						break;
+						yield break;
 					}
 				}
-
-				if (fixedLabels.Count == submittedText.Count())
+				
+				foreach (string fixedLabel in fixedLabels)
 				{
-					foreach (string fixedLabel in fixedLabels)
-					{
-						KMSelectable button = _buttons[buttonLabels.IndexOf(fixedLabel)];
-						DoInteractionStart(button);
-						DoInteractionEnd(button);
+					KMSelectable button = _buttons[buttonLabels.IndexOf(fixedLabel)];
+					DoInteractionClick(button);
 
-						yield return new WaitForSeconds(0.1f);
-					}
+					yield return new WaitForSeconds(0.1f);
 				}
 			}
 		}

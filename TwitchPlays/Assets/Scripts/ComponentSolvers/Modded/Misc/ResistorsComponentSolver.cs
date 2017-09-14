@@ -51,33 +51,34 @@ public class ResistorsComponentSolver : ComponentSolver
 	{
 		var commands = inputCommand.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-		yield return null;
-
 		if (commands.Length >= 3 && commands.Length % 2 == 1 && commands[0].Equals("connect"))
 		{
 			IEnumerable<int?> pins = commands.Where((_, i) => i > 0).Select(pin => PinToIndex(pin));
 
 			if (pins.All(pinIndex => pinIndex != null))
 			{
+				yield return null;
+
 				foreach (int? pinIndex in pins)
 				{
 					KMSelectable pinSelectable = _pins[(int) pinIndex];
-					DoInteractionStart(pinSelectable);
-					DoInteractionEnd(pinSelectable);
+					DoInteractionClick(pinSelectable);
 					yield return new WaitForSeconds(0.1f);
 				}
 			}
 		}
 		else if (commands.Length == 1 && (commands[0].Equals("check") || commands[0].Equals("submit")))
 		{
-			DoInteractionStart(_checkButton);
-			DoInteractionEnd(_checkButton);
+			yield return null;
+
+			DoInteractionClick(_checkButton);
 			yield return new WaitForSeconds(0.1f);
 		}
 		else if (commands.Length == 1 && commands[0].Equals("clear"))
 		{
-			DoInteractionStart(_clearButton);
-			DoInteractionEnd(_clearButton);
+			yield return null;
+
+			DoInteractionClick(_clearButton);
 			yield return new WaitForSeconds(0.1f);
 		}
 	}

@@ -18,17 +18,16 @@ public class MicrocontrollerComponentSolver : ComponentSolver
 	protected override IEnumerator RespondToCommandInternal(string inputCommand)
 	{
 		var commands = inputCommand.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-		
-		yield return null;
 
 		if (commands.Length == 2 && commands[0].Equals("set"))
 		{
 			int colorIndex = Array.IndexOf(_colors, commands[1]);
 			if (colorIndex > -1)
 			{
+				yield return null;
+
 				while (currentIndex != colorIndex) {
-					DoInteractionStart(_buttonUp);
-					DoInteractionEnd(_buttonUp);
+					DoInteractionClick(_buttonUp);
 					currentIndex = (currentIndex + 1) % 6;
 
 					yield return new WaitForSeconds(0.1f);
@@ -36,8 +35,7 @@ public class MicrocontrollerComponentSolver : ComponentSolver
 
 				int lastStrikeCount = StrikeCount;
 
-				DoInteractionStart(_buttonOK);
-				DoInteractionEnd(_buttonOK);
+				DoInteractionClick(_buttonOK);
 				yield return new WaitForSeconds(0.1f);
 
 				if (lastStrikeCount == StrikeCount)
@@ -48,10 +46,11 @@ public class MicrocontrollerComponentSolver : ComponentSolver
 		}
 		else if (commands.Length == 1 && commands[0].Equals("cycle"))
 		{
+			yield return null;
+
 			for (int i = 0; i < 6; i++)
 			{
-				DoInteractionStart(_buttonUp);
-				DoInteractionEnd(_buttonUp);
+				DoInteractionClick(_buttonUp);
 				yield return new WaitForSeconds(0.2f);
 			}
 		}
