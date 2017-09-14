@@ -36,25 +36,10 @@ public class NumberPadComponentSolver : ComponentSolver
 				}
 		}
 	}
-
-	private IEnumerable PressButton(string button)
-	{
-		int? buttonIndex = ButtonToIndex(button);
-		if (buttonIndex != null)
-		{
-			KMSelectable buttonSelectable = _buttons[(int) buttonIndex];
-
-			DoInteractionStart(buttonSelectable);
-			DoInteractionEnd(buttonSelectable);
-			yield return new WaitForSeconds(0.1f);
-		}
-	}
 	
 	protected override IEnumerator RespondToCommandInternal(string inputCommand)
 	{
 		var commands = inputCommand.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
-		yield return null;
 
 		if (commands.Length == 2 && commands[0].Equals("submit"))
 		{
@@ -62,11 +47,20 @@ public class NumberPadComponentSolver : ComponentSolver
 
 			if (buttons.Count() == 4 && buttons.All(num => ButtonToIndex(num) != null))
 			{
+				yield return null;
+
 				buttons.Insert(0, "clear");
 				buttons.Add("enter");
 				foreach (string button in buttons)
 				{
-					foreach (object obj in PressButton(button)) yield return obj;
+					int? buttonIndex = ButtonToIndex(button);
+					if (buttonIndex != null)
+					{
+						KMSelectable buttonSelectable = _buttons[(int) buttonIndex];
+
+						DoInteractionClick(buttonSelectable);
+						yield return new WaitForSeconds(0.1f);
+					}
 				}
 			}
 		}

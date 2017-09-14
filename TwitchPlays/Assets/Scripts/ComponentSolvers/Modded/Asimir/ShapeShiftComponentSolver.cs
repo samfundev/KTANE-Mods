@@ -49,16 +49,14 @@ public class ShapeShiftComponentSolver : ComponentSolver
 	{
 		while (_displayL != displayIndexL)
 		{
-			DoInteractionStart(_buttons[0]);
-			DoInteractionEnd(_buttons[0]);
+			DoInteractionClick(_buttons[0]);
 			_displayL = (_displayL + 1) % 4;
 			yield return new WaitForSeconds(0.1f);
 		}
 		
 		while (_displayR != displayIndexR)
 		{
-			DoInteractionStart(_buttons[2]);
-			DoInteractionEnd(_buttons[2]);
+			DoInteractionClick(_buttons[2]);
 			_displayR = (_displayR + 1) % 4;
 			yield return new WaitForSeconds(0.1f);
 		}
@@ -68,8 +66,6 @@ public class ShapeShiftComponentSolver : ComponentSolver
 	{
 		var commands = inputCommand.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-		yield return null;
-
 		if (commands.Length == 3 && commands[0].Equals("submit"))
 		{
 			int? shapeL = ToShapeIndex(commands[1]);
@@ -77,15 +73,15 @@ public class ShapeShiftComponentSolver : ComponentSolver
 
 			if (shapeL != null && shapeR != null)
 			{
-				Debug.Log("Trying to submit: " + shapeL + " " + shapeR);
+				yield return null;
 				foreach (object obj in SetDisplay((int) shapeL, (int) shapeR)) yield return obj;
 
-				DoInteractionStart(_buttons[1]);
-				DoInteractionEnd(_buttons[1]);
+				DoInteractionClick(_buttons[1]);
 			}
 		}
 		else if (commands.Length == 1 && commands[0].Equals("reset"))
 		{
+			yield return null;
 			foreach (object obj in SetDisplay(initialL, initialR)) yield return obj;
 		}
 	}
