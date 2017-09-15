@@ -1,9 +1,10 @@
 ﻿using UnityEngine;
+using System;
 using System.Linq;
+using System.Collections;
 using System.Collections.Generic;
 using Random = UnityEngine.Random;
 using BombInfoExtensions;
-using System.Collections;
 
 public class MinesweeperModule : MonoBehaviour
 {
@@ -516,18 +517,19 @@ public class MinesweeperModule : MonoBehaviour
 			Game.Board.Insert(y, new List<Cell>());
 			for (int x = 0; x < GridSize.x; x++)
 			{
-				GameObject Cell = Grid.transform.Find(x + " " + y).gameObject; //Instantiate(CellBase);
-																			   /*
-																			   Cell.SetActive(true);
-																			   Transform trans = Cell.transform;
-																			   trans.parent = Grid.transform;
-																			   trans.localScale = new Vector3(1 / GridSize.x * scale, 1, 1 / GridSize.y * scale);
+				GameObject Cell = Grid.transform.Find(x + " " + y).gameObject;
+				//Instantiate(CellBase);
+				/*
+				Cell.SetActive(true);
+				Transform trans = Cell.transform;
+				trans.parent = Grid.transform;
+				trans.localScale = new Vector3(1 / GridSize.x * scale, 1, 1 / GridSize.y * scale);
 
-																			   float px = x / GridSize.x * 10 - 5 + (1 / GridSize.x) * 5;
-																			   float pz = y / GridSize.y * -10 + 5 + (1 / GridSize.y) * -5;
-																			   trans.localPosition = new Vector3(px, 0.001f, pz);
+				float px = x / GridSize.x * 10 - 5 + (1 / GridSize.x) * 5;
+				float pz = y / GridSize.y * -10 + 5 + (1 / GridSize.y) * -5;
+				trans.localPosition = new Vector3(px, 0.001f, pz);
 
-																			   Cell.name = x + " " + y;*/
+				Cell.name = x + " " + y;*/
 
 				Cell cell = new Cell(Game, x, y, Cell, Module, Sprites);
 				Game.Cells.Insert(x + y * (int) GridSize.x, cell);
@@ -787,10 +789,13 @@ public class MinesweeperModule : MonoBehaviour
 
 	public IEnumerator ProcessTwitchCommand(string command)
 	{
-		string[] commands = command.ToLowerInvariant().Split(new[] { ';' }, System.StringSplitOptions.RemoveEmptyEntries);
+		List<object> actions = new List<object>();
+
+		int parsed = 0;
+		string[] commands = command.ToLowerInvariant().Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
 		foreach (string cmd in commands)
 		{
-			string[] split = cmd.Split(new[] { ' ' }, System.StringSplitOptions.RemoveEmptyEntries);
+			string[] split = cmd.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 			if (StartFound)
 			{
 				if (split.Length == 3 && (split[0] == "dig" || split[0] == "flag"))
@@ -799,14 +804,9 @@ public class MinesweeperModule : MonoBehaviour
 					int y;
 					if (int.TryParse(split[1], out x) && int.TryParse(split[2], out y) && Game.GetCell(x - 1, y - 1) != null)
 					{
-						if (split[0] == "flag" == Digging)
-						{
-							ModeToggle.GetComponent<KMSelectable>().OnInteract();
-							yield return new WaitForSeconds(0.1f);
-						}
-
-						Game.GetCell(x - 1, y - 1).Click();
-						yield return new WaitForSeconds(0.1f);
+						parsed++;
+						actions.Add(split[0] == "flag");
+						actions.Add(Game.GetCell(x - 1, y - 1));
 					}
 				}
 				else if (split.Length == 2)
@@ -815,27 +815,54 @@ public class MinesweeperModule : MonoBehaviour
 					int y;
 					if (int.TryParse(split[0], out x) && int.TryParse(split[1], out y) && Game.GetCell(x - 1, y - 1) != null)
 					{
-						Game.GetCell(x - 1, y - 1).Click();
-						yield return new WaitForSeconds(0.1f);
+						parsed++;
+						actions.Add(Game.GetCell(x - 1, y - 1));
 					}
 				}
 			}
 			else if (split.Length == 2 && split[0] == "dig" && Colors.Keys.Contains(split[1]))
 			{
-				foreach (Cell cell in Game.Cells)
-				{
-					if (cell.Color == split[1])
-					{
-						GuidesEnabled = true;
-						foreach (GameObject guide in Guides)
-						{
-							guide.SetActive(true);
-						}
+				parsed++;
+				actions.Add(split[1]);
+			}
+		}
+		
+		if (parsed != commands.Length)
+		{
+			yield break;
+		}
 
-						cell.Click();
-						break;
+		yield return null;
+		foreach (object action in actions)
+		{
+			switch (action.GetType().Name)
+			{
+				case "Boolean":
+					if ((bool) action == Digging)
+					{
+						ModeToggle.GetComponent<KMSelectable>().OnInteract();
+						yield return new WaitForSeconds(0.1f);
 					}
-				}
+					break;
+				case "Cell":
+					((Cell) action).Click();
+					break;
+				case "String": // Click starting cell color
+					foreach (Cell cell in Game.Cells)
+					{
+						if (cell.Color == (string) action)
+						{
+							GuidesEnabled = true;
+							foreach (GameObject guide in Guides)
+							{
+								guide.SetActive(true);
+							}
+
+							cell.Click();
+							break;
+						}
+					}
+					break;
 			}
 		}
 	}
