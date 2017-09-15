@@ -10,7 +10,8 @@ public class SeaShellsComponentSolver : ComponentSolver
 	public SeaShellsComponentSolver(BombCommander bombCommander, MonoBehaviour bombComponent, IRCConnection ircConnection, CoroutineCanceller canceller) :
 		base(bombCommander, bombComponent, ircConnection, canceller)
 	{
-		_buttons = (KMSelectable[]) _buttonsField.GetValue(bombComponent.GetComponent(_componentType));
+		_component = bombComponent.GetComponent(_componentType);
+		_buttons = (KMSelectable[]) _buttonsField.GetValue(_component);
 		helpMessage = "Press buttons by typing !{0} press alar llama. You can submit partial text as long it only matches one button. NOTE: Each button press is separated by a space so typing \"burglar alarm\" will press a button twice.";
 	}
 
@@ -53,12 +54,18 @@ public class SeaShellsComponentSolver : ComponentSolver
 					}
 				}
 				
+				int startingStage = (int) _stageField.GetValue(_component);
 				foreach (string fixedLabel in fixedLabels)
 				{
 					KMSelectable button = _buttons[buttonLabels.IndexOf(fixedLabel)];
 					DoInteractionClick(button);
 
 					yield return new WaitForSeconds(0.1f);
+
+					if (startingStage != (int) _stageField.GetValue(_component))
+					{
+						yield break;
+					}
 				}
 			}
 		}
@@ -68,10 +75,13 @@ public class SeaShellsComponentSolver : ComponentSolver
 	{
 		_componentType = ReflectionHelper.FindType("SeaShellsModule");
 		_buttonsField = _componentType.GetField("buttons", BindingFlags.Public | BindingFlags.Instance);
+		_stageField = _componentType.GetField("stage", BindingFlags.NonPublic | BindingFlags.Instance);
 	}
 
 	private static Type _componentType = null;
 	private static FieldInfo _buttonsField = null;
+	private static FieldInfo _stageField = null;
 
+	private object _component = null;
 	private KMSelectable[] _buttons = null;
 }
