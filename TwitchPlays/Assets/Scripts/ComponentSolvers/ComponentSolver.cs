@@ -64,8 +64,31 @@ public abstract class ComponentSolver : ICommandResponder
 
         if (subcoroutine == null || !subcoroutine.MoveNext())
         {
-            subcoroutine = RespondToCommandInternal(message);
-            if (subcoroutine == null || !subcoroutine.MoveNext() || Solved || beforeStrikeCount != StrikeCount)
+			try
+			{
+				subcoroutine = RespondToCommandInternal(message);
+			}
+			catch (Exception e)
+			{
+				HandleModuleException(e);
+				yield break;
+			}
+
+			bool moved = false;
+			if (subcoroutine != null)
+			{
+				try
+				{
+					moved = subcoroutine.MoveNext();
+				}
+				catch (Exception e)
+				{
+					HandleModuleException(e);
+					yield break;
+				}
+			}
+
+            if (subcoroutine == null || !moved || Solved || beforeStrikeCount != StrikeCount)
             {
                 if (Solved || beforeStrikeCount != StrikeCount)
                 {
@@ -113,10 +136,27 @@ public abstract class ComponentSolver : ICommandResponder
         bool parseError = false;
         bool needQuaternionReset = false;
 		bool responded = false;
+		bool exceptionThrown = false;
 		
-        while (previousStrikeCount == StrikeCount && !Solved && subcoroutine.MoveNext())
+        while (previousStrikeCount == StrikeCount && !Solved)
         {
-			responded = true;
+			try
+			{
+				if (!subcoroutine.MoveNext())
+				{
+					break;
+				}
+				else
+				{
+					responded = true;
+				}
+			}
+			catch (Exception e)
+			{
+				exceptionThrown = true;
+				HandleModuleException(e);
+				break;
+			}
 
             object currentValue = subcoroutine.Current;
             if (currentValue is string)
@@ -186,7 +226,7 @@ public abstract class ComponentSolver : ICommandResponder
             yield return currentValue;
         }
 
-		if (!responded)
+		if (!responded && !exceptionThrown)
 		{
 			IRCConnection.SendMessage(string.Format("Sorry @{0}, that command is invalid.", userNickName));
 		}
@@ -247,6 +287,18 @@ public abstract class ComponentSolver : ICommandResponder
 	{
 		DoInteractionStart(interactable);
 		DoInteractionEnd(interactable);
+	}
+
+	protected void HandleModuleException(Exception e)
+	{
+		Debug.Log("[TwitchPlays] While solving a module an exception has occurred! Here's the error:");
+		Debug.LogException(e);
+
+		IRCConnection.SendMessage("Looks like a module ran into a problem while running a command, automatically solving module.");
+
+		_currentUserNickName = null;
+		_delegatedSolveUserNickName = null;
+		CommonReflectedTypeInfo.HandlePassMethod.Invoke(BombComponent, null);
 	}
 	#endregion
 
