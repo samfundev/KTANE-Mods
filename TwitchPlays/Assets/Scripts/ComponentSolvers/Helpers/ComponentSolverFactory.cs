@@ -163,18 +163,23 @@ public static class ComponentSolverFactory
         ModComponentSolverManualCodes["BitOps"] = "Bitwise Operators";
         ModComponentSolverManualCodes["RubiksCubeModule"] = "Rubik%E2%80%99s Cube";
 
-        //Status Light Locations.
-        //For most modules, the Status light is in the Top Right corner.  However, there is the odd module where the status
-        //light might be in the Top left, Bottom right, or Bottom left corner.  In these cases, the ID number for multi-decker
-        //should be moved accordingly.  //Use this only in cases where the location detection code results in incorrect placement
-        //of the ID location.
-        /*ModComponentSolverStatusLightLeft["ThirdBase"] = true;
+		//Status Light Locations.
+		//For most modules, the Status light is in the Top Right corner.  However, there is the odd module where the status
+		//light might be in the Top left, Bottom right, or Bottom left corner.  In these cases, the ID number for multi-decker
+		//should be moved accordingly.  //Use this only in cases where the location detection code results in incorrect placement
+		//of the ID location.
+		/*ModComponentSolverStatusLightLeft["ThirdBase"] = true;
         ModComponentSolverStatusLightBottom["ThirdBase"] = true;*/
+		ModComponentSolverStatusLightLeft["ModuleAgainstHumanity"] = false;
+		ModComponentSolverStatusLightBottom["ModuleAgainstHumanity"] = false;
 
-        //Chat Rotation
-        //Most modules behave correctly, and have NOT rotated the StatusLightParent needlessly.  There are a few that have done exactly that.
+		ModComponentSolverStatusLightLeft["DoubleOhModule"] = false;
+		ModComponentSolverStatusLightBottom["DoubleOhModule"] = false;
 
-    }
+		//Chat Rotation
+		//Most modules behave correctly, and have NOT rotated the StatusLightParent needlessly.  There are a few that have done exactly that.
+
+	}
 
     public static ComponentSolver CreateSolver(BombCommander bombCommander, MonoBehaviour bombComponent, ComponentTypeEnum componentType, IRCConnection ircConnection, CoroutineCanceller canceller)
     {
