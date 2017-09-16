@@ -294,10 +294,11 @@ public abstract class ComponentSolver : ICommandResponder
 		Debug.Log("[TwitchPlays] While solving a module an exception has occurred! Here's the error:");
 		Debug.LogException(e);
 
-		IRCConnection.SendMessage("Looks like a module ran into a problem while running a command, automatically solving module.");
+		IRCConnection.SendMessage("Looks like a module ran into a problem while running a command, automatically solving module. Some other modules may also be solved to prevent problems.");
 
 		_currentUserNickName = null;
 		_delegatedSolveUserNickName = null;
+		BombCommander.RemoveSolveBasedModules();
 		CommonReflectedTypeInfo.HandlePassMethod.Invoke(BombComponent, null);
 	}
 	#endregion

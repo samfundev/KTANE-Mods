@@ -196,6 +196,7 @@ public class TwitchComponentHandle : MonoBehaviour
             canvasGroupMultiDecker.alpha = 0.0f;
 
 			Debug.Log("[TwitchPlays] An unimplemented module was added to a bomb, solving module.");
+			bombCommander.RemoveSolveBasedModules();
 			CommonReflectedTypeInfo.HandlePassMethod.Invoke(bombComponent, null);
 		}
 
