@@ -23,6 +23,17 @@ public enum ComponentTypeEnum
     NeedyMod
 }
 
+public enum InteractionTypeEnum
+{
+    PushButton,
+    CutWire,
+    DeathBar,
+    Needy,
+    Rhythm,
+    BigButton,
+    Other
+}
+
 public static class CommonReflectedTypeInfo
 {
     static CommonReflectedTypeInfo()
@@ -42,7 +53,8 @@ public static class CommonReflectedTypeInfo
         OnStrikeField = BombComponentType.GetField("OnStrike", BindingFlags.Public | BindingFlags.Instance);
 		HandlePassMethod = BombComponentType.GetMethod("HandlePass", BindingFlags.NonPublic | BindingFlags.Instance);
 
-		TimerComponentType = ReflectionHelper.FindType("TimerComponent");
+        TimerComponentType = ReflectionHelper.FindType("TimerComponent");
+        TimeElapsedProperty = TimerComponentType.GetProperty("TimeElapsed", BindingFlags.Public | BindingFlags.Instance);
         TimeRemainingField = TimerComponentType.GetField("TimeRemaining", BindingFlags.Public | BindingFlags.Instance);
         GetFormattedTimeMethod = TimerComponentType.GetMethod("GetFormattedTime", BindingFlags.Public | BindingFlags.Static);
 
@@ -50,6 +62,8 @@ public static class CommonReflectedTypeInfo
 
         PassEventType = ReflectionHelper.FindType("PassEvent");
         StrikeEventType = ReflectionHelper.FindType("StrikeEvent");
+
+        ComponentTypeEnumType = ReflectionHelper.FindType("Assets.Scripts.Missions.ComponentTypeEnum");
 
         BombBinderType = ReflectionHelper.FindType("BombBinder");
 
@@ -136,10 +150,16 @@ public static class CommonReflectedTypeInfo
 		get;
 		private set;
 	}
-	#endregion
+    #endregion
 
-	#region Timer Component
-	public static Type TimerComponentType
+    #region Timer Component
+    public static Type TimerComponentType
+    {
+        get;
+        private set;
+    }
+
+    public static PropertyInfo TimeElapsedProperty
     {
         get;
         private set;
@@ -156,6 +176,13 @@ public static class CommonReflectedTypeInfo
         get;
         private set;
     }
+
+	public static MethodInfo GetFormattedStartTimeMethod
+    {
+        get;
+        private set;
+    }
+
     #endregion
 
     #region Result Page
@@ -179,6 +206,12 @@ public static class CommonReflectedTypeInfo
         private set;
     }
     #endregion
+
+    public static Type ComponentTypeEnumType
+    {
+        get;
+        private set;
+    }
 
     public static Type BombBinderType
     {

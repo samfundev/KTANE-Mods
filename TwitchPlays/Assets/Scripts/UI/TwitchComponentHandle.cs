@@ -296,7 +296,7 @@ public class TwitchComponentHandle : MonoBehaviour
             {
                 SetBannerColor(claimedBackgroundColour);
                 playerName = userNickName;
-                ircConnection.SendMessage(string.Format("Module {0} claimed by {1}", targetModule, playerName));
+				messageOut = string.Format("Module {0} claimed by {1}", targetModule, playerName);
             }
         }
         else if (internalCommand.Equals("unclaim", StringComparison.InvariantCultureIgnoreCase))
