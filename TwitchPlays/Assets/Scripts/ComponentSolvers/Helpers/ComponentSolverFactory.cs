@@ -89,9 +89,11 @@ public static class ComponentSolverFactory
         //ModComponentSolverHelpMessages["ChordQualities"] = "";
         ModComponentSolverHelpMessages["colormath"] = "Set the correct number with !{0} set a,k,m,y.  Submit your set answer with !{0} submit. colors are Red, Orange, Yellow, Green, Blue, Purple, Magenta, White, grAy, blackK. (note what letter is capitalized in each color.)";
         ModComponentSolverHelpMessages["ColoredSquaresModule"] = "Press the desired squares with !{0} red, !{0} green, !{0} blue, !{0} yellow, !{0} magenta, !{0} row, or !{0} col.";
+        ModComponentSolverHelpMessages["ColoredSwitchesModule"] = "Flip the first switch with !{0} toggle 1.  Flip multiple switches with !{0} toggle 4 3 2 5.";
         ModComponentSolverHelpMessages["ColourFlash"] = "Submit the correct response with !{0} press yes 3, or !{0} press no 5.";
         //ModComponentSolverHelpMessages["combinationLock"] = "";
         ModComponentSolverHelpMessages["complicatedButtonsModule"] = "Press the top button with !{0} press top (also t, 1, etc.).";
+        ModComponentSolverHelpMessages["CruelPianoKeys"] = "Submit your answer with !{0} press Bb Bb Bb Bb Gb Ab Bb Ab Bb.";
         ModComponentSolverHelpMessages["graphModule"] = "Submit an answer with !{0} submit green red true false. Order is TL, TR, BL, BR."; // Connection Check
         ModComponentSolverHelpMessages["CoordinatesModule"] = "Cycle the options with !{0} cycle.  Submit your answer with !{0} submit <3,2>.  Partial answers are acceptable. To do chinese numbers, its !{0} submit chinese 12.";
         ModComponentSolverHelpMessages["CreationModule"] = "Combine two elements with !{0} combine water fire.";
@@ -104,9 +106,10 @@ public static class ComponentSolverFactory
         ModComponentSolverHelpMessages["fizzBuzzModule"] = "Press the top button with !{0} press top (also t, 1, etc.). Submit with !{0} press submit.";
         ModComponentSolverHelpMessages["FollowTheLeaderModule"] = "Cut the wires in the order specified with !{0} cut 12 10 8 7 6 5 3 1. (note that order was the Lit CLR rule.)";
         ModComponentSolverHelpMessages["FriendshipModule"] = "Submit the desired friendship element with !{0} submit Fairness Conscientiousness Kindness Authenticity.";
+        ModComponentSolverHelpMessages["GridlockModule"] = "Go to next page with !{0} press next, submit answer of D3 with !{0} press D3, reset to start with !{0} reset.";
         ModComponentSolverHelpMessages["HexamazeModule"] = "Move towards the exit with !{0} move 12 10 6 6 6 2, or with !{0} move N NW S S S NE.  (clockface or cardinal)";
         ModComponentSolverHelpMessages["http"] = "Submit the response with !{0} resp 123.";
-        ModComponentSolverHelpMessages["iceCreamModule"] = "Move left/right with !{0} left and !{0} right. Sell with !{0} sell.";
+        ModComponentSolverHelpMessages["iceCreamModule"] = "Move left/right with !{0} left and !{0} right. Cycle through all options with !{0} cycle. Sell with !{0} sell.";
         ModComponentSolverHelpMessages["Laundry"] = "Set all of the options with !{0} set all 30C,2 dot,110C,Wet Cleaning.  Set just washing with !{0} set wash 40C.  Submit with !{0} insert coin. ...pray for that 4 in 2 & lit BOB Kappa";
         ModComponentSolverHelpMessages["LEDEnc"] = "Press the button with label B with !{0} press b.";
         //ModComponentSolverHelpMessages["LetterKeys"] = "";
@@ -123,7 +126,7 @@ public static class ComponentSolverFactory
         ModComponentSolverHelpMessages["MouseInTheMaze"] = "Move with !{0} forward back. Turn with !{0} left right u-turn. The first letter only can be used instead. Submit with !{0} submit.";
         //ModComponentSolverHelpMessages["murder"] = "";
         //ModComponentSolverHelpMessages["MusicRhythms"] = "";
-        ModComponentSolverHelpMessages["MysticSquareModule"] = "Move the numbers around with !{0} press 1 3 2 1 3 4 6 8.  (Note, this module will NOT stop moving numbers around on a strike. Make sure that knight gets uncovered asap.)";
+        ModComponentSolverHelpMessages["MysticSquareModule"] = "Move the numbers around with !{0} press 1 3 2 1 3 4 6 8.";
         //ModComponentSolverHelpMessages["Needy Math"] = "";
         ModComponentSolverHelpMessages["neutralization"] = "Select a base with !{0} base NaOH. Turn the filter on/off with !{0} filter. Set drop count with !{0} conc set 48. Submit with !{0} titrate.";
         //ModComponentSolverHelpMessages["NumberPad"] = "";
@@ -155,7 +158,8 @@ public static class ComponentSolverFactory
         //ModComponentSolverHelpMessages["WordScrambleModule"] = "";
         ModComponentSolverHelpMessages["WordSearchModule"] = "Select the word starting at column B row 3, and ending at column C row 4, with !{0} select B3 C4.";
         ModComponentSolverHelpMessages["YahtzeeModule"] = "Roll the dice with !{0} roll. Keep some dice with !{0} keep white,purple,blue,yellow,black. Roll the remaining dice until a 3 appears with !{0} roll until 3.";
-        
+        ModComponentSolverHelpMessages["ZooModule"] = "!{0} press animal, animal, ...; for example: !{0} press Koala, Eagle, Kangaroo, Camel, Hyena. The module will open the door and automatically press the animals that are there. Acceptable animal names are found at: https://ktane.timwi.de/HTML/Zoo%20names%20(samfun123).html";
+
         //Manual Codes
         ModComponentSolverManualCodes["ColourFlash"] = "Color Flash";
         ModComponentSolverManualCodes["RockPaperScissorsLizardSpockModule"] = "Rock-Paper-Scissors-Lizard-Spock";

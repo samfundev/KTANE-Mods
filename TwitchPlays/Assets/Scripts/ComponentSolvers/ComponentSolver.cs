@@ -109,7 +109,7 @@ public abstract class ComponentSolver : ICommandResponder
                 }
                 else
 				{
-					IRCConnection.SendMessage(string.Format("Sorry @{0}, that command is invalid.", userNickName));
+					if (!_responded) IRCConnection.SendMessage(string.Format("Sorry @{0}, that command is invalid.", userNickName));
 
 					responseNotifier.ProcessResponse(CommandResponse.NoResponse);
 				}
