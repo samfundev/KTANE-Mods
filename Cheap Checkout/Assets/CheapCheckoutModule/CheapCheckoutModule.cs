@@ -472,13 +472,16 @@ public class CheapCheckoutModule : MonoBehaviour
         if (split.Length == 1)
         {
             if (split[0] == "clear")
-            {
-                Clear.OnInteract();
-                yield return null;
+			{
+				yield return null;
+
+				Clear.OnInteract();
             }
             else if (split[0] == "items")
-            {
-                for (int i = 0; i < 5; i++)
+			{
+				yield return null;
+
+				for (int i = 0; i < 5; i++)
                 {
                     yield return new WaitForSeconds(1.5f);
                     MoveRight.OnInteract();
@@ -491,18 +494,21 @@ public class CheapCheckoutModule : MonoBehaviour
                     yield return new WaitForSeconds(0.1f);
                 }
             }
-            else if (split[0] == "submit")
-            {
-                Submit.OnInteract();
-                yield return null;
+            else if (split[0] == "submit" || split[0] == "slap")
+			{
+				yield return null;
+
+				Submit.OnInteract();
             }
         }
         else if (split.Length == 2 && split[0] == "submit")
         {
             decimal price;
             if (decimal.TryParse(split[1], out price) && decimal.Round(price, 2) == price && price < 200)
-            {
-                Clear.OnInteract();
+			{
+				yield return null;
+
+				Clear.OnInteract();
 
                 foreach (GameObject button in Amounts.Reverse())
                 {
