@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5cf2299c8864afe4ab42466f546ae20d, type: 3}
+  m_Name: WorkshopItem
+  m_EditorClassIdentifier: 
+  WorkshopPublishedFileID: 1161968414
+  Title: Better Case Picker
+  Description: "[h1]About[/h1]\r\nThis mod changes how cases are picked by the game,
+    making it so that the game will always pick from the smallest cases that fit all
+    the modules on the bomb.\r\nIt also fixes an issue from the vanilla game where
+    a case would be picked that doesn't fit all the modules.\r\nIt will also try to
+    pick a case that fits all the modules on the front face of the bomb, if a mission
+    requests that."
+  PreviewImage: {fileID: 2800000, guid: 93f2071e4f38e5346a6482407177acd0, type: 3}
+  Tags:
+  - Other
