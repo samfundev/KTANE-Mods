@@ -1,27 +1,29 @@
-// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-
-Shader "GUI/KT 3D Text" {
-	Properties {
-		_MainTex ("Font Texture", 2D) = "white" {}
+﻿Shader "GUI/KT 3D Text (Lit)" {
+	Properties{
+		_MainTex("Font Texture", 2D) = "white" {}
 	}
 
-	SubShader {
-
-		Tags {
-			"Queue"="Transparent"
-			"IgnoreProjector"="True"
-			"RenderType"="Transparent"
-			"PreviewType"="Plane"
+	SubShader
+	{
+		Tags
+		{
+			"Queue" = "Transparent"
+			"IgnoreProjector" = "True"
+			"RenderType" = "Transparent"
+			"PreviewType" = "Plane"
+			"LightMode" = "ForwardBase"
 		}
-		Lighting Off Cull Back ZTest LEqual ZWrite Off Fog { Mode Off }
+		Cull Back ZTest LEqual ZWrite Off Fog{ Mode Off }
 		Blend SrcAlpha OneMinusSrcAlpha
 
-		Pass {	
+		Pass
+		{
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
 
 			#include "UnityCG.cginc"
+			#include "UnityLightingCommon.cginc"
 
 			struct appdata_t {
 				float4 vertex : POSITION;
@@ -37,23 +39,26 @@ Shader "GUI/KT 3D Text" {
 
 			sampler2D _MainTex;
 			uniform float4 _MainTex_ST;
-			
-			v2f vert (appdata_t v)
+
+			v2f vert(appdata_t v)
 			{
 				v2f o;
 				o.vertex = UnityObjectToClipPos(v.vertex);
 				o.color = v.color;
-				o.texcoord = TRANSFORM_TEX(v.texcoord,_MainTex);
+				o.color.rgb = o.color.rgb * _LightColor0.rgb;
+				o.texcoord = TRANSFORM_TEX(v.texcoord, _MainTex);
+
 				return o;
 			}
 
-			fixed4 frag (v2f i) : SV_Target
+			fixed4 frag(v2f i) : SV_Target
 			{
 				fixed4 col = i.color;
 				col.a *= tex2D(_MainTex, i.texcoord).a;
+
 				return col;
 			}
-			ENDCG 
+			ENDCG
 		}
 	}
 }
