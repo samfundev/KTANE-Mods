@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+		<meta charset="utf-8">
+		<title>Synchronization — Keep Talking and Nobody Explodes Module</title>
+		<meta name="viewport" content="initial-scale=1">
+		<link rel="stylesheet" type="text/css" href="css/normalize.css">
+		<link rel="stylesheet" type="text/css" href="css/main.css">
+		<link rel="stylesheet" type="text/css" href="css/font.css">
+	</head>
+	<body>
+		<div id="ManualContent">
+			<div class="section">
+				<div class="page page-bg-01">
+					<div class="page-header">
+						<span class="page-header-doc-title">Keep Talking and Nobody Explodes Mod</span>
+						<span class="page-header-section-title">Synchronization</span>
+					</div>
+					<div class="page-content">
+						<img src="img/Component/Synchronization.svg" class="diagram">
+						<h2>On the Subject of Synchronization</h2>
+						<p class="flavour-text">.</p>
+						<ul>
+							<li>Some lights on the module will flash at different speeds.</li>
+							<li>Synchronizing the flashing lights to each other and then to the bomb itself will disarm the module.</li>
+						</ul>
+						<h3>Sychronizing Lights</h3>
+						<ol>
+							<li>Use the number displayed on the "SYNC" button and the position of the light flashing the fastest on the module to determine an initial position on the chart below.</li>
+							<li>Look at the central light on the module and rate its speed from 1-5, slowest to fastest, based on the other flashing lights. If the light isn't flashing, it's speed is 0. Find the next light slowest flashing light and note its position on the module.</li>
+							<li>From the initial position on the chart, shift a number of cells equal to the central light's speed in the direction of the position of the slowest light to determine a final position. Wrapping around the chart maybe required. This dictates the order in which to sync the lights, and in what state they must be in when selected to successfully sync.</li>
+							<li>Look at the module and select the appropriate individual light to sync, which will then remain in the selected state. Then select the next appropriate individual light to sync to while in the same state.</li>
+							<li>Repeat step 4 until all flashing lights are in sync. Use groups of synced lights when no single lights remain. Selecting any light in a group will affect its synced group. Then press and hold the "SYNC" button until the bomb's digital coutdown timer has the displayed number in the seconds place.</li>
+						</ol>
+						<table>
+							<tr>
+								<th rowspan="2">Display</th>
+								<th colspan="9">Position Relative to Center</th>
+							</tr>
+							<tr style="font-family: sans-serif;">
+								<th><span>&#8598;</span></th>
+								<th><span>&#8593;</span></th>
+								<th><span>&#8599;</span></th>
+								<th><span>&#8594;</span></th>
+								<th><span>&#8600;</span></th>
+								<th><span>&#8595;</span></th>
+								<th><span>&#8601;</span></th>
+								<th><span>&#8592;</span></th>
+								<th><span>&#8226;</span></th>
+							</tr>
+							<tr>
+								<th>1-3</th>
+								<td>Des&nbsp;-</td><td>Asc&nbsp;-</td><td>Opp&nbsp;Alt</td><td>Asc&nbsp;Alt</td><td>Opp&nbsp;Alt</td><td>Asc&nbsp;-</td><td>Opp&nbsp;-</td><td>Opp&nbsp;-</td><td>Opp&nbsp;+</td>
+							</tr>
+							<tr>
+								<th>4-6</th>
+								<td>Asc&nbsp;+</td><td>Opp&nbsp;Alt</td><td>Des&nbsp;Alt</td><td>Des&nbsp;+</td><td>Des&nbsp;Alt</td><td>Des&nbsp;+</td><td>Asc&nbsp;-</td><td>Asc&nbsp;+</td><td>Asc&nbsp;Alt</td>
+							</tr>
+							<tr>
+								<th>7-9</th>
+								<td>Des&nbsp;-</td><td>Des&nbsp;Alt</td><td>Opp&nbsp;-</td><td>Opp&nbsp;+</td><td>Des&nbsp;+</td><td>Asc&nbsp;Alt</td><td>Asc&nbsp;+</td><td>Des&nbsp;-</td><td>Opp&nbsp;+</td>
+							</tr>
+							<tr>
+								<td colspan="5">
+									<b>Asc/Desc</b> = Ascending/Descending order.
+									<br>
+									<b>Opp</b> = Opposite speeds order. Sync slowest with fastest or fastest with slowest. Either may be chosen, but remain consistant.
+								</td>
+								<td colspan="5">
+									<b>+/-</b> = On/Off state.
+									<br>
+									<b>Alt</b> = Alternating state. Select on or off first, but subsequent syncs must be opposite states.
+								</td>
+							</tr>
+						</table>
+					</div>
+
+					<div class="page-footer relative-footer">Page 1 of 1 </div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
