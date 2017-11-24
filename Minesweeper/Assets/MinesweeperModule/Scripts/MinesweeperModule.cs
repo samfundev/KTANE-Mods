@@ -11,7 +11,6 @@ public class MinesweeperModule : MonoBehaviour
 	public KMBombInfo Bomb;
 	public KMBombModule Module;
 	public KMAudio Audio;
-	public KMGameInfo GameInfo;
 
 	public KMSelectable ModuleSelectable;
 	public GameObject ModeToggle;
@@ -374,16 +373,6 @@ public class MinesweeperModule : MonoBehaviour
 		UpdateSelectable();
 	}
 
-	void LightChange(bool on)
-	{
-		TextMesh[] textMeshes = GetComponentsInChildren<TextMesh>();
-
-		foreach (TextMesh text in textMeshes)
-		{
-			text.color = new Color(text.color.r, text.color.g, text.color.b, on ? 1 : 0.15f);
-		}
-	}
-
 	void LogBoard()
 	{
 		if (!loggedLegend)
@@ -483,8 +472,6 @@ public class MinesweeperModule : MonoBehaviour
 		moduleID = idCounter++;
 
 		Module.OnActivate += ModuleStarted;
-		GameInfo.OnLightsChange += LightChange;
-		LightChange(false);
 
 		Slider = ModeToggle.transform.Find("Slider").gameObject;
 
