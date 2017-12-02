@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System;
+using System.Collections;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -46,8 +47,8 @@ public class SoundpackMaker : MonoBehaviour
 				}
 				else
 				{
-					AudioClip clip = new WWW("file:///" + path).audioClip;
-					while (clip.loadState != AudioDataLoadState.Loaded)
+				    AudioClip clip = new WWW("file:///" + path).GetAudioClipCompressed();
+                    while (clip.loadState != AudioDataLoadState.Loaded)
 					{
 					}
 					return clip;
@@ -149,8 +150,13 @@ public class SoundpackMaker : MonoBehaviour
 		return Overrides;
 	}
 
+    private static object realMod = null;
+
 	void Start()
 	{
+	    if (realMod != null)
+	        return;
+
 		ModSettings Soundpacks = new ModSettings("EnabledSoundpacks", typeof(List<string>));
 		List<string> enabledSoundpacks = (List<string>) Soundpacks.Settings;
 
@@ -162,9 +168,27 @@ public class SoundpackMaker : MonoBehaviour
 			return;
 		}
 
-		Type Mod = ReflectionHelper.FindType("Mod");
-		MethodInfo HandleSoundOverride = Mod.GetMethod("HandleSoundOverride", BindingFlags.NonPublic | BindingFlags.Instance);
-		object fakeMod = Activator.CreateInstance(Mod, new object[] { Guid.NewGuid().ToString() });
+	    Type ModManager = ReflectionHelper.FindType("ModManager");
+	    FieldInfo ModManagerInstanceField = ModManager.GetField("Instance", BindingFlags.Public | BindingFlags.Static);
+	    FieldInfo ModManagerLoadedModsDictField = ModManager.GetField("loadedMods", BindingFlags.NonPublic | BindingFlags.Instance);
+	    object ModManagerInstance = ModManagerInstanceField.GetValue(null);
+	    IDictionary LoadedMods = (IDictionary) ModManagerLoadedModsDictField.GetValue(ModManagerInstance);
+	    realMod = null;
+	    foreach (DictionaryEntry kvp in LoadedMods)
+	    {
+	        string key = (string) kvp.Key;
+	        var id = (string) kvp.Value.GetType().GetProperty("ModID", BindingFlags.Public | BindingFlags.Instance).GetValue(kvp.Value, null);
+	        Log("Key = {0}, ModID = {1}", key, id);
+	        if (id.Equals("SoundpackMaker"))
+	        {
+	            realMod = kvp.Value;
+	            break;
+	        }
+	    }
+	    if (realMod == null)
+	        return;
+
+		MethodInfo HandleSoundOverride = realMod.GetType().GetMethod("HandleSoundOverride", BindingFlags.NonPublic | BindingFlags.Instance);
 		Dictionary<KMSoundOverride.SoundEffect, KMSoundOverride> soundOverrides = new Dictionary<KMSoundOverride.SoundEffect, KMSoundOverride>();
 		
 		// Add the new sound effects.
@@ -202,7 +226,7 @@ public class SoundpackMaker : MonoBehaviour
 
 		foreach (KMSoundOverride soundOverride in soundOverrides.Values)
 		{
-			HandleSoundOverride.Invoke(fakeMod, new object[] { soundOverride });
+			HandleSoundOverride.Invoke(realMod, new object[] { soundOverride });
 		}
 	}
 }
