@@ -13,6 +13,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: CreationModule
   title: Creation
+  description: "[h1]About[/h1]\r\nThe goal of Creation is to play God and create life
+    by combining elements.\r\n\r\n[h1]Manual[/h1]\r\n[url=https://ktane.timwi.de/PDF/Creation.pdf]PDF[/url]\r\n[url=https://ktane.timwi.de/HTML/Creation.html]HTML[/url]\r\n\r\n[h1]Module
+    ID[/h1]\r\nCreationModule"
   version: 1
   outputFolder: C:\Program Files (x86)\Steam\steamapps\common\Keep Talking and Nobody
     Explodes\mods
+  previewImage: {fileID: 2800000, guid: 0840a265b3ffd364db54f8a6b4160ace, type: 3}

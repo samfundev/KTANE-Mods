@@ -594,7 +594,7 @@ public class CreationModule : MonoBehaviour
             foreach (Transform child in Elements.transform)
             {
                 GameObject element = child.gameObject;
-                if (element != Halo)
+                if (element.activeInHierarchy && element != Halo)
                 {
                     string name = element.GetComponent<Renderer>().sharedMaterial.name.ToLowerInvariant();
                     if (name == split[1] || name == split[2])

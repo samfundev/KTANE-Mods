@@ -214,12 +214,20 @@ public class SynchronizationModule : MonoBehaviour
 	}
 
 	bool firstSyncDone = false;
-	bool altRuleFirstState = false;
+	bool altRuleState = false;
 	int oppRuleFirstSpeed = 0;
 
 	bool ValidateSync(Light lightA, Light lightB)
 	{
-		int[] orderedSpeeds = Lights.Select(l => l.speed).Where(s => s != 0).Distinct().OrderBy(s => s).ToArray();
+		var speedDuplicates = Lights.Select(l => l.speed).Where(s => s != 0).GroupBy(s => s);
+
+		var speeds = Lights.Select(l => l.speed).Where(s => s != 0).Distinct();
+		if (speedDuplicates.Count(group => group.Count() == 1) >= 2)
+		{
+			speeds = speeds.Where(s => speedDuplicates.Where(group => group.Key == s).First().Count() == 1);
+		}
+
+		int[] orderedSpeeds = speeds.OrderBy(s => s).ToArray();
 		if (orderedSpeeds.Length == 1) return false;
 
 		/* Order:
@@ -262,17 +270,24 @@ public class SynchronizationModule : MonoBehaviour
 
 				break;
 			case 2:
-				if (firstSyncDone && lightA.state != altRuleFirstState) return false; // Make sure they keep alternating
+				if (firstSyncDone && (lightA.state == altRuleState || lightB.state == altRuleState)) return false; // Make sure they keep alternating
 
-				if (lightA.state == lightB.state) return false;
+				if (lightA.state != lightB.state) return false;
 
-				altRuleFirstState = lightA.state;
+				if (firstSyncDone)
+				{
+					altRuleState = !altRuleState;
+				}
+				else
+				{
+					altRuleState = lightA.state;
+				}
 
 				break;
 		}
 
 		// Gather info for alt rule and opp rule.
-		altRuleFirstState = lightA.state;
+		altRuleState = lightA.state;
 		oppRuleFirstSpeed = lightB.speed;
 
 		firstSyncDone = true;
@@ -353,16 +368,20 @@ public class SynchronizationModule : MonoBehaviour
 
 		// Find which way the user needs to sync 
 
+		int fastestLight = Array.IndexOf(Lights, Lights.Where(l => l.speed != 0).Aggregate((l1, l2) => l1.speed > l2.speed ? l1 : l2));
 		int slowestLight = Array.IndexOf(Lights, Lights.Where(l => l.speed != 0).Aggregate((l1, l2) => l1.speed < l2.speed ? l1 : l2));
 		Vector2 chartPos = new Vector2(
-			lightToCol[slowestLight],
+			lightToCol[fastestLight],
 			Mathf.FloorToInt((DisplayNumber - 1) / 3)
 		);
-		Log("Started at column {0}, row {1}", chartPos.x + 1, chartPos.y + 1);
+		Log("Started at column {0}, row {1}", chartPos.x + 1, chartPos.y + 1); // show order here
 
-		chartPos += lightToDir[slowestLight] * Lights[4].speed;
-		chartPos.x = WrapInt((int) chartPos.x, 8);
-		chartPos.y = WrapInt((int) chartPos.y, 2);
+		for (int i = 0; i < Lights[4].speed; i++)
+		{
+			chartPos += lightToDir[slowestLight];
+			chartPos.x = WrapInt((int) chartPos.x, 8); // Make this better and not use loops anymore.
+			chartPos.y = WrapInt((int) chartPos.y, 2);
+		}
 		Log("Ended at column {0}, row {1}", chartPos.x + 1, chartPos.y + 1);
 
 		SyncMethod = chart[(int) chartPos.y][(int) chartPos.x];
@@ -483,7 +502,7 @@ public class SynchronizationModule : MonoBehaviour
 
 	int WrapInt(int a, int b)
 	{
-		while (a < 0) a += b;
+		while (a < 0) a += b + 1;
 		while (a > b) a -= b + 1;
 
 		return a;

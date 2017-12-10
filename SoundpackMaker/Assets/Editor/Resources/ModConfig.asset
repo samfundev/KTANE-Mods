@@ -13,6 +13,71 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: SoundpackMaker
   title: SoundpackMaker
+  description: "[h1]About[/h1]\r\nThis mod allows you to easily create Soundpacks
+    without having to create a custom mod.\r\n\r\n[b][u]NOTE:[/u][/b] Before continuing
+    make sure you have booted up the game with the mod installed to create the necessary
+    files and folders that you will need.\r\n\r\n[h1]Accepted Sound File Types[/h1]\r\nThe
+    following sound file types should be used:\r\n[list]\r\n[*] .mp3\r\n[*] .wav\r\n[*]
+    .ogg\r\n[/list]\r\n\r\n[h1]Soundpacks and How to Make One[/h1]\r\nEach soundpack
+    is the name of a directory in the \"Soundpacks\" folder. This folder can be located
+    in the same directory as the \u201CModsettings\u201D folder.\r\n\r\nTo make a
+    soundpack:\r\nCreate a folder with the name of your new soundpack. Put this folder
+    in the \"Soundpacks\" folder. This folder can contain any combination of the following:\r\n[list]\r\n[*]
+    Folders - These must be named with one of the sound names listed below. Each folder
+    can contain multiple sounds. The game will play one of these sound files instead
+    of the default sound.\r\n[*] Sound files - These must be named with one of the
+    sound names listed below. The game will play this sound file instead of the default
+    sound.\r\n[/list]\r\nWhen you are done, add the soundpack name to list in the
+    \"EnabledSoundPacks.json\" configuration file. Which is explained in the next
+    section.\r\n\r\n[h1]Enabling Soundpacks[/h1]\r\nIn your \u201CModsettings\u201D
+    folder there is a file called \"EnabledSoundpacks.json\" where you can list the
+    names of the soundpacks you want to be enabled. If multiple soundpacks replace
+    the same sound all of the sounds will be added together.\r\n\r\nFor example, if
+    the name of your soundpack is \"MySoundpack\" then the \"EnabledSoundpacks.json\"
+    should be [code][\"MySoundpack\"][/code]If you want to have multiple soundpacks
+    on it would be [code][\"MySoundpack\", \"Soundpack2\"][/code]\r\n\r\n[b][u]NOTE:[/u][/b]
+    If you modify a soundpack or change the list of enabled soundpacks, you must restart
+    the game for those changes to take effect.\r\n\r\n[h1]Finding and Sharing Soundpacks[/h1]\r\nIf
+    you want to find some soundpacks made by other community members or share your
+    own soundpack you've made you can go [url=https://drive.google.com/drive/folders/1bp8lD2BOWFSBUX2hGp6bpHUqDYOjLDmt]here[/url]
+    to learn more.\r\n\r\n[h1]Sound Names[/h1]\r\nThe sound names can be any of the
+    following:\r\n[list]\r\n[*] [b]AlarmClockBeep[/b] - Plays when the alarm clock
+    goes off. This sound loops.\r\n[*] [b]AlarmClockSnooze[/b] - Plays when you hit
+    snooze button on the alarm clock.\r\n[*] [b]BigButtonPress[/b] - Plays when pressing
+    down the button on the Big Button vanilla module.\r\n[*] [b]BigButtonRelease[/b]
+    - Plays when releasing the button on the Big Button vanilla module.\r\n[*] [b]BinderDrop[/b]
+    - Plays as the mission binder hits the desk.\r\n[*] [b]BombDefused[/b] - Plays
+    immediately after a bomb is defused. Plays before GameOverFanfare.\r\n[*] [b]BombDrop[/b]
+    - Plays when the bomb is set down on the desk.\r\n[*] [b]BombExplode[/b] - Plays
+    when the bomb explodes.\r\n[*] [b]BriefcaseClose[/b] - Plays when the freeplay
+    briefcase is closed.\r\n[*] [b]BriefcaseOpen[/b] - Plays when the freeplay briefcase
+    is opened.\r\n[*] [b]ButtonPress[/b] - Plays when pressing down a button.\r\n[*]
+    [b]ButtonRelease[/b] - Plays when releasing a button.\r\n[*] [b]CapacitorPop[/b]
+    - Plays when Capacitor Discharge fills up completely.\r\n[*] [b]CorrectChime[/b]
+    - Plays in the tutorial for completing a step correctly.\r\n[*] [b]DossierOptionPressed[/b]
+    - Plays when you change a setting in the menu folder.\r\n[*] [b]EmergencyAlarm[/b]
+    - Plays when there is less than a minute left on the bomb, this sound loops.\r\n[*]
+    [b]FastestTimerBeep[/b] - Plays when the bomb has at least 2 or more strikes.\r\n[*]
+    [b]FastTimerBeep[/b] - Plays when the bomb has 1 strike.\r\n[*] [b]FreeplayDeviceDrop[/b]
+    - Plays as the freeplay briefcase hits the desk.\r\n[*] [b]GameOverFanfare[/b]
+    - Plays when all bombs are defused. Finishes before the post game screen.\r\n[*]
+    [b]LightBuzz[/b] - Plays when the lights go out.\r\n[*] [b]LightBuzzShort[/b]
+    - Plays when the lights start to come back on.\r\n[*] [b]MenuButtonPressed[/b]
+    - Plays when you start a mission from the mission binder.\r\n[*] [b]MenuDrop[/b]
+    - Plays as the mission folder hits the desk.\r\n[*] [b]NeedyActivated[/b] - Plays
+    when a needy gets activated.\r\n[*] [b]NeedyWarning[/b] - Plays when a needy is
+    running out of time. This sound loops.\r\n[*] [b]NormalTimerBeep[/b] - Plays when
+    the bomb has no strikes.\r\n[*] [b]PageTurn[/b] - Plays when a page is turned
+    in the Missions binder.\r\n[*] [b]SelectionTick[/b] - Plays as you hover over
+    something interactable.\r\n[*] [b]Stamp[/b] - Plays during the post game screen,
+    when either the defused or exploded text is stamped onto the binder.\r\n[*] [b]Strike[/b]
+    - Plays when you get a strike.\r\n[*] [b]Switch[/b] - Plays when a switch is toggled.\r\n[*]
+    [b]TitleMenuPressed[/b] - Plays when pressing a button in one of the tutorials.\r\n[*]
+    [b]TypewriterKey[/b] - Plays during the post game screen as the mission information
+    gets typed out.\r\n[*] [b]WireSequenceMechanism[/b] - Plays when switching between
+    sets of wires in Wire Sequence.\r\n[*] [b]WireSnip[/b] - Played when a wire is
+    cut on a module like Complicated Wires.\r\n[/list]\r"
   version: 1
   outputFolder: C:\Program Files (x86)\Steam\steamapps\common\Keep Talking and Nobody
     Explodes\mods
+  previewImage: {fileID: 2800000, guid: 6e5aa64ea0dd9da45bf807777a539943, type: 3}

@@ -1,32 +1,283 @@
-<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke-miterlimit="10" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 348 348" stroke-linecap="square">
-  <clipPath id="a">
-    <path d="M0 0h348v348H0V0z"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   fill="none"
+   stroke-miterlimit="10"
+   viewBox="0 0 348 348"
+   stroke-linecap="square"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="Synchronization.svg">
+  <metadata
+     id="metadata58">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs56" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1920"
+     inkscape:window-height="1003"
+     id="namedview54"
+     showgrid="false"
+     inkscape:zoom="1.6031525"
+     inkscape:cx="143.29214"
+     inkscape:cy="184.88259"
+     inkscape:window-x="-9"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g7" />
+  <clipPath
+     id="a">
+    <path
+       d="M0 0h348v348H0V0z"
+       id="path5" />
   </clipPath>
-  <g clip-path="url(#a)">
-    <path d="M0 0h348v348H0z"/>
-    <path d="M5.08 5.776h336.91v337.67H5.08z"/>
-    <path stroke="#000" stroke-width="2" d="M5.08 5.776h336.91v337.67H5.08z" stroke-linejoin="round" stroke-linecap="butt"/>
-    <path stroke="#000" stroke-width="2" d="M272.893 52.446c0-8.376 6.966-15.166 15.56-15.166 4.126 0 8.083 1.598 11 4.442 2.92 2.844 4.558 6.702 4.558 10.724 0 8.375-6.963 15.165-15.556 15.165s-15.56-6.79-15.56-15.162z" stroke-linejoin="round" stroke-linecap="butt"/>
-    <g fill-opacity="0" stroke-width="3" stroke-miterlimit="4">
-      <path d="M125.014 244.464l83.976-5.77 25.366-41.827-85.416 25.07z"/>
-      <path d="M125.014 128.55v115.914l23.926-22.528v-101.13z"/>
-      <path d="M148.94 120.806L234.356 2.76v194.107l-85.416 25.07z"/>
-      <path d="M125.014 128.55L208.99-18.33l25.366 21.09-85.416 118.046z"/>
-      <path d="M208.99-18.33v257.024l25.366-41.827V2.76z"/>
-      <path d="M125.014 128.55L208.99-18.33v257.024l-83.976 5.77z"/>
+  <g
+     clip-path="url(#a)"
+     id="g7">
+    <g
+       id="g4268">
+      <rect
+         inkscape:tile-y0="124.00027"
+         inkscape:tile-x0="99.083138"
+         ry="0"
+         y="125.68147"
+         x="100.07201"
+         height="28.023373"
+         width="148.02225"
+         id="use4236"
+         style="opacity:1;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1.9777683;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+      <rect
+         inkscape:tile-y0="124.00027"
+         inkscape:tile-x0="99.083138"
+         ry="0"
+         y="200.19226"
+         x="100.08314"
+         height="28.693466"
+         width="147.83372"
+         id="use4238"
+         style="opacity:1;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+      <rect
+         inkscape:tile-y0="124.00027"
+         inkscape:tile-x0="99.083138"
+         ry="0"
+         y="275.38327"
+         x="100.08314"
+         height="28.693466"
+         width="147.83372"
+         id="use4240"
+         style="opacity:1;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+      <rect
+         style="opacity:1;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1.97763741;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         id="use4246"
+         width="29.613741"
+         height="140.05435"
+         x="84.001129"
+         y="144.51178"
+         ry="0"
+         inkscape:tile-x0="99.083138"
+         inkscape:tile-y0="124.00027" />
+      <rect
+         style="opacity:1;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1.97763741;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         id="use4248"
+         width="29.613741"
+         height="140.05435"
+         x="159.19313"
+         y="144.51178"
+         ry="0"
+         inkscape:tile-x0="99.083138"
+         inkscape:tile-y0="124.00027" />
+      <rect
+         style="opacity:1;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1.97763741;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         id="use4250"
+         width="29.613741"
+         height="140.05435"
+         x="234.38412"
+         y="144.51178"
+         ry="0"
+         inkscape:tile-x0="99.083138"
+         inkscape:tile-y0="124.00027" />
     </g>
-    <rect width="222.661" height="57.508" x="26.542" y="23.692" stroke="#000" stroke-width="2" stroke-miterlimit="4" ry="23.593"/>
-    <g id="b" stroke="#000" stroke-miterlimit="4" transform="translate(-3.675)">
-      <circle cx="102.483" cy="139.347" r="33.178" fill="#000" stroke-width="2"/>
-      <circle cx="102.483" cy="139.347" r="24.014" fill="#fff" stroke-width="1.972"/>
+    <path
+       d="M0 0h348v348H0z"
+       id="path9" />
+    <path
+       d="M5.08 5.776h336.91v337.67H5.08z"
+       id="path11" />
+    <path
+       stroke="#000"
+       stroke-width="2"
+       d="M5.08 5.776h336.91v337.67H5.08z"
+       stroke-linejoin="round"
+       stroke-linecap="butt"
+       id="path13" />
+    <path
+       stroke="#000"
+       stroke-width="2"
+       d="M272.893 52.446c0-8.376 6.966-15.166 15.56-15.166 4.126 0 8.083 1.598 11 4.442 2.92 2.844 4.558 6.702 4.558 10.724 0 8.375-6.963 15.165-15.556 15.165s-15.56-6.79-15.56-15.162z"
+       stroke-linejoin="round"
+       stroke-linecap="butt"
+       id="path15" />
+    <g
+       fill-opacity="0"
+       stroke-width="3"
+       stroke-miterlimit="4"
+       id="g17">
+      <path
+         d="M125.014 244.464l83.976-5.77 25.366-41.827-85.416 25.07z"
+         id="path19" />
+      <path
+         d="M125.014 128.55v115.914l23.926-22.528v-101.13z"
+         id="path21" />
+      <path
+         d="M148.94 120.806L234.356 2.76v194.107l-85.416 25.07z"
+         id="path23" />
+      <path
+         d="M125.014 128.55L208.99-18.33l25.366 21.09-85.416 118.046z"
+         id="path25" />
+      <path
+         d="M208.99-18.33v257.024l25.366-41.827V2.76z"
+         id="path27" />
+      <path
+         d="M125.014 128.55L208.99-18.33v257.024l-83.976 5.77z"
+         id="path29" />
     </g>
-    <use width="100%" height="100%" xlink:href="#b" transform="translate(0 75.192)"/>
-    <use width="100%" height="100%" xlink:href="#b" transform="translate(0 150.383)"/>
-    <use width="100%" height="100%" xlink:href="#b" transform="translate(75.192)"/>
-    <use width="100%" height="100%" xlink:href="#b" transform="translate(75.192 75.192)"/>
-    <use width="100%" height="100%" xlink:href="#b" transform="translate(75.192 150.383)"/>
-    <use width="100%" height="100%" xlink:href="#b" transform="translate(150.383)"/>
-    <use width="100%" height="100%" xlink:href="#b" transform="translate(150.383 75.192)"/>
-    <use width="100%" height="100%" xlink:href="#b" transform="translate(150.383 150.383)"/>
+    <rect
+       width="143.15044"
+       height="62.206539"
+       x="32.227573"
+       y="24.149698"
+       stroke-miterlimit="4"
+       ry="25.520605"
+       id="rect31"
+       style="stroke:#000000;stroke-width:1.66785455;stroke-miterlimit:4" />
+    <g
+       id="b"
+       stroke-miterlimit="4"
+       transform="translate(-3.675)"
+       stroke="#000">
+      <circle
+         cx="102.483"
+         cy="139.347"
+         r="33.178"
+         id="circle34"
+         stroke-width="2"
+         fill="#000" />
+      <ellipse
+         cx="102.483"
+         cy="139.347"
+         id="circle36"
+         rx="26.4154"
+         ry="26.415401"
+         style="fill:#ffffff;stroke-width:2.16919994" />
+    </g>
+    <use
+       width="100%"
+       height="100%"
+       xlink:href="#b"
+       transform="translate(0 75.192)"
+       id="use38" />
+    <use
+       width="100%"
+       height="100%"
+       xlink:href="#b"
+       transform="translate(0 150.383)"
+       id="use40" />
+    <use
+       width="100%"
+       height="100%"
+       xlink:href="#b"
+       transform="translate(75.192)"
+       id="use42" />
+    <use
+       width="100%"
+       height="100%"
+       xlink:href="#b"
+       transform="translate(75.192 75.192)"
+       id="use44" />
+    <use
+       width="100%"
+       height="100%"
+       xlink:href="#b"
+       transform="translate(75.192 150.383)"
+       id="use46" />
+    <use
+       width="100%"
+       height="100%"
+       xlink:href="#b"
+       transform="translate(150.383)"
+       id="use48" />
+    <use
+       width="100%"
+       height="100%"
+       xlink:href="#b"
+       transform="translate(150.383 75.192)"
+       id="use50" />
+    <use
+       width="100%"
+       height="100%"
+       xlink:href="#b"
+       transform="translate(150.383 150.383)"
+       id="use52" />
+    <use
+       id="use4188"
+       transform="translate(0 75.192)"
+       xlink:href="#b"
+       height="100%"
+       width="100%" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="103.29498"
+       y="69.793983"
+       id="text4290"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan4292"
+         x="103.29498"
+         y="69.793983">SYNC</tspan></text>
+    <rect
+       style="opacity:1;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2.08939862;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect4294"
+       width="42.950802"
+       height="62.287701"
+       x="200.66125"
+       y="24.109118"
+       ry="0" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:60px;line-height:125%;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="222.16595"
+       y="77.064491"
+       id="text4296"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan4298"
+         x="222.16595"
+         y="77.064491"
+         style="font-size:60px;fill:#ffffff">8</tspan></text>
   </g>
 </svg>

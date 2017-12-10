@@ -11,9 +11,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 615501dbe4f3fe94fbf4b564abb10237, type: 3}
   m_Name: ModConfig
   m_EditorClassIdentifier: 
-  id: 
-  title: 
-  description: 
+  id: Mod
+  title: Mod
+  description:  "[h1]About[/h1]\r\n\n\n[h1]Manual[/h1]\r\n\n\r\n[h1]Module ID[/h1]\r\n"
   version: 
   outputFolder: C:\Program Files (x86)\Steam\steamapps\common\Keep Talking and Nobody Explodes\mods
   previewImage: {fileID: 0}
