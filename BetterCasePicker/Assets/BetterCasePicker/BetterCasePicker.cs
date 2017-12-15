@@ -11,9 +11,15 @@ public class BetterCasePicker : MonoBehaviour
 		return AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes()).FirstOrDefault(t => t.FullName.Equals(fullName));
 	}
 
+	void LogError(string formatting, params object[] args)
+	{
+		Debug.LogAssertionFormat("[BetterCasePicker] " + formatting, args);
+	}
+
 	Type _gameplayStateType;
 	FieldInfo _missionToLoadField;
 	FieldInfo _freeplaySettingsField;
+	FieldInfo _customMissionField;
 
 	Type _missionManagerType;
 	PropertyInfo _instanceProperty;
@@ -44,6 +50,7 @@ public class BetterCasePicker : MonoBehaviour
 		_gameplayStateType = FindType("GameplayState");
 		_missionToLoadField = _gameplayStateType.GetField("MissionToLoad", Static);
 		_freeplaySettingsField = _gameplayStateType.GetField("FreeplaySettings", Static);
+		_customMissionField = _gameplayStateType.GetField("CustomMission", Static);
 
 		_missionManagerType = FindType("Assets.Scripts.Missions.MissionManager");
 		_instanceProperty = _missionManagerType.GetProperty("Instance", Static);
@@ -72,7 +79,6 @@ public class BetterCasePicker : MonoBehaviour
 
 				if (_bombPrefabOverrideField.GetValue(bombGenerator) == null) // Don't replace the bomb prefab if there is already one.
 				{
-
 					int componentCount = 0;
 					bool frontFaceOnly = false;
 					string missionID = (string) _missionToLoadField.GetValue(null);
@@ -83,18 +89,27 @@ public class BetterCasePicker : MonoBehaviour
 					}
 					else
 					{
-						object mission = _getMissionMethod.Invoke(_instanceProperty.GetValue(null, null), new object[] { missionID });
+						object mission;
+						if (missionID == "custom") mission = _customMissionField.GetValue(null);
+						else mission = _getMissionMethod.Invoke(_instanceProperty.GetValue(null, null), new object[] { missionID });
+
+						if (mission == null)
+						{
+							LogError("Unable to find a mission to get information from.");
+							return;
+						}
+
 						object generatorSetting = _generatorSettingField.GetValue(mission);
 						frontFaceOnly = (bool) _frontFaceOnlyField.GetValue(generatorSetting);
 
 						componentCount = (int) _getComponentCountMethod.Invoke(generatorSetting, null);
 					}
-
+					
 					componentCount += 1; // We need one spot for the timer as well.
-
+					
 					object prefabPool = _bombPrefabPoolField.GetValue(bombGenerator);
 					List<GameObject> gameObjects = (List<GameObject>) _objectsField.GetValue(prefabPool);
-
+					
 					var bombcases = gameObjects
 					.Where(gameobject => gameobject.GetComponent<KMBomb>() != null)
 					.ToDictionary(gameobject => gameobject, gameobject =>
@@ -113,6 +128,7 @@ public class BetterCasePicker : MonoBehaviour
 
 					if (bombcases.Count == 0)
 					{
+						LogError("Unable to find any bomb cases to use.")
 						return;
 					}
 
