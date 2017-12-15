@@ -128,7 +128,7 @@ public class BetterCasePicker : MonoBehaviour
 
 					if (bombcases.Count == 0)
 					{
-						LogError("Unable to find any bomb cases to use.")
+						LogError("Unable to find any bomb cases to use.");
 						return;
 					}
 
