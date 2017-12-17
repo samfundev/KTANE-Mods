@@ -1,7 +1,6 @@
 using UnityEngine;
 using System.IO;
 using System;
-using NAudio;
 using NAudio.Wave;
 
 public static class NAudioPlayer {
@@ -14,7 +13,7 @@ public static class NAudioPlayer {
         WaveStream waveStream = WaveFormatConversionStream.CreatePcmStream(mp3audio);
         // Convert to WAV data
         WAV wav = new WAV(AudioMemStream(waveStream).ToArray());
-        AudioClip audioClip = AudioClip.Create("AudioClip", wav.SampleCount, 1,wav.Frequency, false);
+        AudioClip audioClip = AudioClip.Create("AudioClip", wav.SampleCount, 1, wav.Frequency, false);
         audioClip.SetData(wav.LeftChannel, 0);
         // Return the clip
         return audioClip;
