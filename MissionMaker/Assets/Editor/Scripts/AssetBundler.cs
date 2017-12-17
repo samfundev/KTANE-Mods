@@ -238,6 +238,10 @@ public class AssetBundler
             .Select(path => "Assets/Plugins/Managed/" + Path.GetFileNameWithoutExtension(path))
             .ToList();
 
+		managedReferences.AddRange(AssetDatabase.GetAllAssetPaths()
+			.Where(path => path.EndsWith(".dll") && path.StartsWith("Assets/CustomAssemblies"))
+			.Select(path => "Assets/CustomAssemblies/" + Path.GetFileNameWithoutExtension(path)));
+
         string unityAssembliesLocation;
         switch (System.Environment.OSVersion.Platform)
         {
