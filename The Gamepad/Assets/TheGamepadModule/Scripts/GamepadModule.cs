@@ -27,8 +27,8 @@ public class GamepadModule : MonoBehaviour
     static int idCounter = 1;
     int moduleID;
 
-    string[] correct = { "GOOD JOB!", "CORRECT!", ":)", "=)", ";)", ":D", "=D", ";D" };
-    string[] incorrect = { "POOR JOB!", "INCORRECT", ":(", ";(", "=(", ">:(", "O_o", "o_o", "o_O", "O_O" };
+    string[] correct = { "GOOD JOB!", "CORRECT!", ":)", "=)", ";)", ":D", "=D", ";D", "^_^" };
+    string[] incorrect = { "POOR JOB!", "INCORRECT", ":(", ";(", "=(", ">:(", "O_o", "o_o", "o_O", "O_O", ">_<", ">_>", "<_<", "V_V", "X_X", "x_x", "-_-", };
 
     int[] hcn = { 1, 2, 4, 6, 12, 24, 36, 48, 60 };
 
@@ -96,6 +96,11 @@ public class GamepadModule : MonoBehaviour
         func();
     }
 
+	string FormatInputs(string input)
+	{
+		return input.Substring(0, 4) + " " + input.Substring(4, 4);
+	}
+
     void Start()
     {
         moduleID = idCounter++;
@@ -130,7 +135,7 @@ public class GamepadModule : MonoBehaviour
                     case "↵":
                         if (!solved)
                         {
-                            DebugMsg("Submitted: " + input);
+                            DebugMsg("Submitted: " + FormatInputs(input));
                             if (input == solution)
                             {
                                 //InputMesh.text = "GOOD JOB!";
@@ -286,7 +291,7 @@ public class GamepadModule : MonoBehaviour
             solution += "B▲A▼";
         }
 
-        DebugMsg("Solution (Before Overrides): " + solution.Substring(0, 4) + " " + solution.Substring(4, 4));
+        DebugMsg("Solution (Before Overrides): " + FormatInputs(solution));
         // Global Override
         if (isMultiple(x, 11))
         {
@@ -328,21 +333,22 @@ public class GamepadModule : MonoBehaviour
             solution = new string(charArray);
         }
 
-        DebugMsg("Solution: " + solution.Substring(0, 4) + " " + solution.Substring(4, 4));
-    }
-
-    // TPK Support
-    public KMSelectable[] ProcessTwitchCommand(string command)
+        DebugMsg("Solution: " + FormatInputs(solution));
+	}
+	
+	public static string TwitchHelpMessage = "Use !{0} submit ab◀r 	d<a>. You can use shorthands or symbols to reference buttons.";
+	public KMSelectable[] ProcessTwitchCommand(string command)
     {
         string[] split = command.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-        if (split.Length == 9 && split[0] == "submit")
+        if (split.Length == 3 && (split[0] == "submit" || split[0] == "press"))
         {
             List<KMSelectable> inputs = new List<KMSelectable>();
             List<string> positions = new List<string>()
             {
                 "l", "r", "u", "d", "b", "a",
-                "left", "right", "up", "down", "beta", "alpha"
-            };
+				"<", ">", "^", "v", "🇧", "🇦",
+				"◀", "▶", "▲", "▼", "🅱️", "🅰"
+			};
 
             if (input.Length > 0)
             {
@@ -352,9 +358,9 @@ public class GamepadModule : MonoBehaviour
                 }
             }
 
-            foreach (string button in split.Skip(1))
+			foreach (char button in split.Skip(1).SelectMany(x => x.ToArray()))
             {
-                int index = positions.IndexOf(button);
+                int index = positions.IndexOf(button.ToString());
                 if (index > -1)
                 {
                     inputs.Add(Buttons[index % 6]);
