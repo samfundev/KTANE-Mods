@@ -385,13 +385,14 @@ public class AssetBundler
     /// </summary>
     protected void CopyManagedAssemblies()
     {
-        IEnumerable<string> assetPaths = AssetDatabase.GetAllAssetPaths().Where(path => path.EndsWith(".dll") && path.StartsWith("Assets/Plugins"));
-
+        IEnumerable<string> assetPaths = AssetDatabase.GetAllAssetPaths().Where(path => path.EndsWith(".dll") && path.StartsWith("Assets/Plugins"))
+			.Concat(AssetDatabase.GetAllAssetPaths().Where(path => path.EndsWith(".dll") && path.StartsWith("Assets/CustomAssemblies")));
+		
         //Now find any other managed plugins that should be included, other than the EXCLUDED_ASSEMBLIES list
         foreach (string assetPath in assetPaths)
         {
             var pluginImporter = AssetImporter.GetAtPath(assetPath) as PluginImporter;
-
+			
             if (pluginImporter != null && !pluginImporter.isNativePlugin && pluginImporter.GetCompatibleWithAnyPlatform())
             {
                 string assetName = Path.GetFileName(assetPath);
