@@ -67,13 +67,9 @@ public class GamepadModule : MonoBehaviour
         return new string(charArray);
     }
 
-    void UpdateInput()
+	void UpdateInput()
     {
-        string display = input;
-        if (display.Length > 4)
-        {
-            display = display.Substring(0, 4) + " " + display.Substring(4);
-        }
+        string display = FormatInputs(input);
 
         TextMesh InputMesh = Input.GetComponent<TextMesh>() as TextMesh;
         InputMesh.text = display + ("---- ----").Substring(display.Length, 9 - display.Length);
@@ -98,7 +94,7 @@ public class GamepadModule : MonoBehaviour
 
 	string FormatInputs(string input)
 	{
-		return input.Substring(0, 4) + " " + input.Substring(4, 4);
+		return input.Length > 4 ? (input.Substring(0, 4) + " " + input.Substring(4)) : input;
 	}
 
     void Start()
@@ -153,7 +149,7 @@ public class GamepadModule : MonoBehaviour
                             else
                             {
                                 //InputMesh.text = "INCORRECT";
-                                DebugMsg("Inputted " + input + " but expected " + solution);
+                                DebugMsg("Inputted " + FormatInputs(input) + " but expected " + FormatInputs(solution));
                                 InputMesh.text = incorrect[Random.Range(0, incorrect.Length)];
                                 BombModule.HandleStrike();
 
@@ -340,7 +336,7 @@ public class GamepadModule : MonoBehaviour
 	public KMSelectable[] ProcessTwitchCommand(string command)
     {
         string[] split = command.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-        if (split.Length == 3 && (split[0] == "submit" || split[0] == "press"))
+        if ((split.Length == 2 || split.Length == 3) && split[0] == "submit")
         {
             List<KMSelectable> inputs = new List<KMSelectable>();
             List<string> positions = new List<string>()
@@ -352,25 +348,24 @@ public class GamepadModule : MonoBehaviour
 
             if (input.Length > 0)
             {
-                for (var i = 0; i < 8; i++)
+                for (var i = 0; i < input.Length; i++)
                 {
                     inputs.Add(Buttons[6]);
                 }
             }
 
+			int buttons = 0;
 			foreach (char button in split.Skip(1).SelectMany(x => x.ToArray()))
             {
                 int index = positions.IndexOf(button.ToString());
-                if (index > -1)
-                {
-                    inputs.Add(Buttons[index % 6]);
-                }
-                else
-                {
-                    return null;
-                }
+                if (index > -1) inputs.Add(Buttons[index % 6]);
+                else return null;
+
+				buttons++;
             }
             inputs.Add(Buttons[7]); // Submit button
+
+			if (buttons != 8) return null;
 
             return inputs.ToArray();
         }
