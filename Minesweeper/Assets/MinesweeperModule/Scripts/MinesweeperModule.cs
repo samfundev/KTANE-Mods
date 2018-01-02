@@ -873,7 +873,11 @@ public class MinesweeperModule : MonoBehaviour
 			{
 				foreach (Cell cell in Game.Cells)
 				{
-					if (cell.Color == action._color) cell.Click();
+					if (cell.Color == action._color)
+					{
+						cell.Click();
+						yield return new WaitForSeconds(0.1f);
+					}
 				}
 
 				GuidesEnabled = true;
