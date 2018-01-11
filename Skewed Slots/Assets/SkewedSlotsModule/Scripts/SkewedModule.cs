@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using BombInfoExtensions;
 using System.Collections.Generic;
+using System.Linq;
 
 public class SkewedModule : MonoBehaviour
 {
@@ -405,14 +406,9 @@ public class SkewedModule : MonoBehaviour
             if (int.TryParse(split[1], out slot0) && int.TryParse(split[2], out slot1) && int.TryParse(split[3], out slot2))
             {
                 List<int> submit = new List<int>() { slot0, slot1, slot2 };
-                foreach (int num in submit)
-                {
-                    if (num < 0 || num > 9)
-                    {
-                        yield break;
-                    }
-                }
+				if (submit.Any(x => x < 0 || x > 9)) yield break;
 
+				yield return null;
                 foreach (GameObject slot in Slots)
                 {
                     int slotnumber = int.Parse(slot.name.Substring(4, 1));
@@ -427,14 +423,8 @@ public class SkewedModule : MonoBehaviour
                     }
                 }
 
-                if (Display[0] == Solution[0] && Display[1] == Solution[1] && Display[2] == Solution[2])
-                {
-                    yield return "solve";
-                }
-                else
-                {
-                    yield return "strike";
-                }
+                if (Display[0] == Solution[0] && Display[1] == Solution[1] && Display[2] == Solution[2]) yield return "solve";
+                else yield return "strike";
 
                 Submit.OnInteract();
             }

@@ -13,6 +13,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: SkewedSlotsModule
   title: Skewed Slots
+  description: "[h1]About[/h1]\r\nA simple module which is mainly math oriented. Calculate
+    the correct slot numbers based on the slots.\r\n\r\n[h1]Manual[/h1]\r\n[url=https://ktane.timwi.de/PDF/Skewed%20Slots.pdf]PDF[/url]\r\n[url=https://ktane.timwi.de/HTML/Skewed%20Slots.html]HTML[/url]\r\n\r\n[h1]Module
+    ID[/h1]\r\nSkewedSlotsModule"
   version: 1
   outputFolder: C:\Program Files (x86)\Steam\steamapps\common\Keep Talking and Nobody
     Explodes\mods
+  previewImage: {fileID: 2800000, guid: 0840a265b3ffd364db54f8a6b4160ace, type: 3}
