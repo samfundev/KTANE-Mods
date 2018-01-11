@@ -606,6 +606,8 @@ public class CreationModule : MonoBehaviour
 
             if (elements.Count == 2)
             {
+				yield return null;
+
                 foreach (GameObject element in elements)
                 {
                     element.GetComponent<KMSelectable>().OnInteract();
