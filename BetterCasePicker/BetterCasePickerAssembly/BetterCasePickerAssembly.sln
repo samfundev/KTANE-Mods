@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2010
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BetterCasePickerAssembly", "BetterCasePickerAssembly\BetterCasePickerAssembly.csproj", "{72E47579-1E60-4EE3-A502-4D34B756BD63}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BetterCasePickerAssembly", "BetterCasePickerAssembly.csproj", "{72E47579-1E60-4EE3-A502-4D34B756BD63}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

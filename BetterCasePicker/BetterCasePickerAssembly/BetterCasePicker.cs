@@ -47,7 +47,7 @@ public class BetterCasePicker : MonoBehaviour
 					}
 
 					bool frontFaceOnly = mission.GeneratorSetting.FrontFaceOnly;
-					int componentCount = mission.GeneratorSetting.ComponentPools.Where(pool => pool.ModTypes == null || !pool.ModTypes.Contains("Multiple Bombs")).Sum(pool => pool.Count) + 1;
+					int componentCount = mission.GeneratorSetting.ComponentPools.Where(pool => pool.ModTypes == null || !(pool.ModTypes.Contains("Factory Mode") || pool.ModTypes.Contains("Multiple Bombs"))).Sum(pool => pool.Count) + 1;
 
 					ObjectPool prefabPool = bombGenerator.BombPrefabPool;
 
