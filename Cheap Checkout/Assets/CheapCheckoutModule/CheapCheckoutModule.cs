@@ -403,7 +403,7 @@ public class CheapCheckoutModule : MonoBehaviour
                 }
                 else
                 {
-                    DebugMsg("Changed entered: $" + Change.ToString("N2"));
+                    DebugMsg("Change entered: $" + Change.ToString("N2"));
                     if (Change == Paid - Total && !solved)
                     {
                         solved = true;

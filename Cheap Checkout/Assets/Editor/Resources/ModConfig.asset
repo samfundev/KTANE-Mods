@@ -13,6 +13,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: CheapCheckoutModule
   title: Cheap Checkout
+  description: "[h1]About[/h1]\r\nRun a checkout and figure out how much change the
+    customer should get. Don't cheap out on the customer unless you want a strike!\r\n\r\n[h1]Manual[/h1]\r\n[url=https://ktane.timwi.de/PDF/Cheap%20Checkout.pdf]PDF[/url]\r\n[url=https://ktane.timwi.de/HTML/Cheap%20Checkout.html]HTML[/url]\r\n\r\n[h1]Module
+    ID[/h1]\r\nCheapCheckoutModule"
   version: 1
   outputFolder: C:\Program Files (x86)\Steam\steamapps\common\Keep Talking and Nobody
     Explodes\mods
+  previewImage: {fileID: 2800000, guid: 0840a265b3ffd364db54f8a6b4160ace, type: 3}
