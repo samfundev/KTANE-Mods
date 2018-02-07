@@ -12,7 +12,17 @@ function catchify(promise) {
 	return promise
 		.then(resp => [null, resp])
 		.catch(err => [err, null]);
-} 
+}
+
+// All the directories that don't need KM_Assets
+const KM_Assetless = [
+	"BetterCasePicker",
+	"BombTimeExtender",
+	"MissionMaker",
+	"PacingExtender",
+	"SoundpackMaker",
+	"Tweaks"
+]
 
 const junctions = [
 	"Assets\\Editor\\Scripts",
@@ -35,6 +45,10 @@ process.chdir("..");
 
 		for (let junc of junctions) {
 			let folder = join(file, junc);
+			if (KM_Assetless.includes(file) && junc == "Assets\\KM_Assets") {
+				fs.remove(folder);
+				continue;
+			}
 
 			let [err, stats] = await catchify(lstat(folder));
 			if (err == null) {
