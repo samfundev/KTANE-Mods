@@ -404,6 +404,7 @@ public class BrokenButtonModule : MonoBehaviour
                 {
                     Solved = true;
                     BombModule.HandlePass();
+					DebugMsg("Module solved.");
                 }
                 else
                 {
@@ -417,6 +418,10 @@ public class BrokenButtonModule : MonoBehaviour
 
         FindCorrectButtons();
     }
+
+    #pragma warning disable 414
+    private string TwitchHelpMessage = "Press the button by name with !{0} press \"this\". Press the button in column 2 row 3 with !{0} press 2 3. Press the right submit button with !{0} submit right.";
+    #pragma warning restore 414
 
     public KMSelectable[] ProcessTwitchCommand(string command)
     {
