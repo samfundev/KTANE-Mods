@@ -332,8 +332,10 @@ public class GamepadModule : MonoBehaviour
         DebugMsg("Solution: " + FormatInputs(solution));
 	}
 	
-	public static string TwitchHelpMessage = "Use !{0} submit ab◀r 	d<a>. You can use shorthands or symbols to reference buttons.";
-	public KMSelectable[] ProcessTwitchCommand(string command)
+    #pragma warning disable 414
+	private string TwitchHelpMessage = "Use !{0} submit ab◀r d<a>. You can use shorthands or symbols to reference buttons.";
+	#pragma warning restore 414
+    public KMSelectable[] ProcessTwitchCommand(string command)
     {
         string[] split = command.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
         if ((split.Length == 2 || split.Length == 3) && split[0] == "submit")
