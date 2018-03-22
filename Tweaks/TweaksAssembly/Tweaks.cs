@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.IO;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(KMService))]
@@ -9,6 +10,8 @@ public class Tweaks : MonoBehaviour
 		FreeplayDevice.MAX_SECONDS_TO_SOLVE = float.MaxValue;
 		FreeplayDevice.MIN_MODULE_COUNT = 1;
 
+		SceneManager.Instance.GameplayState.FadeInTime = 0.5f;
+
 		UnityEngine.SceneManagement.SceneManager.sceneLoaded += delegate (Scene scene, LoadSceneMode _)
 		{
 			if (scene.name == "gameplayLoadingScene") {
@@ -18,5 +21,10 @@ public class Tweaks : MonoBehaviour
 				loadmanager.FadeOutTime = 0.5f;
 			}
 		};
+	}
+
+	void OnApplicationQuit()
+	{
+		Debug.LogFormat("[Tweaks] [OnApplicationQuit] Found output_log: {0}", File.Exists(Path.Combine(Application.dataPath, "output_log.txt")));
 	}
 }
