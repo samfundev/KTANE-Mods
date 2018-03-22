@@ -808,8 +808,10 @@ public class MinesweeperModule : MonoBehaviour
 	{
 		return targets.Contains(obj);
 	}
-
-	public static string TwitchHelpMessage = "Dig the initial color with !{0} dig blue. Dig the cell in column 1 row 2 with !{0} dig 1 2. Flag the cell on column 3 row 4 with !{0} flag 3 4. Add \"hold\" to the end of a command to hold down on a cell. You can use negative numbers to count from the end of that row/column. Chain commands with a semicolon.";
+	
+	#pragma warning disable 414
+	private string TwitchHelpMessage = "Dig the initial color with !{0} dig blue. Dig the cell in column 1 row 2 with !{0} dig 1 2. Flag the cell on column 3 row 4 with !{0} flag 3 4. Add \"hold\" to the end of a command to hold down on a cell. You can use negative numbers to count from the end of that row/column. Chain commands with a semicolon.";
+	#pragma warning restore 414
 	public IEnumerator ProcessTwitchCommand(string command)
 	{
 		List<TPAction> actions = new List<TPAction>();

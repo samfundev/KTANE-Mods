@@ -7,7 +7,7 @@ Material:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: Text
-  m_Shader: {fileID: 4800000, guid: 0104f4f07bbcbf2459d27dd5b6499de7, type: 3}
+  m_Shader: {fileID: 4800000, guid: 9bff5267355460a49bf42c801a5ac761, type: 3}
   m_ShaderKeywords: _ALPHAPREMULTIPLY_ON _EMISSION
   m_LightmapFlags: 1
   m_EnableInstancingVariants: 0
