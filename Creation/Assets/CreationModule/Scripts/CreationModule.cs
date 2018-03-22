@@ -585,6 +585,10 @@ public class CreationModule : MonoBehaviour
         }
     }
 
+    #pragma warning disable 414
+    private string TwitchHelpMessage = "Combine two elements with !{0} combine water fire.";
+    #pragma warning restore 414
+
     public IEnumerator ProcessTwitchCommand(string command)
     {
         string[] split = command.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);

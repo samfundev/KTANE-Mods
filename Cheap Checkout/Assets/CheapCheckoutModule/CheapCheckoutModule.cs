@@ -112,7 +112,7 @@ public class CheapCheckoutModule : MonoBehaviour
 
     TextMesh GetTextMesh(GameObject Object)
     {
-        return Object.transform.Find("ButtonText").gameObject.GetComponent<TextMesh>();
+        return Object.transform.Find("ButtonText").GetComponent<TextMesh>();
     }
 
     void UpdateDisplay()
@@ -465,7 +465,16 @@ public class CheapCheckoutModule : MonoBehaviour
         BombModule.OnActivate += OnActivate;
     }
 
-    public IEnumerator ProcessTwitchCommand(string command)
+    #pragma warning disable 414
+    private string TwitchHelpMessage = "Cycle the items with !{0} items. Go to a specific item number with !{0} item 3. Get customers to pay the correct amount with !{0} submit. Return the proper change with !{0} submit 3.24.";
+	#pragma warning restore 414
+
+	public bool EqualsAny(object obj, params object[] targets)
+	{
+		return targets.Contains(obj);
+	}
+
+	public IEnumerator ProcessTwitchCommand(string command)
     {
         string[] split = command.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -477,9 +486,18 @@ public class CheapCheckoutModule : MonoBehaviour
 
 				Clear.OnInteract();
             }
-            else if (split[0] == "items")
+            else if (EqualsAny(split[0], "items", "cycle"))
 			{
 				yield return null;
+
+				if (DisplayPos > 0)
+				{
+					for (int i = 0; i < DisplayPos; i++)
+					{
+						MoveLeft.OnInteract();
+						yield return new WaitForSeconds(0.05f);
+					}
+				}
 
 				for (int i = 0; i < 5; i++)
                 {
@@ -487,51 +505,61 @@ public class CheapCheckoutModule : MonoBehaviour
                     MoveRight.OnInteract();
                 }
 
-                yield return new WaitForSeconds(2f);
+                yield return new WaitForSeconds(1.5f);
                 for (int i = 0; i < 5; i++)
                 {
                     MoveLeft.OnInteract();
                     yield return new WaitForSeconds(0.1f);
                 }
             }
-            else if (split[0] == "submit" || split[0] == "slap")
+            else if (EqualsAny(split[0], "submit", "slap"))
 			{
 				yield return null;
 
 				Submit.OnInteract();
             }
         }
-        else if (split.Length == 2 && split[0] == "submit")
+        else if (split.Length == 2)
         {
-            decimal price;
-            if (decimal.TryParse(split[1], out price) && decimal.Round(price, 2) == price && price < 200)
+
+			if (split[0] == "submit") {
+				decimal price;
+				if (decimal.TryParse(split[1], out price) && decimal.Round(price, 2) == price && price < 200)
+				{
+					yield return null;
+
+					Clear.OnInteract();
+
+					foreach (GameObject button in Amounts.Reverse())
+					{
+						decimal amount = decimal.Parse("0" + GetTextMesh(button).text);
+						while (price >= amount)
+						{
+							button.GetComponent<KMSelectable>().OnInteract();
+							price -= amount;
+							yield return new WaitForSeconds(0.1f);
+						}
+					}
+
+					if (Change == Paid - Total) yield return "solve";
+					else yield return "strike";
+
+					Submit.OnInteract();
+				}
+			}
+			else if (EqualsAny(split[0], "set", "item"))
 			{
-				yield return null;
-
-				Clear.OnInteract();
-
-                foreach (GameObject button in Amounts.Reverse())
-                {
-                    decimal amount = decimal.Parse("0" + GetTextMesh(button).text);
-                    while (price >= amount)
-                    {
-                        button.GetComponent<KMSelectable>().OnInteract();
-                        price -= amount;
-                        yield return new WaitForSeconds(0.1f);
-                    }
-                }
-
-                if (Change == Paid - Total)
-                {
-                    yield return "solve";
-                }
-                else
-                {
-                    yield return "strike";
-                }
-
-                Submit.OnInteract();
-            }
+				int position;
+				if (int.TryParse(split[1], out position) && position >= 1 && position <= 6)
+				{
+					int diff = DisplayPos - (position - 1);
+					for (int i = 0; i < Math.Abs(diff); i++)
+					{
+						(diff > 0 ? MoveLeft : MoveRight).OnInteract();
+						yield return new WaitForSeconds(0.1f);
+					}
+				}
+			}
         }
     }
 }
