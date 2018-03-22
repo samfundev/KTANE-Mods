@@ -1,9 +1,10 @@
 using UnityEngine;
 using System;
-using System.Collections;
-using BombInfoExtensions;
-using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Collections;
+using System.Collections.Generic;
+using BombInfoExtensions;
 
 public class SkewedModule : MonoBehaviour
 {
@@ -18,38 +19,24 @@ public class SkewedModule : MonoBehaviour
     int[] Solution = new int[3];
     bool moduleActivated = false;
     bool solved = false;
-    bool firstSpin = true;
     string ruleLog = "(Rule Log)";
     int[] fibonacci = {1, 1, 2, 3, 5, 8, 13, 21, 34, 55};
 
     static int idCounter = 1;
     int moduleID;
 
-    void LogRule(string msg)
+    void LogRule(string msg, params object[] args)
     {
-        ruleLog += "\n" + msg;
-    }
-
-    public static int Count(IEnumerable source)
-    {
-        int c = 0;
-        var e = source.GetEnumerator();
-        while (e.MoveNext())
-        {
-            c++;
-        }
-
-        return c;
+        ruleLog += "\n" + string.Format(msg, args);
     }
 
     public static bool isPrime(int number)
     {
-        int boundary = (int)Math.Floor(Math.Sqrt(number));
-
         if (number <= 1) return false;
         if (number == 2) return true;
 
-        for (int i = 2; i <= boundary; ++i)
+		int boundary = (int) Math.Floor(Math.Sqrt(number));
+		for (int i = 2; i <= boundary; ++i)
         {
             if (number % i == 0) return false;
         }
@@ -57,9 +44,9 @@ public class SkewedModule : MonoBehaviour
         return true;
     }
 
-    void DebugMsg(string msg)
+    void DebugMsg(string msg, params object[] args)
     {
-        Debug.LogFormat("[Skewed Slots #{0}] {1}", moduleID, msg);
+        Debug.LogFormat("[Skewed Slots #{0}] {1}", moduleID, string.Format(msg, args));
     }
 
     int Random(int min, int max)
@@ -67,10 +54,27 @@ public class SkewedModule : MonoBehaviour
         return UnityEngine.Random.Range(min, max + 1);
     }
 
-    void ButtonPress(KMSelectable Selectable)
+	string Join<T>(IEnumerable<T> objects, string separator = " ")
+	{
+		StringBuilder stringBuilder = new StringBuilder();
+		IEnumerator<T> enumerator = objects.GetEnumerator();
+		if (enumerator.MoveNext()) stringBuilder.Append(enumerator.Current); else return "";
+
+		while (enumerator.MoveNext()) stringBuilder.Append(separator).Append(enumerator.Current);
+
+		return stringBuilder.ToString();
+	}
+
+	void SetupInteraction(KMSelectable Selectable, Action action)
     {
-        Selectable.AddInteractionPunch();
-        BombAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
+		Selectable.OnInteract += delegate ()
+		{
+			Selectable.AddInteractionPunch();
+			BombAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
+			if (moduleActivated && !solved) action(); // !solved added to hide the warning
+
+			return false;
+		};
     }
 
     private IEnumerator SpinSlots(int state)
@@ -109,14 +113,14 @@ public class SkewedModule : MonoBehaviour
 
         if (state < 2)
         {
-            LogRule("Initial State: " + Numbers[0] + ", " + Numbers[1] + ", " + Numbers[2] + ".");
+            LogRule("Initial State: {0}.", Join(Numbers, " "));
 
             for (int slotnumber = 0; slotnumber < 3; slotnumber++)
             {
                 Solution[slotnumber] = ApplyRules(Numbers[slotnumber], slotnumber);
             }
 
-            LogRule("\nFinal State: " + Solution[0] + ", " + Solution[1] + ", " + Solution[2] + ".");
+            LogRule("\nFinal State: {0}.", Join(Solution, " "));
             DebugMsg(ruleLog);
 
             moduleActivated = true;
@@ -137,55 +141,36 @@ public class SkewedModule : MonoBehaviour
     {
         BombModule.OnActivate += ActivateModule;
 
-        Submit.OnInteract += delegate ()
-        {
-            ButtonPress(Submit);
-            if (moduleActivated)
-            {
-                DebugMsg("Submitted: " + Display[0] + " " + Display[1] + " " + Display[2]);
-                if (Display[0] == Solution[0] && Display[1] == Solution[1] && Display[2] == Solution[2])
-                {
-                    StartCoroutine(SpinSlots(2));
-                }
-                else
-                {
-                    StartCoroutine(SpinSlots(1));
-                }
-            }
-            return false;
-        };
+		SetupInteraction(Submit, delegate ()
+		{
+			DebugMsg("Submitted: {0}", Join(Display, " "));
+			if (Display.SequenceEqual(Solution))
+			{
+				StartCoroutine(SpinSlots(2));
+			}
+			else
+			{
+				StartCoroutine(SpinSlots(1));
+			}
+		});
 
         foreach (GameObject slot in Slots)
         {
             int slotnumber = int.Parse(slot.name.Substring(4, 1));
-            KMSelectable up = slot.transform.Find("Up").gameObject.GetComponent<KMSelectable>() as KMSelectable;
-            KMSelectable down = slot.transform.Find("Down").gameObject.GetComponent<KMSelectable>() as KMSelectable;
-            up.OnInteract += delegate ()
-            {
-                if (moduleActivated)
-                {
-                    ButtonPress(up);
-                    Display[slotnumber] = (Display[slotnumber] + 1) % 10;
+            KMSelectable up = slot.transform.Find("Up").GetComponent<KMSelectable>();
+            KMSelectable down = slot.transform.Find("Down").GetComponent<KMSelectable>();
+			SetupInteraction(up, delegate ()
+			{
+				Display[slotnumber] = (Display[slotnumber] + 1) % 10;
+				UpdateSlots();
+			});
 
-                    UpdateSlots();
-                }
-                return false;
-            };
-
-            down.OnInteract += delegate ()
+			SetupInteraction(down, delegate ()
             {
-                ButtonPress(down);
-                if (moduleActivated)
-                {
-                    Display[slotnumber] = Display[slotnumber] - 1;
-                    if (Display[slotnumber] == -1)
-                    {
-                        Display[slotnumber] = 9;
-                    }
-                    UpdateSlots();
-                }
-                return false;
-            };
+                Display[slotnumber] = Display[slotnumber] - 1;
+                if (Display[slotnumber] == -1) Display[slotnumber] = 9;
+                UpdateSlots();
+            });
         }
     }
 
@@ -193,7 +178,7 @@ public class SkewedModule : MonoBehaviour
     {
         int correct = digit;
 
-        LogRule("\nCalculating slot #" + (slotnumber + 1) + ". Starting at: " + digit);
+        LogRule("\nCalculating slot #{0}. Starting at: {1}", slotnumber + 1, digit);
 
         // All digits
         switch (correct)
@@ -209,12 +194,12 @@ public class SkewedModule : MonoBehaviour
         }
 
         string serial = BombInfo.GetSerialNumber();
-        int lit = Count(BombInfo.GetOnIndicators());
-        int unlit = Count(BombInfo.GetOffIndicators());
+        int lit = BombInfo.GetOnIndicators().Count();
+        int unlit = BombInfo.GetOffIndicators().Count();
 
         correct = correct + lit - unlit;
 
-        LogRule("Added indicators (" + lit + " - " + unlit + "). New number: " + correct);
+        LogRule("Added indicators ({0} - {1}). New number: {2}", lit, unlit, correct);
 
         if (correct % 3 == 0)
         {
@@ -360,7 +345,7 @@ public class SkewedModule : MonoBehaviour
             correct = correct + 10;
         }
 
-        LogRule("Final digit: " + correct);
+        LogRule("Final digit: {0}", correct);
 
         return correct;
     }
@@ -370,7 +355,7 @@ public class SkewedModule : MonoBehaviour
         int slotnumber = 0;
         foreach (GameObject slot in Slots)
         {
-            TextMesh text = slot.transform.Find("Number").gameObject.GetComponent<TextMesh>() as TextMesh;
+            TextMesh text = slot.transform.Find("Number").GetComponent<TextMesh>();
             if (Display[slotnumber] < 10)
             {
                 text.text = Display[slotnumber].ToString();
@@ -396,38 +381,43 @@ public class SkewedModule : MonoBehaviour
         StartCoroutine(SpinSlots(0));
     }
 
+    #pragma warning disable 414
+    private string TwitchHelpMessage = "Submit the correct response with !{0} submit 1 2 3.";
+    #pragma warning restore 414
+
     public IEnumerator ProcessTwitchCommand(string command)
     {
-        string[] split = command.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-        if (split.Length == 4 && split[0] == "submit")
+		List<string> split = command.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+		if (split[0] == "submit") split.RemoveAt(0); // Make submit be optional
+
+		split = split.SelectMany(numbers => numbers.Select(num => num.ToString())).ToList();
+
+        int slot0, slot1, slot2;
+        if (split.Count == 3 && int.TryParse(split[0], out slot0) && int.TryParse(split[1], out slot1) && int.TryParse(split[2], out slot2))
         {
-            int slot0, slot1, slot2;
+            int[] submit = new int[3] { slot0, slot1, slot2 };
+			if (submit.Any(x => x < 0 || x > 9)) yield break;
 
-            if (int.TryParse(split[1], out slot0) && int.TryParse(split[2], out slot1) && int.TryParse(split[3], out slot2))
+			yield return null;
+            foreach (GameObject slot in Slots)
             {
-                List<int> submit = new List<int>() { slot0, slot1, slot2 };
-				if (submit.Any(x => x < 0 || x > 9)) yield break;
+                int slotnumber = int.Parse(slot.name.Substring(4, 1));
+                KMSelectable up = slot.transform.Find("Up").GetComponent<KMSelectable>();
+                KMSelectable down = slot.transform.Find("Down").GetComponent<KMSelectable>();
 
-				yield return null;
-                foreach (GameObject slot in Slots)
+                int diff = Display[slotnumber] - submit[slotnumber];
+                for (int i = 0; i < Math.Abs(diff); i++)
                 {
-                    int slotnumber = int.Parse(slot.name.Substring(4, 1));
-                    KMSelectable up = slot.transform.Find("Up").gameObject.GetComponent<KMSelectable>() as KMSelectable;
-                    KMSelectable down = slot.transform.Find("Down").gameObject.GetComponent<KMSelectable>() as KMSelectable;
-
-                    int diff = Display[slotnumber] - submit[slotnumber];
-                    for (int i = 0; i < Math.Abs(diff); i++)
-                    {
-                        (diff > 0 ? down : up).OnInteract();
-                        yield return new WaitForSeconds(0.1f);
-                    }
+                    (diff > 0 ? down : up).OnInteract();
+                    yield return new WaitForSeconds(0.1f);
                 }
+			}
+			yield return new WaitForSeconds(0.25f);
 
-                if (Display[0] == Solution[0] && Display[1] == Solution[1] && Display[2] == Solution[2]) yield return "solve";
-                else yield return "strike";
+			if (submit.SequenceEqual(Solution)) yield return "solve";
+            else yield return "strike";
 
-                Submit.OnInteract();
-            }
+            Submit.OnInteract();
         }
     }
 }
