@@ -12,9 +12,29 @@ MonoBehaviour:
   m_Name: ModConfig
   m_EditorClassIdentifier: 
   id: Tweaks
-  title: KTANE Tweaks
-  description: "[h1]About[/h1]\r\n\n\n[h1]Manual[/h1]\r\n\n\r\n[h1]Module ID[/h1]\r\n"
+  title: Tweaks
+  description: "[h1]About[/h1]\r\nThis mods adds small tweaks to the KTANE to make
+    the game just a bit better.\r\n\r\n[h1]Tweaks[/h1]\r\n[list]\r\n[*] Makes the
+    minimum number of modules in the freeplay briefcase to 1.\r\n[*] Removes the maximum
+    time limit in the freeplay briefcase.\r\n[*] Changes the fade time to be a consistent
+    1 second. (Configurable)\r\n[*] Instantly skips the gameplay loading screen as
+    soon as possible. (Configurable)\r\n[*] Picks the smallest case that fits the
+    number of modules on the bomb. (Configurable)\r\n[/list]\r\n\r\n[h1]Future Tweaks[/h1]\r\n[list]\r\n[*]
+    Add logging to modules that don't already have it. (Probing, Orientation Cube,
+    etc)\r\n[*] Save numbered copies of the logfile.\r\n[*] ??? (I'd love to hear
+    your ideas!)\r\n[/list]\r\n\r\n[h1]Settings[/h1]\r\nThe settings can be found
+    in a file called \"TweakSettings\" in your \"Modsettings\" folder.\r\n[list]\r\n[*]
+    [b]FadeTime[/b] (number) - The number seconds should it take to fade in and out
+    of scenes. If the value is negative then the game default's will not be changed.
+    (Default value: 1)\r\n[*] [b]InstantSkip[/b] (true|false) - If the gameplay loading
+    screen be skipped as soon as possible. (Default value: true)\r\n[*] [b]BetterCasePicker[/b]
+    (true|false) - If the smallest case that fits should be picked instead of a random
+    one. (Default value: true)\r\n[/list]\r\n\r\n[h1]Deprecated Mods[/h1]\r\nThe following
+    mods have been deprecated as their function has been implemented in this mod.
+    It is recommended that you unsubscribe from them if you subscribe to this one.\r\n[list]\r\n[*]
+    [url=https://steamcommunity.com/sharedfiles/filedetails/?id=1161968414]BetterCasePicker[/url]\r\n[*]
+    [url=https://steamcommunity.com/sharedfiles/filedetails/?id=1130249244]BombTimeExtender[/url]\r\n[/list]"
   version: 
   outputFolder: C:\Program Files (x86)\Steam\steamapps\common\Keep Talking and Nobody
     Explodes\mods
-  previewImage: {fileID: 0}
+  previewImage: {fileID: 2800000, guid: 128abbe56b58aad4fb574623770b33b8, type: 3}
