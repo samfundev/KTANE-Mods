@@ -13,6 +13,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: BombTimeExtender
   title: BombTimeExtender
+  description: "[h1]Deprecated[/h1]\r\nThis mod is deprecated and will no longer recieve
+    updates. I recommend you remove this mod and install [url=https://steamcommunity.com/sharedfiles/filedetails/?id=1366808675]this[/url]
+    new mod which has the same functionality in it.\r\n\r\n[h1]About[/h1]\r\nThis
+    is a fairly simple mod that makes the maximum time you can set for a freeplay
+    bomb practically infinite."
   version: 1
   outputFolder: C:\Program Files (x86)\Steam\steamapps\common\Keep Talking and Nobody
     Explodes\mods
+  previewImage: {fileID: 2800000, guid: b26d4beca5933984fb744916c4491ecd, type: 3}
