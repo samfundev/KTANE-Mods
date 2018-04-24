@@ -13,13 +13,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: BetterCasePicker
   title: BetterCasePicker
-  description: "[h1]About[/h1]\r\nThis mod changes how cases are picked by the game,
-    making it so that the game will always pick from the smallest cases that fit all
-    the modules on the bomb.\r\nIt also fixes an issue from the vanilla game where
-    a case would be picked that doesn't fit all the modules.\r\nIt will also try to
-    pick a case that fits all the modules on the front face of the bomb, if a mission
-    requests that."
+  description: "[h1]Deprecated[/h1]\r\nThis mod is deprecated and will no longer recieve
+    updates. I recommend you remove this mod and install [url=https://steamcommunity.com/sharedfiles/filedetails/?id=1366808675]this[/url]
+    new mod which has the same functionality in it.\r\n\r\n[h1]About[/h1]\r\nThis
+    mod changes how cases are picked by the game, making it so that the game will
+    always pick from the smallest cases that fit all the modules on the bomb.\r\nIt
+    also fixes an issue from the vanilla game where a case would be picked that doesn't
+    fit all the modules.\r\nIt will also try to pick a case that fits all the modules
+    on the front face of the bomb, if a mission requests that."
   version: 1
   outputFolder: C:\Program Files (x86)\Steam\steamapps\common\Keep Talking and Nobody
     Explodes\mods
-  previewImage: {fileID: 2800000, guid: 93f2071e4f38e5346a6482407177acd0, type: 3}
+  previewImage: {fileID: 2800000, guid: 883df002db6822b4d965b0eacbba52f0, type: 3}
