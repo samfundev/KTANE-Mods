@@ -490,13 +490,11 @@ public class CheapCheckoutModule : MonoBehaviour
 			{
 				yield return null;
 
-				if (DisplayPos > 0)
+				int initialPosition = DisplayPos;
+				for (int i = 0; i < initialPosition; i++)
 				{
-					for (int i = 0; i < DisplayPos; i++)
-					{
-						MoveLeft.OnInteract();
-						yield return new WaitForSeconds(0.05f);
-					}
+					MoveLeft.OnInteract();
+					yield return new WaitForSeconds(0.05f);
 				}
 
 				for (int i = 0; i < 5; i++)
@@ -506,12 +504,12 @@ public class CheapCheckoutModule : MonoBehaviour
                 }
 
                 yield return new WaitForSeconds(1.5f);
-                for (int i = 0; i < 5; i++)
+                for (int i = 0; i < (5 - initialPosition); i++)
                 {
                     MoveLeft.OnInteract();
                     yield return new WaitForSeconds(0.1f);
                 }
-            }
+			}
             else if (EqualsAny(split[0], "submit", "slap"))
 			{
 				yield return null;
@@ -521,7 +519,6 @@ public class CheapCheckoutModule : MonoBehaviour
         }
         else if (split.Length == 2)
         {
-
 			if (split[0] == "submit") {
 				decimal price;
 				if (decimal.TryParse(split[1], out price) && decimal.Round(price, 2) == price && price < 200)
