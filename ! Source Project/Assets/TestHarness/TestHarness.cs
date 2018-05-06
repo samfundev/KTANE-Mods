@@ -1,10 +1,9 @@
-using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-
 using System.Reflection;
 using Newtonsoft.Json;
+using UnityEngine;
 
 public class FakeBombInfo : MonoBehaviour
 {
@@ -151,8 +150,9 @@ public class FakeBombInfo : MonoBehaviour
 
     void Awake()
     {
-        widgets = new Widget[5];
-        for (int a = 0; a < 5; a++)
+        const int numWidgets = 5;
+        widgets = new Widget[numWidgets];
+        for (int a = 0; a < numWidgets; a++)
         {
             int r = Random.Range(0, 3);
             if (r == 0) widgets[a] = new PortWidget();
@@ -172,14 +172,14 @@ public class FakeBombInfo : MonoBehaviour
         };
         string str1 = string.Empty;
         for (int index = 0; index < 2; ++index) str1 = str1 + possibleCharArray[Random.Range(0, possibleCharArray.Length)];
-        string str2 = str1 + (object) Random.Range(0, 9);
+        string str2 = str1 + (object) Random.Range(0, 10);
         for (int index = 3; index < 5; ++index) str2 = str2 + possibleCharArray[Random.Range(0, possibleCharArray.Length - 10)];
-        serial = str2 + Random.Range(0, 9);
+        serial = str2 + Random.Range(0, 10);
 
         Debug.Log("Serial: " + serial);
     }
 
-    float startupTime = 3f;
+    float startupTime = .5f;
 
     public delegate void LightsOn();
     public LightsOn ActivateLights;
@@ -307,6 +307,8 @@ public class FakeBombInfo : MonoBehaviour
             string r = w.GetResult(queryKey, queryInfo);
             if (r != null) responses.Add(r);
         }
+        if (queryKey == "Unity")
+            responses.Add(JsonConvert.SerializeObject(new Dictionary<string, bool>() { { "Unity", true } }));
         return responses;
     }
 
@@ -438,9 +440,8 @@ public class TestHarness : MonoBehaviour
                 if (f.FieldType.Equals(typeof(KMBombInfo)))
                 {
                     KMBombInfo component = (KMBombInfo)f.GetValue(s);
-                    if (component.OnBombExploded != null) fakeInfo.Detonate += new FakeBombInfo.OnDetonate(component.OnBombExploded);
-                    if (component.OnBombSolved != null) fakeInfo.HandleSolved += new FakeBombInfo.OnSolved(component.OnBombSolved);
-                    continue;
+                    fakeInfo.Detonate += delegate { if (component.OnBombExploded != null) component.OnBombExploded(); };
+                    fakeInfo.HandleSolved += delegate { if (component.OnBombSolved != null) component.OnBombSolved(); };
                 }
             }
         }
@@ -695,6 +696,7 @@ public class TestHarness : MonoBehaviour
                 selectableSequence = (KMSelectable[]) method.Invoke(component, new object[] { command });
                 if (selectableSequence == null)
                 {
+                    Debug.LogFormat("Twitch Plays handler reports invalid command (by returning null).", method.DeclaringType.FullName, method.Name);
                     yield break;
                 }
             }
@@ -736,7 +738,10 @@ public class TestHarness : MonoBehaviour
             }
 
             if (responseCoroutine == null)
+            {
+                Debug.LogFormat("Twitch Plays handler reports invalid command (by returning null).", method.DeclaringType.FullName, method.Name);
                 yield break;
+            }
 
             if (!ComponentHelds.ContainsKey(component))
                 ComponentHelds[component] = new HashSet<KMSelectable>();
@@ -744,6 +749,20 @@ public class TestHarness : MonoBehaviour
 
             int initialStrikes = fakeInfo.strikes;
             int initialSolved = fakeInfo.GetSolvedModuleNames().Count;
+
+            if (!responseCoroutine.MoveNext())
+            {
+                Debug.LogFormat("Twitch Plays handler reports invalid command (by returning empty sequence).", method.DeclaringType.FullName, method.Name);
+                yield break;
+            }
+
+            if (responseCoroutine.Current is string)
+            {
+                var str = (string) responseCoroutine.Current;
+                if (str.StartsWith("sendtochat"))
+                    Debug.Log("Twitch handler sent: " + str);
+                yield break;
+            }
 
             while (responseCoroutine.MoveNext())
             {
@@ -762,6 +781,15 @@ public class TestHarness : MonoBehaviour
                     {
                         DoInteractionStart(selectable);
                         heldSelectables.Add(selectable);
+                    }
+                }
+                else if (currentObject is IEnumerable<KMSelectable>)
+                {
+                    foreach (var selectable in (IEnumerable<KMSelectable>) currentObject)
+                    {
+                        DoInteractionStart(selectable);
+                        yield return new WaitForSeconds(.1f);
+                        DoInteractionEnd(selectable);
                     }
                 }
                 else if (currentObject is string)
@@ -846,9 +874,7 @@ public class TestHarness : MonoBehaviour
                     MethodInfo method = type.GetMethod("ProcessTwitchCommand", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
                     if (method != null)
-                    {
                         StartCoroutine(SimulateModule(component, module.transform, method, command));
-                    }
                 }
             }
             command = "";
@@ -866,7 +892,7 @@ public class TestHarness : MonoBehaviour
 
         GameObject o = new GameObject("Light");
         o.transform.localPosition = new Vector3(0, 3, 0);
-        o.transform.localRotation = Quaternion.Euler(new Vector3(50, -30, 0));
+        o.transform.localRotation = Quaternion.Euler(new Vector3(130, -30, 0));
         testLight = o.AddComponent<Light>();
         testLight.type = LightType.Directional;
     }
