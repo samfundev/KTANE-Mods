@@ -1,14 +1,12 @@
 ﻿using UnityEngine;
-using System.Collections;
-using System;
 
 public enum Direction
 {
-	Up,
-	Down,
-	Left,
-	Right,
-	None
+    Up,
+    Down,
+    Left,
+    Right,
+    None
 }
 
 public class TestSelectable : MonoBehaviour
@@ -66,32 +64,37 @@ public class TestSelectable : MonoBehaviour
         }
     }
     public TestSelectable Parent;
-	public KMSelectable ModSelectable;
-	public TestSelectable LastSelectedChild;
-	public int x;
-	public int y;
+    public KMSelectable ModSelectable;
+    public TestSelectable LastSelectedChild;
+    public int x;
+    public int y;
+    int _childRowLength;
+    public int ChildRowLength { get { return ModSelectable ? ModSelectable.ChildRowLength : _childRowLength; } set { _childRowLength = value; } }
+    public bool AllowSelectionWrapX { get { return ModSelectable ? ModSelectable.AllowSelectionWrapX : false; } }
+    public bool AllowSelectionWrapY { get { return ModSelectable? ModSelectable.AllowSelectionWrapY : false; } }
+    public int DefaultSelectableIndex { get { return ModSelectable ? ModSelectable.DefaultSelectableIndex : 0; } }
     
     void Start()
     {
-		ModSelectable = GetComponent<KMSelectable>();
+        ModSelectable = GetComponent<KMSelectable>();
 
-		if (ModSelectable == null || ModSelectable.ChildRowLength == 0 || Children == null)
-		{
-			return;
-		}
-		for (int i = 0; i <= Children.Length / ModSelectable.ChildRowLength; i++)
-		{
-			for (int j = 0; j < ModSelectable.ChildRowLength; j++)
-			{
-				int num = i * ModSelectable.ChildRowLength + j;
-				if (num < Children.Length && Children[num] != null)
-				{
-					Children[num].y = i;
-					Children[num].x = j;
-				}
-			}
-		}
-	}
+        if (ChildRowLength == 0 || Children == null)
+        {
+            return;
+        }
+        for (int i = 0; i <= Children.Length / ChildRowLength; i++)
+        {
+            for (int j = 0; j < ChildRowLength; j++)
+            {
+                int num = i * ChildRowLength + j;
+                if (num < Children.Length && Children[num] != null)
+                {
+                    Children[num].y = i;
+                    Children[num].x = j;
+                }
+            }
+        }
+    }
 
     public bool Interact()
     {
@@ -155,111 +158,111 @@ public class TestSelectable : MonoBehaviour
         ActivateChildSelectableAreas();
     }
 
-	public TestSelectable GetChild(int cX, int cY)
-	{
-		int num = cY * ModSelectable.ChildRowLength + cX;
-		if (num >= Children.Length || num < 0 || cX >= ModSelectable.ChildRowLength || cX < 0)
-		{
-			return null;
-		}
-		return Children[num];
-	}
+    public TestSelectable GetChild(int cX, int cY)
+    {
+        int num = cY * ChildRowLength + cX;
+        if (num < Children.Length && num >= 0 && cX < ChildRowLength && cX >= 0)
+        {
+            return Children[num];
+        }
+        return null;
+    }
 
-	public TestSelectable GetNearestSelectable(Direction direction)
-	{
-		if (Parent == null || ModSelectable.IsPassThrough || Parent.ModSelectable == null)
-		{
-			return null;
-		}
-		
-		int num = Mathf.Max(Parent.ModSelectable.ChildRowLength, Parent.Children.Length / Parent.ModSelectable.ChildRowLength);
-		for (int i = 0; i < num; i++)
-		{
-			for (int j = 1; j < num; j++)
-			{
-				TestSelectable childInDirection = GetChildInDirection(direction, i, j);
-				if (childInDirection != null)
-				{
-					return childInDirection;
-				}
-			}
-		}
-		if ((Parent != null && (direction == Direction.Down || direction == Direction.Up) && Parent.ModSelectable.AllowSelectionWrapY) || ((direction == Direction.Left || direction == Direction.Right) && Parent.ModSelectable.AllowSelectionWrapX))
-		{
-			for (int k = 0; k < num; k++)
-			{
-				for (int l = -num; l < 0; l++)
-				{
-					TestSelectable childInDirection2 = GetChildInDirection(direction, k, l);
-					if (childInDirection2 != null)
-					{
-						return childInDirection2;
-					}
-				}
-			}
-		}
-		return null;
-	}
+    public TestSelectable GetNearestSelectable(Direction direction)
+    {
+        if (Parent == null || ModSelectable.IsPassThrough)
+        {
+            return null;
+        }
 
-	public TestSelectable GetChildInDirection(Direction direction, int i, int j)
-	{
-		TestSelectable result = null;
-		TestSelectable result2 = null;
-		switch (direction)
-		{
-			case Direction.Up:
-				result = Parent.GetChild(x - i, y - j);
-				result2 = Parent.GetChild(x + i, y - j);
-				break;
-			case Direction.Down:
-				result = Parent.GetChild(x - i, y + j);
-				result2 = Parent.GetChild(x + i, y + j);
-				break;
-			case Direction.Left:
-				result = Parent.GetChild(x - j, y - i);
-				result2 = Parent.GetChild(x - j, y + i);
-				break;
-			case Direction.Right:
-				result = Parent.GetChild(x + j, y - i);
-				result2 = Parent.GetChild(x + j, y + i);
-				break;
-		}
-		if (result != null)
-		{
-			return result;
-		}
-		if (result2 != null)
-		{
-			return result2;
-		}
-		return null;
-	}
+        int num = Mathf.Max(Parent.ChildRowLength, Parent.Children.Length / Parent.ChildRowLength);
+        for (int i = 0; i < num; i++)
+        {
+            for (int j = 1; j < num; j++)
+            {
+                TestSelectable childInDirection = GetChildInDirection(direction, i, j);
+                if (childInDirection != null)
+                {
+                    return childInDirection;
+                }
+            }
+        }
+        if ((Parent != null && (direction == Direction.Down || direction == Direction.Up) && Parent.AllowSelectionWrapY) || ((direction == Direction.Left || direction == Direction.Right) && Parent.AllowSelectionWrapX))
+        {
+            for (int k = 0; k < num; k++)
+            {
+                for (int l = -num; l < 0; l++)
+                {
+                    TestSelectable childInDirection2 = GetChildInDirection(direction, k, l);
+                    if (childInDirection2 != null)
+                    {
+                        return childInDirection2;
+                    }
+                }
+            }
+        }
+        return null;
+    }
 
-	public TestSelectable GetCurrentChild()
-	{
-		return LastSelectedChild ?? GetDefaultChild();
-	}
+    public TestSelectable GetChildInDirection(Direction direction, int i, int j)
+    {
+        TestSelectable result = null;
+        TestSelectable result2 = null;
+        switch (direction)
+        {
+            case Direction.Up:
+                result = Parent.GetChild(x - i, y - j);
+                result2 = Parent.GetChild(x + i, y - j);
+                break;
+            case Direction.Down:
+                result = Parent.GetChild(x - i, y + j);
+                result2 = Parent.GetChild(x + i, y + j);
+                break;
+            case Direction.Left:
+                result = Parent.GetChild(x - j, y - i);
+                result2 = Parent.GetChild(x - j, y + i);
+                break;
+            case Direction.Right:
+                result = Parent.GetChild(x + j, y - i);
+                result2 = Parent.GetChild(x + j, y + i);
+                break;
+        }
+        if (result != null)
+        {
+            return result;
+        }
+        if (result2 != null)
+        {
+            return result2;
+        }
+        return null;
+    }
 
-	public TestSelectable GetDefaultChild()
-	{
-		if (Children.Length > 0)
-		{
-			if (ModSelectable != null && ModSelectable.DefaultSelectableIndex >= 0 && ModSelectable.DefaultSelectableIndex < Children.Length && Children[ModSelectable.DefaultSelectableIndex] != null)
-			{
-				return Children[ModSelectable.DefaultSelectableIndex];
-			}
-			for (int i = 0; i < Children.Length; i++)
-			{
-				if (Children[i] != null)
-				{
-					return Children[i];
-				}
-			}
-		}
-		return null;
-	}
+    public TestSelectable GetCurrentChild()
+    {
+        return LastSelectedChild ?? GetDefaultChild();
+    }
 
-	public void ActivateChildSelectableAreas()
+    public TestSelectable GetDefaultChild()
+    {
+        if (Children.Length > 0)
+        {
+            if (ModSelectable != null && DefaultSelectableIndex >= 0 && DefaultSelectableIndex < Children.Length && Children[DefaultSelectableIndex] != null)
+            {
+                return Children[DefaultSelectableIndex];
+            }
+            for (int i = 0; i < Children.Length; i++)
+            {
+                if (Children[i] != null)
+                {
+                    return Children[i];
+                }
+            }
+        }
+        return null;
+    }
+
+    public void ActivateChildSelectableAreas()
     {
         if (this.SelectableArea != null)
         {

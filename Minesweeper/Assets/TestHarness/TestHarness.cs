@@ -2,8 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using UnityEngine;
+using EdgeworkConfigurator;
 
 public class FakeBombInfo : MonoBehaviour
 {
@@ -16,52 +18,58 @@ public class FakeBombInfo : MonoBehaviour
     {
         List<string> ports;
 
-        public PortWidget()
+        public PortWidget(List<string> portNames=null)
         {
             ports = new List<string>();
             string portList = "";
-
-            if (Random.value > 0.5)
+            if (portNames == null)
             {
                 if (Random.value > 0.5)
                 {
-                    ports.Add("Parallel");
-                    portList += "Parallel";
+                    if (Random.value > 0.5)
+                    {
+                        ports.Add("Parallel");
+                        portList += "Parallel";
+                    }
+                    if (Random.value > 0.5)
+                    {
+                        ports.Add("Serial");
+                        if (portList.Length > 0) portList += ", ";
+                        portList += "Serial";
+                    }
                 }
-                if (Random.value > 0.5)
+                else
                 {
-                    ports.Add("Serial");
-                    if (portList.Length > 0) portList += ", ";
-                    portList += "Serial";
+                    if (Random.value > 0.5)
+                    {
+                        ports.Add("DVI");
+                        portList += "DVI";
+                    }
+                    if (Random.value > 0.5)
+                    {
+                        ports.Add("PS2");
+                        if (portList.Length > 0) portList += ", ";
+                        portList += "PS2";
+                    }
+                    if (Random.value > 0.5)
+                    {
+                        ports.Add("RJ45");
+                        if (portList.Length > 0) portList += ", ";
+                        portList += "RJ45";
+                    }
+                    if (Random.value > 0.5)
+                    {
+                        ports.Add("StereoRCA");
+                        if (portList.Length > 0) portList += ", ";
+                        portList += "StereoRCA";
+                    }
                 }
             }
             else
             {
-                if (Random.value > 0.5)
-                {
-                    ports.Add("DVI");
-                    portList += "DVI";
-                }
-                if (Random.value > 0.5)
-                {
-                    ports.Add("PS2");
-                    if (portList.Length > 0) portList += ", ";
-                    portList += "PS2";
-                }
-                if (Random.value > 0.5)
-                {
-                    ports.Add("RJ45");
-                    if (portList.Length > 0) portList += ", ";
-                    portList += "RJ45";
-                }
-                if (Random.value > 0.5)
-                {
-                    ports.Add("StereoRCA");
-                    if (portList.Length > 0) portList += ", ";
-                    portList += "StereoRCA";
-                }
+                ports = portNames;
+                portList = string.Join(", ", portNames.ToArray());
             }
-
             if (portList.Length == 0) portList = "Empty plate";
             Debug.Log("Added port widget: " + portList);
         }
@@ -83,7 +91,8 @@ public class FakeBombInfo : MonoBehaviour
 
     public class IndicatorWidget : Widget
     {
-        static List<string> possibleValues = new List<string>(){
+        static List<string> possibleValues = new List<string>()
+        {
             "SND","CLR","CAR",
             "IND","FRQ","SIG",
             "NSA","MSA","TRN",
@@ -93,12 +102,34 @@ public class FakeBombInfo : MonoBehaviour
         private string val;
         private bool on;
 
-        public IndicatorWidget()
+        public IndicatorWidget(string label=null, IndicatorState state=IndicatorState.RANDOM)
         {
-            int pos = Random.Range(0, possibleValues.Count);
-            val = possibleValues[pos];
-            possibleValues.RemoveAt(pos);
-            on = Random.value > 0.4f;
+            if (label == null)
+            {
+                int pos = Random.Range(0, possibleValues.Count);
+                val = possibleValues[pos];
+                possibleValues.RemoveAt(pos);
+            }
+            else
+            {
+                if (possibleValues.Contains(label))
+                {
+                    val = label;
+                    possibleValues.Remove(label);
+                }
+                else
+                {
+                    val = "NLL";
+                }
+            }
+            if (state == IndicatorState.RANDOM)
+            {
+                on = Random.value > 0.4f;
+            }
+            else
+            {
+                on = state == IndicatorState.ON ? true : false;
+            }
 
             Debug.Log("Added indicator widget: " + val + " is " + (on ? "ON" : "OFF"));
         }
@@ -125,9 +156,16 @@ public class FakeBombInfo : MonoBehaviour
     {
         private int batt;
 
-        public BatteryWidget()
+        public BatteryWidget(int battCount=-1)
         {
-            batt = Random.Range(1, 3);
+            if (battCount == -1)
+            {
+                batt = Random.Range(1, 3);
+            }
+            else
+            {
+                batt = battCount;
+            }
 
             Debug.Log("Added battery widget: " + batt);
         }
@@ -146,45 +184,39 @@ public class FakeBombInfo : MonoBehaviour
             else return null;
         }
     }
-    public Widget[] widgets;
 
-    void Awake()
+    public class CustomWidget : Widget
     {
-        const int numWidgets = 5;
-        widgets = new Widget[numWidgets];
-        for (int a = 0; a < numWidgets; a++)
+        private string key;
+        private string data;
+
+        public CustomWidget(string queryKey, string dataString)
         {
-            int r = Random.Range(0, 3);
-            if (r == 0) widgets[a] = new PortWidget();
-            else if (r == 1) widgets[a] = new IndicatorWidget();
-            else widgets[a] = new BatteryWidget();
+            key = queryKey;
+            data = dataString;
+
+            Debug.Log("Added custom widget (" + key + "): " + data);
         }
 
-        char[] possibleCharArray = new char[35]
+        public override string GetResult(string query, string passedData)
         {
-            'A','B','C','D','E',
-            'F','G','H','I','J',
-            'K','L','M','N','E',
-            'P','Q','R','S','T',
-            'U','V','W','X','Z',
-            '0','1','2','3','4',
-            '5','6','7','8','9'
-        };
-        string str1 = string.Empty;
-        for (int index = 0; index < 2; ++index) str1 = str1 + possibleCharArray[Random.Range(0, possibleCharArray.Length)];
-        string str2 = str1 + (object) Random.Range(0, 10);
-        for (int index = 3; index < 5; ++index) str2 = str2 + possibleCharArray[Random.Range(0, possibleCharArray.Length - 10)];
-        serial = str2 + Random.Range(0, 10);
-
-        Debug.Log("Serial: " + serial);
+            if (query == key)
+            {
+                return data;
+            }
+            else
+            {
+                return null;
+            }
+        }
     }
+
+    public Widget[] widgets;
 
     float startupTime = .5f;
 
     public delegate void LightsOn();
     public LightsOn ActivateLights;
-
-    private Widget widgetHandler;
 
     void FixedUpdate()
     {
@@ -358,6 +390,184 @@ public class FakeBombInfo : MonoBehaviour
     {
         if (OnLights != null) OnLights(false);
     }
+
+    readonly char[] SerialNumberPossibleCharArray = new char[35]
+    {
+        'A','B','C','D','E',
+        'F','G','H','I','J',
+        'K','L','M','N','E',
+        'P','Q','R','S','T',
+        'U','V','W','X','Z',
+        '0','1','2','3','4',
+        '5','6','7','8','9'
+    };
+
+    /// <summary>
+    /// Sets up the edgework of the FakeBombInfo according to the provided edgework configuration.
+    /// </summary>
+    /// <param name="config"></param>
+    public void SetupEdgework(EdgeworkConfiguration config)
+    {
+        if (config == null) 
+        {
+            const int numWidgets = 5;
+            widgets = new Widget[numWidgets];
+            for (int a = 0; a < numWidgets; a++) 
+            {
+                int r = Random.Range(0, 3);
+                if (r == 0) widgets[a] = new PortWidget();
+                else if (r == 1) widgets[a] = new IndicatorWidget();
+                else widgets[a] = new BatteryWidget();
+            }
+            string str1 = string.Empty;
+            for (int index = 0; index < 2; ++index) str1 = str1 + SerialNumberPossibleCharArray[Random.Range(0, SerialNumberPossibleCharArray.Length)];
+            string str2 = str1 + (object)Random.Range(0, 10);
+            for (int index = 3; index < 5; ++index) str2 = str2 + SerialNumberPossibleCharArray[Random.Range(0, SerialNumberPossibleCharArray.Length - 10)];
+            serial = str2 + Random.Range(0, 10);
+
+            Debug.Log("Serial: " + serial);
+        } 
+        else
+        {
+            if (config.SerialNumberType == SerialNumberType.RANDOM_NORMAL)
+            {
+                string str1 = string.Empty;
+                for (int index = 0; index < 2; ++index) str1 = str1 + SerialNumberPossibleCharArray[Random.Range(0, SerialNumberPossibleCharArray.Length)];
+                string str2 = str1 + (object)Random.Range(0, 10);
+                for (int index = 3; index < 5; ++index) str2 = str2 + SerialNumberPossibleCharArray[Random.Range(0, SerialNumberPossibleCharArray.Length - 10)];
+                serial = str2 + Random.Range(0, 10);
+            } 
+            else if (config.SerialNumberType == SerialNumberType.RANDOM_ANY)
+            {
+                string res = string.Empty;
+                for (int index = 0; index < 6; ++index) res = res + SerialNumberPossibleCharArray[Random.Range(0, SerialNumberPossibleCharArray.Length)];
+                serial = res;
+            }
+            else
+            {
+                serial = config.CustomSerialNumber;
+            }
+            Debug.Log("Serial: " + serial);
+
+            List<Widget> widgetsResult = new List<Widget>();
+            List<THWidget> RandomIndicators = new List<THWidget>();
+            List<THWidget> RandomWidgets = new List<THWidget>();
+            foreach (THWidget widgetConfig in config.Widgets)
+            {
+                if (widgetConfig.Type == WidgetType.RANDOM)
+                {
+                    RandomWidgets.Add(widgetConfig);
+                }
+                else if (widgetConfig.Type == WidgetType.INDICATOR && widgetConfig.IndicatorLabel == IndicatorLabel.RANDOM)
+                {
+                    RandomIndicators.Add(widgetConfig);
+                }
+                else
+                {
+                    switch (widgetConfig.Type)
+                    {
+                        case WidgetType.BATTERY:
+                            for (int i = 0; i < widgetConfig.Count; i++)
+                            {
+                                if (widgetConfig.BatteryType == BatteryType.CUSTOM)
+                                {
+                                    widgetsResult.Add(new BatteryWidget(widgetConfig.BatteryCount));
+                                } 
+                                else if (widgetConfig.BatteryType == BatteryType.RANDOM)
+                                {
+                                    widgetsResult.Add(new BatteryWidget(Random.Range(widgetConfig.MinBatteries, widgetConfig.MaxBatteries + 1)));
+                                }
+                                else
+                                {
+                                    widgetsResult.Add(new BatteryWidget((int)widgetConfig.BatteryType));
+                                }
+                            }
+                            break;
+                        case WidgetType.INDICATOR:
+                            if (widgetConfig.IndicatorLabel == IndicatorLabel.CUSTOM)
+                            {
+                                widgetsResult.Add(new IndicatorWidget(widgetConfig.CustomLabel, widgetConfig.IndicatorState));
+                            }
+                            else
+                            {
+                                widgetsResult.Add(new IndicatorWidget(widgetConfig.IndicatorLabel.ToString(), widgetConfig.IndicatorState));
+                            }
+                            break;
+                        case WidgetType.PORT_PLATE:
+                            for (int i = 0; i < widgetConfig.Count; i++)
+                            {
+                                List<string> ports = new List<string>();
+                                if (widgetConfig.PortPlateType == PortPlateType.CUSTOM)
+                                {
+                                    if (widgetConfig.DVIPort) ports.Add("DVI");
+                                    if (widgetConfig.PS2Port) ports.Add("PS2");
+                                    if (widgetConfig.RJ45Port) ports.Add("RJ45");
+                                    if (widgetConfig.StereoRCAPort) ports.Add("StereoRCA");
+                                    if (widgetConfig.ParallelPort) ports.Add("Parallel");
+                                    if (widgetConfig.SerialPort) ports.Add("Serial");
+                                    ports.AddRange(widgetConfig.CustomPorts);
+                                }
+                                else if (widgetConfig.PortPlateType == PortPlateType.RANDOM_ANY)
+                                {
+                                    if (Random.value > 0.5f) ports.Add("DVI");
+                                    if (Random.value > 0.5f) ports.Add("PS2");
+                                    if (Random.value > 0.5f) ports.Add("RJ45");
+                                    if (Random.value > 0.5f) ports.Add("StereoRCA");
+                                    if (Random.value > 0.5f) ports.Add("Parallel");
+                                    if (Random.value > 0.5f) ports.Add("Serial");
+                                    foreach (string port in widgetConfig.CustomPorts)
+                                    {
+                                        if (Random.value > 0.5f) ports.Add(port);
+                                    }
+                                }
+                                else
+                                {
+                                    if (Random.value > 0.5)
+                                    {
+                                        if (Random.value > 0.5) ports.Add("Parallel");
+                                        if (Random.value > 0.5) ports.Add("Serial");
+                                    }
+                                    else
+                                    {
+                                        if (Random.value > 0.5) ports.Add("DVI");
+                                        if (Random.value > 0.5) ports.Add("PS2");
+                                        if (Random.value > 0.5) ports.Add("RJ45");
+                                        if (Random.value > 0.5) ports.Add("StereoRCA");
+                                    }
+                                    foreach (string port in widgetConfig.CustomPorts)
+                                    {
+                                        if (Random.value > 0.5f) ports.Add(port);
+                                    }
+                                }
+                                widgetsResult.Add(new PortWidget(ports));
+                            }
+                            break;
+                        case WidgetType.CUSTOM:
+                            for (int i = 0; i < widgetConfig.Count; i++)
+                            {
+                                widgetsResult.Add(new CustomWidget(widgetConfig.CustomQueryKey, widgetConfig.CustomData));
+                            }
+                            break;
+                    }
+                }
+            }
+            foreach (THWidget randIndWidget in RandomIndicators)
+            {
+                widgetsResult.Add(new IndicatorWidget());
+            }
+            foreach (THWidget randIndWidget in RandomWidgets)
+            {
+                for (int i = 0; i < randIndWidget.Count; i++)
+                {
+                    int r = Random.Range(0, 3);
+                    if (r == 0) widgetsResult.Add(new BatteryWidget());
+                    else if (r == 1) widgetsResult.Add(new IndicatorWidget());
+                    else widgetsResult.Add(new PortWidget());
+                }
+            }
+            widgets = widgetsResult.ToArray();
+        }
+    }
 }
 
 public class TestHarness : MonoBehaviour
@@ -368,17 +578,21 @@ public class TestHarness : MonoBehaviour
     TestSelectable currentSelectable;
     TestSelectableArea currentSelectableArea;
 
-	bool gamepadEnabled = false;
-	TestSelectable lastSelected;
+    bool gamepadEnabled = false;
+    TestSelectable lastSelected;
 
     AudioSource audioSource;
     public List<AudioClip> AudioClips;
+
+    public EdgeworkConfiguration EdgeworkConfiguration;
 
     void Awake()
     {
         PrepareLights();
 
         fakeInfo = gameObject.AddComponent<FakeBombInfo>();
+        fakeInfo.SetupEdgework(EdgeworkConfiguration);
+
         fakeInfo.ActivateLights += delegate()
         {
             TurnLightsOn();
@@ -439,7 +653,7 @@ public class TestHarness : MonoBehaviour
             {
                 if (f.FieldType.Equals(typeof(KMBombInfo)))
                 {
-                    KMBombInfo component = (KMBombInfo)f.GetValue(s);
+                    KMBombInfo component = (KMBombInfo) f.GetValue(s);
                     fakeInfo.Detonate += delegate { if (component.OnBombExploded != null) component.OnBombExploded(); };
                     fakeInfo.HandleSolved += delegate { if (component.OnBombSolved != null) component.OnBombSolved(); };
                 }
@@ -452,15 +666,19 @@ public class TestHarness : MonoBehaviour
         KMNeedyModule[] needyModules = FindObjectsOfType<KMNeedyModule>();
         fakeInfo.needyModules = needyModules.ToList();
         currentSelectable.Children = new TestSelectable[modules.Length + needyModules.Length];
+        currentSelectable.ChildRowLength = currentSelectable.Children.Length;
         for (int i = 0; i < modules.Length; i++)
         {
             KMBombModule mod = modules[i];
 
-            currentSelectable.Children[i] = modules[i].GetComponent<TestSelectable>();
-            modules[i].GetComponent<TestSelectable>().Parent = currentSelectable;
+            TestSelectable testSelectable = modules[i].GetComponent<TestSelectable>();
+            currentSelectable.Children[i] = testSelectable;
+            testSelectable.Parent = currentSelectable;
+            testSelectable.x = i;
 
             fakeInfo.modules.Add(new KeyValuePair<KMBombModule, bool>(modules[i], false));
-            modules[i].OnPass = delegate () {
+            modules[i].OnPass = delegate ()
+            {
                 Debug.Log("Module Passed");
                 fakeInfo.modules.Remove(fakeInfo.modules.First(t => t.Key.Equals(mod)));
                 fakeInfo.modules.Add(new KeyValuePair<KMBombModule, bool>(mod, true));
@@ -476,7 +694,8 @@ public class TestHarness : MonoBehaviour
                 if (allSolved) fakeInfo.Solved();
                 return false;
             };
-            modules[i].OnStrike = delegate () {
+            modules[i].OnStrike = delegate ()
+            {
                 Debug.Log("Strike");
                 fakeInfo.HandleStrike();
                 return false;
@@ -485,8 +704,10 @@ public class TestHarness : MonoBehaviour
 
         for (int i = 0; i < needyModules.Length; i++)
         {
-            currentSelectable.Children[modules.Length + i] = needyModules[i].GetComponent<TestSelectable>();
-            needyModules[i].GetComponent<TestSelectable>().Parent = currentSelectable;
+            TestSelectable testSelectable = needyModules[i].GetComponent<TestSelectable>();
+            currentSelectable.Children[modules.Length + i] = testSelectable;
+            testSelectable.Parent = currentSelectable;
+            testSelectable.x = modules.Length + i;
 
             needyModules[i].OnPass = delegate ()
             {
@@ -513,123 +734,123 @@ public class TestHarness : MonoBehaviour
 
     protected void PlaySoundHandler(string clipName, Transform t)
     {
-        if (AudioClips != null && AudioClips.Count > 0)
-        {
-            AudioClip clip = AudioClips.Where(a => a.name == clipName).First();
+        AudioClip clip = AudioClips == null ? null : AudioClips.Where(a => a.name == clipName).FirstOrDefault();
 
-            if (clip != null)
-            {
-                audioSource.transform.position = t.position;
-                audioSource.PlayOneShot(clip);
-            }
+        if (clip != null)
+        {
+            audioSource.transform.position = t.position;
+            audioSource.PlayOneShot(clip);
         }
+        else
+            Debug.Log("Audio clip not found: " + clipName);
     }
 
     void Update()
     {
-		if (!gamepadEnabled)
-		{
-			Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-			Debug.DrawRay(ray.origin, ray.direction);
-			RaycastHit hit;
-			int layerMask = 1 << 11;
-			bool rayCastHitSomething = Physics.Raycast(ray, out hit, 1000, layerMask);
-			if (rayCastHitSomething)
-			{
-				TestSelectableArea hitArea = hit.collider.GetComponent<TestSelectableArea>();
-				if (hitArea != null)
-				{
-					if (currentSelectableArea != hitArea)
-					{
-						if (currentSelectableArea != null)
-						{
-							currentSelectableArea.Selectable.Deselect();
-						}
+        if (!gamepadEnabled)
+        {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            Debug.DrawRay(ray.origin, ray.direction);
+            RaycastHit hit;
+            int layerMask = 1 << 11;
+            bool rayCastHitSomething = Physics.Raycast(ray, out hit, 1000, layerMask);
 
-						hitArea.Selectable.Select();
-						currentSelectableArea = hitArea;
-					}
-				}
-				else
-				{
-					if (currentSelectableArea != null)
-					{
-						currentSelectableArea.Selectable.Deselect();
-						currentSelectableArea = null;
-					}
-				}
-			}
-			else
-			{
-				if (currentSelectableArea != null)
-				{
-					currentSelectableArea.Selectable.Deselect();
-					currentSelectableArea = null;
-				}
-			}
+            if (rayCastHitSomething) {
+                TestSelectableArea hitArea = hit.collider.GetComponent<TestSelectableArea>();
+                if (hitArea != null)
+                {
+                    if (currentSelectableArea != hitArea)
+                    {
+                        if (currentSelectableArea != null)
+                        {
+                            currentSelectableArea.Selectable.Deselect();
+                        }
 
-			if (Input.GetMouseButtonDown(0)) Interact();
-			if (Input.GetMouseButtonUp(0)) InteractEnded();
-			if (Input.GetMouseButtonDown(1)) Cancel();
-		}
-		else
-		{
-			TestSelectable previousSelectable = lastSelected;
-			if (Input.GetKeyDown(KeyCode.X)) Interact();
-			if (Input.GetKeyUp(KeyCode.X)) InteractEnded();
-			if (Input.GetKeyDown(KeyCode.Z)) Cancel();
-			if (Input.GetKeyDown(KeyCode.LeftArrow)) EmulateDirection(Direction.Left);
-			if (Input.GetKeyDown(KeyCode.RightArrow)) EmulateDirection(Direction.Right);
-			if (Input.GetKeyDown(KeyCode.UpArrow)) EmulateDirection(Direction.Up);
-			if (Input.GetKeyDown(KeyCode.DownArrow)) EmulateDirection(Direction.Down);
+                        hitArea.Selectable.Select();
+                        currentSelectableArea = hitArea;
+                    }
+                }
+                else
+                {
+                    if (currentSelectableArea != null)
+                    {
+                        currentSelectableArea.Selectable.Deselect();
+                        currentSelectableArea = null;
+                    }
+                }
+            }
+            else
+            {
+                if (currentSelectableArea != null)
+                {
+                    currentSelectableArea.Selectable.Deselect();
+                    currentSelectableArea = null;
+                }
+            }
 
-			if (previousSelectable != lastSelected)
-			{
-				previousSelectable.Deselect();
-				lastSelected.Select();
-				currentSelectableArea = lastSelected.SelectableArea;
-			}
-		}
-	}
+            if (Input.GetMouseButtonDown(0)) Interact();
+            if (Input.GetMouseButtonUp(0)) InteractEnded();
+            if (Input.GetMouseButtonDown(1)) Cancel();
+        }
+        else
+        {
+            TestSelectable previousSelectable = lastSelected;
+            if (Input.GetKeyDown(KeyCode.X) || Input.GetKeyDown(KeyCode.Return)) Interact();
+            if (Input.GetKeyUp(KeyCode.X) || Input.GetKeyUp(KeyCode.Return)) InteractEnded();
+            if (Input.GetKeyDown(KeyCode.Z) || Input.GetKeyDown(KeyCode.Backspace)) Cancel();
+            if (Input.GetKeyDown(KeyCode.LeftArrow)) EmulateDirection(Direction.Left);
+            if (Input.GetKeyDown(KeyCode.RightArrow)) EmulateDirection(Direction.Right);
+            if (Input.GetKeyDown(KeyCode.UpArrow)) EmulateDirection(Direction.Up);
+            if (Input.GetKeyDown(KeyCode.DownArrow)) EmulateDirection(Direction.Down);
 
-	private void EmulateDirection(Direction direction)
-	{
-		TestSelectable selectable = lastSelected.GetNearestSelectable(direction);
-		if (selectable)
-		{
-			lastSelected = selectable;
-		}
-	}
+            if (previousSelectable != lastSelected)
+            {
+                previousSelectable.Deselect();
+                lastSelected.Select();
+                currentSelectableArea = lastSelected.SelectableArea;
+            }
+        }
+    }
 
-	void Interact()
-	{
-		if (currentSelectableArea != null && currentSelectableArea.Selectable.Interact())
-		{
-			currentSelectable.DeactivateChildSelectableAreas(currentSelectableArea.Selectable);
-			currentSelectable = currentSelectableArea.Selectable;
-			currentSelectable.ActivateChildSelectableAreas();
-			lastSelected = currentSelectable.GetCurrentChild();
-		}
-	}
+    void EmulateDirection(Direction direction)
+    {
+        TestSelectable selectable = lastSelected.GetNearestSelectable(direction);
+        if (selectable)
+        {
+            lastSelected = selectable;
+            currentSelectable.LastSelectedChild = lastSelected;
+        }
+    }
 
-	void InteractEnded()
-	{
-		if (currentSelectableArea != null)
-		{
-			currentSelectableArea.Selectable.InteractEnded();
-		}
-	}
+    void Interact()
+    {
+        if (currentSelectableArea != null && currentSelectableArea.Selectable.Interact())
+        {
+            currentSelectable.DeactivateChildSelectableAreas(currentSelectableArea.Selectable);
+            currentSelectable = currentSelectableArea.Selectable;
+            currentSelectable.ActivateChildSelectableAreas();
+            lastSelected = currentSelectable.GetCurrentChild();
+        }
+    }
 
-	void Cancel()
-	{
-		if (currentSelectable.Parent != null && currentSelectable.Cancel())
-		{
-			currentSelectable.DeactivateChildSelectableAreas(currentSelectable.Parent);
-			currentSelectable = currentSelectable.Parent;
-			currentSelectable.ActivateChildSelectableAreas();
-			lastSelected = currentSelectable.GetCurrentChild();
-		}
-	}
+    void InteractEnded()
+    {
+        if (currentSelectableArea != null)
+        {
+            currentSelectableArea.Selectable.InteractEnded();
+        }
+    }
+
+    void Cancel()
+    {
+        if (currentSelectable.Parent != null && currentSelectable.Cancel())
+        {
+            currentSelectable.DeactivateChildSelectableAreas(currentSelectable.Parent);
+            currentSelectable = currentSelectable.Parent;
+            currentSelectable.ActivateChildSelectableAreas();
+            lastSelected = currentSelectable.GetCurrentChild();
+        }
+    }
 
     void AddHighlightables()
     {
@@ -658,8 +879,8 @@ public class TestHarness : MonoBehaviour
         foreach (KMSelectable selectable in selectables)
         {
             TestSelectable testSelectable = selectable.gameObject.GetComponent<TestSelectable>();
-			testSelectable.Parent = selectable.Parent ? selectable.Parent.GetComponent<TestSelectable>() : null;
-			testSelectable.Children = new TestSelectable[selectable.Children.Length];
+            testSelectable.Parent = selectable.Parent ? selectable.Parent.GetComponent<TestSelectable>() : null;
+            testSelectable.Children = new TestSelectable[selectable.Children.Length];
             for (int i = 0; i < selectable.Children.Length; i++)
             {
                 if (selectable.Children[i] != null)
@@ -688,12 +909,12 @@ public class TestHarness : MonoBehaviour
     IEnumerator SimulateModule(Component component, Transform moduleTransform, MethodInfo method, string command)
     {
         // Simple Command
-        if (method.ReturnType == typeof(KMSelectable[]))
+        if (typeof(IEnumerable<KMSelectable>).IsAssignableFrom(method.ReturnType))
         {
-            KMSelectable[] selectableSequence = null;
+            IEnumerable<KMSelectable> selectableSequence = null;
             try
             {
-                selectableSequence = (KMSelectable[]) method.Invoke(component, new object[] { command });
+                selectableSequence = (IEnumerable<KMSelectable>) method.Invoke(component, new object[] { command });
                 if (selectableSequence == null)
                 {
                     Debug.LogFormat("Twitch Plays handler reports invalid command (by returning null).", method.DeclaringType.FullName, method.Name);
@@ -794,6 +1015,14 @@ public class TestHarness : MonoBehaviour
                 }
                 else if (currentObject is string)
                 {
+                    string currentString = (string) currentObject;
+                    float waitTime;
+                    Match match = Regex.Match(currentString, "^trywaitcancel ([0-9]+(?:\\.[0-9])?)((?: (?:.|\\n)+)?)$", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+                    if (match.Success && float.TryParse(match.Groups[1].Value, out waitTime))
+                    {
+                        yield return new WaitForSeconds(waitTime);
+                    }
+
                     Debug.Log("Twitch handler sent: " + currentObject);
                     yield return currentObject;
                 }
@@ -847,21 +1076,22 @@ public class TestHarness : MonoBehaviour
             fakeInfo.OnLightsOff();
         }
 
-		bool previous = gamepadEnabled;
-		gamepadEnabled = GUILayout.Toggle(gamepadEnabled, "Emulate Gamepad");
-		if (!previous && gamepadEnabled)
-		{
-			lastSelected = currentSelectable.GetCurrentChild();
-			lastSelected.Select();
-			currentSelectableArea = lastSelected.SelectableArea;
-		}
+        bool previous = gamepadEnabled;
+        gamepadEnabled = GUILayout.Toggle(gamepadEnabled, "Emulate Gamepad");
+        if (!previous && gamepadEnabled)
+        {
+            lastSelected = currentSelectable.GetCurrentChild();
+            lastSelected.Select();
+            currentSelectableArea = lastSelected.SelectableArea;
+        }
 
-		GUILayout.Label("Time remaining: " + fakeInfo.GetFormattedTime());
+        GUILayout.Label("Time remaining: " + fakeInfo.GetFormattedTime());
 
         GUILayout.Space(10);
 
+        GUI.SetNextControlName("commandField");
         command = GUILayout.TextField(command);
-        if ((GUILayout.Button("Simulate Twitch Command") || Event.current.keyCode == KeyCode.Return) && command != "")
+        if ((GUILayout.Button("Simulate Twitch Command") || Event.current.keyCode == KeyCode.Return) && GUI.GetNameOfFocusedControl() == "commandField" && command != "")
         {
             Debug.Log("Twitch Command: " + command);
 
