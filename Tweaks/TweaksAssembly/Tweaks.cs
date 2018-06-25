@@ -1,14 +1,22 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(KMService))]
 [RequireComponent(typeof(KMGameInfo))]
 class Tweaks : MonoBehaviour
 {
+	public static TweakSettings settings;
+
 	void Awake()
 	{
-		ModConfig modConfig = new ModConfig("TweakSettings", typeof(TweakSettings));
-		TweakSettings settings = (TweakSettings) modConfig.Settings;
+		ModConfig<TweakSettings> modConfig = new ModConfig<TweakSettings>("TweakSettings");
+		settings = modConfig.Settings;
+		modConfig.Settings = settings; // Write any settings that the user doesn't have in their settings file.
 
 		bool changeFadeTime = settings.FadeTime >= 0;
 		
@@ -17,7 +25,8 @@ class Tweaks : MonoBehaviour
 		
 		UnityEngine.SceneManagement.SceneManager.sceneLoaded += delegate (Scene scene, LoadSceneMode _)
 		{
-			settings = (TweakSettings) modConfig.Settings;
+			settings = modConfig.Settings;
+			modConfig.Settings = settings; // Write any settings that the user doesn't have in their settings file.
 
 			if ((scene.name == "mainScene" || scene.name == "gameplayScene") && changeFadeTime) SceneManager.Instance.RapidFadeInTime = settings.FadeTime;
 
@@ -31,6 +40,8 @@ class Tweaks : MonoBehaviour
 						SceneManager.Instance.UnlockState.FadeInTime = settings.FadeTime;
 					}
 
+					if (ReflectedTypes.CurrencyAPIEndpointField != null) ReflectedTypes.CurrencyAPIEndpointField.SetValue(null, "http://exchangeratesapi.io/api");
+
 					break;
 				case "gameplayLoadingScene":
 					var gameplayLoadingManager = FindObjectOfType<GameplayLoadingManager>();
@@ -40,6 +51,8 @@ class Tweaks : MonoBehaviour
 						gameplayLoadingManager.FadeInTime =
 						gameplayLoadingManager.FadeOutTime = settings.FadeTime;
 					}
+
+					ReflectedTypes.UpdateTypes();
 
 					break;
 				case "gameplayScene":
@@ -58,8 +71,65 @@ class Tweaks : MonoBehaviour
 			if (state == KMGameInfo.State.Gameplay)
 			{
 				if (settings.BetterCasePicker) BetterCasePicker.PickCase();
+				
+				BombStatus.Instance.gameObject.SetActive(settings.BombHUD);
+				TimeMode.Multiplier = 9;
+				bombWrappers = new BombWrapper[] { };
+				StartCoroutine(CheckForBombs());
 			}
+
+			bool disableRecords = (state == KMGameInfo.State.Gameplay && (settings.BombHUD || settings.TimeMode));
+
+			Assets.Scripts.Stats.StatsManager.Instance.DisableStatChanges =
+			Assets.Scripts.Records.RecordManager.Instance.DisableBestRecords = disableRecords;
 		};
+	}
+
+	public static BombWrapper[] bombWrappers = new BombWrapper[] { };
+
+	public IEnumerator CheckForBombs()
+	{
+		yield return new WaitUntil(() => (SceneManager.Instance.GameplayState.Bombs != null && SceneManager.Instance.GameplayState.Bombs.Count > 0));
+		List<Bomb> bombs = SceneManager.Instance.GameplayState.Bombs;
+
+		Array.Resize(ref bombWrappers, bombs.Count);
+
+		for (int i = 0; i < bombs.Count; i++)
+		{
+			Bomb bomb = bombs[i];
+			BombWrapper bombWrapper = new BombWrapper(bomb);
+			bombWrappers[i] = bombWrapper;
+			bombWrapper.holdable.OnLetGo += delegate () { BombStatus.Instance.currentBomb = null; };
+		}
+
+		if (ReflectedTypes.FactoryRoomType != null && ReflectedTypes.FactoryFiniteModeType != null)
+		{
+			UnityEngine.Object factoryRoom = FindObjectOfType(ReflectedTypes.FactoryRoomType);
+			if (factoryRoom)
+			{
+				object gameMode = ReflectedTypes.GameModeProperty.GetValue(factoryRoom, null);
+				if (ReflectedTypes.FactoryFiniteModeType.IsAssignableFrom(gameMode.GetType()))
+				{
+					Func<Component> getBomb = () =>  (Component) ReflectedTypes._CurrentBombField.GetValue(gameMode);
+
+					yield return new WaitUntil(() => getBomb() != null || factoryRoom == null);
+					Component currentBomb = getBomb();
+
+					while (currentBomb != null && factoryRoom != null)
+					{
+						yield return new WaitUntil(() => currentBomb != getBomb() || factoryRoom == null);
+
+						currentBomb = getBomb();
+
+						if (currentBomb == null || factoryRoom == null) break;
+					
+						BombWrapper bombWrapper = new BombWrapper(currentBomb.GetComponent<Bomb>());
+						bombWrappers[0] = bombWrapper;
+						bombWrapper.holdable.OnLetGo += delegate () { BombStatus.Instance.currentBomb = null; };
+					}
+				}
+			}
+		}
 	}
 
 	void OnApplicationQuit()
@@ -73,4 +143,6 @@ class TweakSettings
 	public float FadeTime = 1f;
 	public bool InstantSkip = true;
 	public bool BetterCasePicker = true;
+	public bool BombHUD = false;
+	public bool TimeMode = false;
 }

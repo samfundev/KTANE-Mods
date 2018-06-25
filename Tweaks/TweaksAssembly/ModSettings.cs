@@ -3,16 +3,14 @@ using System;
 using System.IO;
 using UnityEngine;
 
-class ModConfig
+class ModConfig<T>
 {
-    public ModConfig(string name, Type settingsType)
+    public ModConfig(string name)
     {
         _filename = name;
-        _settingsType = settingsType;
     }
 
     string _filename = null;
-    Type _settingsType = null;
 
     string SettingsPath
     {
@@ -22,7 +20,7 @@ class ModConfig
         }
     }
 
-    public object Settings
+    public T Settings
     {
         get
         {
@@ -30,20 +28,20 @@ class ModConfig
             {
                 if (!File.Exists(SettingsPath))
 				{
-                    File.WriteAllText(SettingsPath, JsonConvert.SerializeObject(Activator.CreateInstance(_settingsType), Formatting.Indented));
+                    File.WriteAllText(SettingsPath, JsonConvert.SerializeObject(Activator.CreateInstance<T>(), Formatting.Indented));
                 }
 
-                return JsonConvert.DeserializeObject(File.ReadAllText(SettingsPath), _settingsType);
+                return JsonConvert.DeserializeObject<T>(File.ReadAllText(SettingsPath));
             }
             catch
             {
-                return Activator.CreateInstance(_settingsType);
+                return Activator.CreateInstance<T>();
             }
         }
 
         set
         {
-            if (value.GetType() == _settingsType)
+            if (value.GetType() == typeof(T))
             {
                 File.WriteAllText(SettingsPath, JsonConvert.SerializeObject(value, Formatting.Indented));
             }

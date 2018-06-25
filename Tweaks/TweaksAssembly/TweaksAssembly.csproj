@@ -55,8 +55,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BetterCasePicker.cs" />
+    <Compile Include="BombStatus.cs" />
+    <Compile Include="GeneralExtensions.cs" />
+    <Compile Include="Logging\ProbingLogging.cs" />
+    <Compile Include="Logging\ModuleLogging.cs" />
     <Compile Include="ModSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ReflectedTypes.cs" />
+    <Compile Include="ReflectionHelper.cs" />
+    <Compile Include="BombWrapper.cs" />
+    <Compile Include="TimeMode.cs" />
     <Compile Include="Tweaks.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
