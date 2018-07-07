@@ -20,25 +20,27 @@
 					<div class="page-content">
 						<img src="img/Component/Synchronization.svg" class="diagram">
 						<h2>On the Subject of Synchronization</h2>
-						<p class="flavour-text">.</p>
-						<ul>
-							<li>Some lights on the module will flash at different speeds.</li>
-							<li>Synchronizing the flashing lights to each other and then to the bomb itself will disarm the module.</li>
-						</ul>
-						<h3>Sychronizing Lights</h3>
-						<ol>
-							<li>Use the number displayed on the "SYNC" button and the position of the light flashing the fastest on the module to determine an initial position on the chart below.</li>
-							<li>Look at the central light on the module and rate its speed from 1-5, slowest to fastest, based on the other flashing lights. If the light isn't flashing, it's speed is 0. Find the slowest flashing light and note its position on the module.</li>
-							<li>From the initial position on the chart, shift a number of cells equal to the central light's speed in the direction of the position of the slowest light to determine a final position. Wrapping around the chart maybe required. This dictates the order in which to sync the lights, and in what state they must be in when selected to successfully sync.</li>
-							<li>Look at the module and select the appropriate individual light to sync, which will then remain in the selected state. Then select the next appropriate individual light to sync to while in the same state.</li>
-							<li>Repeat step 4 until all flashing lights are in sync. Use groups of synced lights when no single lights remain. Selecting any light in a group will affect its synced group. Then press and hold the "SYNC" button until the bomb's digital coutdown timer has the displayed number in the seconds place.</li>
-						</ol>
-						<table>
+						<p class="flavour-text">Bringing order to chaos, one blinking light at a time.</p>
+						5 of the 9 lights on the module will flash at different speeds rated 1-5, slowest to fastest. The rest will be speed 0 and will be left on. Synchronizing the flashing lights to each other and then to the bomb itself will disarm the module.
+						<h3>Finding the syncing order</h3>
+						<p>Using the displayed number and fastest flashing light position to find the starting cell on the chart. Shift on the chart a number of times based on the speed of the central light in the direction of the slowest light relative to the center light. Wrap around the chart if you need to.</p>
+						<h3>Syncing lights together</h3>
+						<p>Select a light that fit the order you found in the last step. After you select the first light it will stop flashing. Then select the next light to sync with the first light. If done correctly the two lights are now considered to be synced. Synced lights both have the same speed and are selected as a group. You can only select lights that haven't been synced yet until there isn't a pair of unsynced lights left.</p>
+						<h3>Syncing with the bomb</h3>
+						<p>After you synced all the lights together, you need to press the button labeled "SYNC" when the number displayed is in the timer.</p>
+						<!--<ol type="A">
+							<li>Use the fastest light with the chart below to determine the order and state in which to sync the lights.</li>
+							<li>If the central light is flashing and is not Light 1, a position adjustment on the chart is further required. Shift cells on the chart in the direction of the slowest light's position a number of times equal to the central light's speed. Wrap if necessary.</li>
+							<li> Select two lights to sync them together based on the order found in Step B. Lights will hold their state after being selected.</li>
+							<li>Repeat step C using all the unsynced lights first. Once there isn't any pairs of unsynced lights left, you can sync any lights.</li>
+							<li>After all the lights are synced togther, press the "SYNC" button when the seconds place on the bomb's countdown timer matches the sync display to disarm the module.</li>
+						</ol>-->
+						<table style="font-size: .97em">
 							<tr>
-								<th rowspan="2">Display</th>
-								<th colspan="9">Position Relative to Center</th>
+								<th rowspan="2">Sync Display</th>
+								<th colspan="9">Position of Light</th>
 							</tr>
-							<tr style="font-family: sans-serif;">
+							<tr style="font-family: sans-serif">
 								<th><span>&#8598;</span></th>
 								<th><span>&#8593;</span></th>
 								<th><span>&#8599;</span></th>
@@ -63,20 +65,23 @@
 							</tr>
 							<tr>
 								<td colspan="5">
-									<b>Asc/Desc</b> = Ascending/Descending order.
+									<b>Asc/Des</b> = Ascending/Descending speed order.
 									<br>
-									<b>Opp</b> = Opposite speeds order. Sync slowest with fastest or fastest with slowest. Either may be chosen, but remain consistant.
+									<b>Opp</b> = Opposite speed order. Select either 5 with 1 or 1 with 5 first and remain consistent in subsequent syncs.
+									<i>For example, select light 1 with 5 then 2 with 4, or 5 with 1 then 4 with 2.</i>
 								</td>
 								<td colspan="5">
-									<b>+/-</b> = On/Off state.
+									<b>+/-</b> = On/Off light state.
 									<br>
-									<b>Alt</b> = Alternating state. Select on or off first, but subsequent syncs must be opposite states.
+									<b>Alt</b> = Alternating light state. Select on or off for the first sync, but subsequent syncs must be opposite states.
+									<i>For example, select the lights while off then on, or while on then off</b></i>
 								</td>
 							</tr>
 						</table>
 					</div>
-
-					<div class="page-footer relative-footer">Page 1 of 1 </div>
+					
+				   <div class="page-footer relative-footer">Page 1 of 1 </div>
+				
 				</div>
 			</div>
 		</div>

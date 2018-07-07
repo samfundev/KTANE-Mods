@@ -17,9 +17,9 @@ public class SynchronizationModule : MonoBehaviour
 	public KMSelectable SyncButton;
 	public TextMesh DisplayText;
 	public GameObject[] LightObjects;
-	static MonoBehaviour MonoBehaviour;
+	static MonoBehaviour MonoBehaviour; // TODO: Remove this.
 
-	const float FlashingSpeed = 0.3f;
+	static float FlashingSpeed = 0.3f;
 	int DisplayNumber;
 	bool Solved = false;
 	int SelectedSpeed = 0;
@@ -127,11 +127,18 @@ public class SynchronizationModule : MonoBehaviour
 		Log(string.Format(data.ToString(), formatting));
 	}
 
+	public class TestSettings
+	{
+		public float FlashSpeed = 0.3f;
+	}
+
 	void Start()
 	{
 		MonoBehaviour = this;
 
 		moduleID = idCounter++;
+
+		FlashingSpeed = new ModConfig<TestSettings>("SynchronizationSettings").Settings.FlashSpeed;
 
 		Lights = LightObjects.Select(obj => new Light(obj)).ToArray();
 
@@ -414,8 +421,6 @@ public class SynchronizationModule : MonoBehaviour
 			Lights[light].state = false;
 			yield return new WaitForSeconds(0.1f);
 		}
-
-		yield return new WaitForSeconds(1);
 	}
 
 	IEnumerator PlayWinAnimation()
