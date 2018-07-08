@@ -183,10 +183,10 @@ public class SynchronizationModule : MonoBehaviour
 				}
 				else
 				{
-					bool valid = ValidateSync(Lights.First(l => l.speed == SelectedSpeed), light);
+					Light firstLight = Lights.First(l => l.speed == SelectedSpeed);
+					bool valid = ValidateSync(firstLight, light);
 					if (valid)
 					{
-						Log("Successfully synced {0} and {1}.", light.speed, SelectedSpeed);
 						ApplyToSpeed(light.speed, l =>
 						{
 							l.StopFlashing();
@@ -212,6 +212,8 @@ public class SynchronizationModule : MonoBehaviour
 						});
 					}
 
+					Log("{0} synced {1} while {2} and {3} while {4}.", valid ? "Successfully" : "Incorrectly", SelectedSpeed, firstLight.state ? "on" : "off", light.speed, light.state ? "on" : "off");
+
 					SelectedSpeed = 0;
 				}
 			}
@@ -222,7 +224,7 @@ public class SynchronizationModule : MonoBehaviour
 
 	bool firstSyncDone = false;
 	bool altRuleState = false;
-	int oppRuleFirstSpeed = 0;
+	bool oppRuleFirstGreater = false;
 
 	bool ValidateSync(Light lightA, Light lightB)
 	{
@@ -258,7 +260,7 @@ public class SynchronizationModule : MonoBehaviour
 
 				break;
 			case 2:
-				if (firstSyncDone && lightB.speed != oppRuleFirstSpeed) return false; // The second light you select will always have the same speed.
+				if (firstSyncDone && lightA.speed > lightB.speed != oppRuleFirstGreater) return false; // The greater light will always stay the same.
 
 				if ((lightA.speed != orderedSpeeds[0] || lightB.speed != orderedSpeeds[orderedSpeeds.Length - 1]) && // Check if they have selected either slowest with fastest or fastest with slowest.
 					(lightA.speed != orderedSpeeds[orderedSpeeds.Length - 1] || lightB.speed != orderedSpeeds[0])) return false;
@@ -295,7 +297,7 @@ public class SynchronizationModule : MonoBehaviour
 
 		// Gather info for alt rule and opp rule.
 		altRuleState = lightA.state;
-		oppRuleFirstSpeed = lightB.speed;
+		oppRuleFirstGreater = lightA.speed > lightB.speed;
 
 		firstSyncDone = true;
 		return true;
@@ -381,12 +383,14 @@ public class SynchronizationModule : MonoBehaviour
 			lightToCol[fastestLight],
 			Mathf.FloorToInt((DisplayNumber - 1) / 3)
 		);
-		Log("Started at column {0}, row {1}", chartPos.x + 1, chartPos.y + 1); // show order here
+
+		var startingCell = chart[(int) chartPos.y][(int) chartPos.x];
+		Log("Started at column {0}, row {1} ({2} {3})", chartPos.x + 1, chartPos.y + 1, orders[startingCell[0]], states[startingCell[1]]);
 
 		for (int i = 0; i < Lights[4].speed; i++)
 		{
 			chartPos += lightToDir[slowestLight];
-			chartPos.x = WrapInt((int) chartPos.x, 8); // Make this better and not use loops anymore.
+			chartPos.x = WrapInt((int) chartPos.x, 8); // TODO: Make this better and not use loops anymore.
 			chartPos.y = WrapInt((int) chartPos.y, 2);
 		}
 		Log("Ended at column {0}, row {1}", chartPos.x + 1, chartPos.y + 1);
@@ -423,78 +427,54 @@ public class SynchronizationModule : MonoBehaviour
 		}
 	}
 
-	IEnumerator PlayWinAnimation()
-	{
-		int[][] WinningAnimation = {
-			new[] { 4 },
-			new[] { 1, 3, 5, 7 },
-			new[] { 0, 2, 6, 8 },
-		};
-
-		foreach (int[] frame in WinningAnimation)
-		{
-			for (int i = 1; i <= 3; i++)
-			{
-				foreach (int light in frame)
-				{
-					Lights[light].color = Color.Lerp(Color.white, Color.green, (float) i / 3);
-				}
-
-				yield return new WaitForSeconds(0.05f);
-			}
-		}
-	}
-
-	/*int[][][] WinningAnimations = {
-		new[] {
-			new[] { 4 },
-			new[] { 1, 3, 4, 5, 7 },
-			new[] { 0, 1, 2, 3, 5, 6, 7, 8 },
-			new[] { 0, 2, 6, 8 }
-		},
-		new[] {
-			new[] { 0, 1, 2 },
-			new[] { 2, 4, 6 },
-			new[] { 2, 5, 8 },
-			new[] { 0, 4, 8 },
-			new[] { 6, 7, 8 },
-			new[] { 6, 4, 2 },
-			new[] { 0, 3, 6 },
-			new[] { 0, 4, 8 },
-			new[] { 0, 1, 2 },
-		},
-		new[] {
-			new[] { 6 },
-			new[] { 3, 7 },
-			new[] { 0, 4, 8 },
-			new[] { 3, 1, 5 },
-			new[] { 6, 4, 2 },
-			new[] { 3, 7, 5 },
-			new[] { 0, 4, 8 },
-			new[] { 1, 5 },
-			new[] { 2 },
-		},
+	string[] WinningAnimations = {
+		//"4,1357,0268", // Middle -> All
+		"0,13,246,57,8", // TL -> BR
+		"2,15,048,37,6", // TR -> BL
+		//"012,345,678", // T -> B
+		//"036,147,258", // L -> R
+		"0,1,2,5,8,7,6,3,4", // Spiral
+		"0,3,6,7,4,1,2,5,8", // Vertical back and forth
+		"0,1,2,5,4,3,6,7,8", // Horizontial back and forth
+		"1,042,375,68", // Triangle T -> B
+		"3,046,157,28", // Triangle L -> R
+		"08,1375,642", // Diagonal crush
+		"1,6,5,0,4,3,7,2,8", // "Random"
+		"26,71,80,53,4", // Collapsing
+		"68,4,02,1,35,7", // Cross
 	};
 
 	IEnumerator PlayWinAnimation()
 	{
-		int[][] animation = WinningAnimations[Random.Range(0, WinningAnimations.Length)];
+		var animationIterable = WinningAnimations[Random.Range(0, WinningAnimations.Length)]
+			.Split(',')
+			.Select(lights =>
+				lights.Select(index =>
+					Lights[int.Parse(index.ToString())]
+				)
+			);
 
-		foreach (int[] frame in animation)
+		if (Random.Range(0, 2) == 1) animationIterable = animationIterable.Reverse();
+
+		var animation = animationIterable.ToArray();
+		
+		float startTime = Time.time;
+		float alphaStep = 1f / animation.Length;
+		while (Time.time - startTime <= 1)
 		{
-			int index = 0;
-			foreach (Light light in Lights)
+			float alpha = (Time.time - startTime) / 1;
+
+			for (int i = 0; i < animation.Length; i++)
 			{
-				light.color = frame.Contains(index) ? Color.green : Color.white;
-
-				index++;		
+				foreach (Light light in animation[i])
+				{
+					light.color = Color.Lerp(Color.white, Color.green, (alpha - alphaStep * i) / alphaStep);
+				}
 			}
-
-			yield return new WaitForSeconds(0.25f);
+			
+			yield return null;
 		}
-
-		foreach (Light light in Lights) light.color = Color.white;
-	}*/
+	}
 
 	T ExtractRandom<T>(List<T> list)
 	{
@@ -518,7 +498,7 @@ public class SynchronizationModule : MonoBehaviour
 		return targets.Contains(obj);
 	}
 
-	int? StringToLight(string light)
+	Light StringToLight(string light)
 	{
 		Dictionary<string, string> replacements = new Dictionary<string, string>()
 		{
@@ -549,53 +529,120 @@ public class SynchronizationModule : MonoBehaviour
 		}
 
 		int lightInt;
-		if (light.Length == 1 && int.TryParse(light, out lightInt))
+		if (light.Length == 1 && int.TryParse(light, out lightInt) && lightInt > 0)
 		{
-			if (lightInt == 0) return null;
-
-			return lightInt;
+			return Lights[lightInt - 1];
 		}
 
 		return null;
 	}
 
+	#pragma warning disable 414
+	private string TwitchHelpMessage = "To sync a pair of lights do !{0} topm on centerm +. To sync to the bomb timer use !{0} 5. Commands are chainable.";
+	#pragma warning restore 414
+
 	public IEnumerator ProcessTwitchCommand(string command)
 	{
-		string[] split = command.ToLowerInvariant().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
-		if (split[0] == "sync" && split.Length == 3)
+		foreach (string subcommand in command.ToLowerInvariant().Split(new char[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries))
 		{
-			if (EqualsAny(split[1], "at", "on") && split[2].Length == 1)
+			string[] split = subcommand.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+			if (split[0].Length == 1 && split.Length == 1)
 			{
 				int seconds;
-				if (int.TryParse(split[2], out seconds))
+				if (int.TryParse(split[0], out seconds))
 				{
-					yield return "trycancel";
-
-					yield return new WaitUntil(() => ((int) BombInfo.GetTime() % 60).ToString().Contains(split[2]));
+					yield return null;
+					while (!((int) BombInfo.GetTime() % 60).ToString().Contains(split[0]))
+					{
+						yield return "trycancel";
+						yield return true;
+					}
 
 					SyncButton.OnInteract();
 					yield return new WaitForSeconds(0.1f);
 				}
 			}
-			else if (EqualsAny(split[2], "on", "+", "true", "t", "off", "-", "false", "f"))
+			else if (EqualsAny(split[1], "on", "+", "true", "t", "off", "-", "false", "f") && EqualsAny(split[3], "on", "+", "true", "t", "off", "-", "false", "f") && split.Length == 4)
 			{
-				int? possibleLight = StringToLight(split[1]);
-				if (possibleLight != null)
+				Light lightA = StringToLight(split[0]);
+				Light lightB = StringToLight(split[2]);
+				if (lightA != null && lightB != null)
 				{
-					int lightIndex = (int) possibleLight - 1;
-					bool lightState = EqualsAny(split[2], "on", "+", "true", "t");
+					bool lightAState = EqualsAny(split[1], "on", "+", "true", "t");
+					bool lightBState = EqualsAny(split[3], "on", "+", "true", "t");
 
-					if (Lights[lightIndex].speed == 0) yield break;
+					if (lightA.speed == 0 || lightB.speed == 0) yield break;
 
-					yield return "trycancel";
+					yield return null;
+					while (lightA.state != lightAState) yield return true;
 
-					yield return new WaitUntil(() => Lights[lightIndex].state == lightState);
+					lightA.gameObject.GetComponent<KMSelectable>().OnInteract();
+					yield return new WaitForSeconds(0.1f);
 
-					Lights[lightIndex].gameObject.GetComponent<KMSelectable>().OnInteract();
+					while (lightB.state != lightBState) yield return true;
+
+					lightB.gameObject.GetComponent<KMSelectable>().OnInteract();
 					yield return new WaitForSeconds(0.1f);
 				}
 			}
 		}
+	}
+	
+	IEnumerator TwitchHandleForcedSolve()
+	{
+		IEnumerator processCommand;
+
+		while (true)
+		{
+			var speedDuplicates = Lights.Select(l => l.speed).Where(s => s != 0).GroupBy(s => s);
+
+			var speeds = Lights.Select(l => l.speed).Where(s => s != 0).Distinct();
+			if (speedDuplicates.Count(group => group.Count() == 1) >= 2)
+			{
+				speeds = speeds.Where(s => speedDuplicates.Where(group => group.Key == s).First().Count() == 1);
+			}
+
+			int[] orderedSpeeds = speeds.OrderBy(s => s).ToArray();
+			if (orderedSpeeds.Length == 1) break;
+
+			int lightASpeed = 0;
+			int lightBSpeed = 0;
+
+			switch (SyncMethod[0])
+			{
+				case 0:
+					lightASpeed = orderedSpeeds[0];
+					lightBSpeed = orderedSpeeds[1];
+
+					break;
+				case 1:
+					lightASpeed = orderedSpeeds[orderedSpeeds.Length - 1];
+					lightBSpeed = orderedSpeeds[orderedSpeeds.Length - 2];
+
+					break;
+				case 2:
+					if (oppRuleFirstGreater)
+					{
+						lightASpeed = orderedSpeeds[orderedSpeeds.Length - 1];
+						lightBSpeed = orderedSpeeds[0];
+					}
+					else
+					{
+						lightASpeed = orderedSpeeds[0];
+						lightBSpeed = orderedSpeeds[orderedSpeeds.Length - 1];
+					}
+
+					break;
+			}
+
+			bool[] lightStates = { true, false, !altRuleState };
+
+			processCommand = ProcessTwitchCommand(string.Format("{0} {1} {2} {3}", Array.FindIndex(Lights, light => light.speed == lightASpeed) + 1, lightStates[SyncMethod[1]], Array.FindIndex(Lights, light => light.speed == lightBSpeed) + 1, lightStates[SyncMethod[1]]));
+			while (processCommand.MoveNext()) yield return processCommand.Current;
+		}
+
+		processCommand = ProcessTwitchCommand(DisplayNumber.ToString());
+		while (processCommand.MoveNext()) yield return processCommand.Current;
 	}
 }
