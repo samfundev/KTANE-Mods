@@ -1,19 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using UnityEngine;
-using Newtonsoft.Json;
-using System.Linq;
+﻿using System.Collections.Generic;
 using Assets.Scripts.Missions;
+using UnityEngine;
 
 static class TimeMode
 {
-	static float _multiplier = 9;
-	public static float Multiplier
-	{
-		get => Math.Max(_multiplier, 1);
-		set => Math.Min(_multiplier, 10);
-	}
+	public static ModConfig<ModeSettings> modConfig = new ModConfig<ModeSettings>("ModeSettings");
+	public static ModeSettings settings = modConfig.Settings;
+	public static float Multiplier = settings.TimeModeStartingMultiplier;
 
 	#pragma warning disable 649
 	struct ModuleInfo
@@ -22,33 +15,15 @@ static class TimeMode
 		public int moduleScore;
 	}
 	#pragma warning restore 649
-
-	public static Dictionary<string, int> ComponentValues = new Dictionary<string, int>();
-
-	static void UpdateComponentValues()
+	
+	public static void UpdateComponentValues()
 	{
-		ModuleInfo[] moduleJSON = JsonConvert.DeserializeObject<ModuleInfo[]>(File.ReadAllText(Path.Combine(Application.persistentDataPath, "ModuleInformation.json")));
-
-		ComponentValues = moduleJSON.ToDictionary(modInfo => modInfo.moduleID, modInfo => modInfo.moduleScore);
+		foreach (KMGameInfo.KMModuleInfo info in Tweaks.GameInfo.GetAvailableModuleInfo())
+		{
+			if (!settings.ComponentValues.ContainsKey(info.ModuleId))
+				settings.ComponentValues[info.ModuleId] = 6;
+		}
 	}
-
-	static Dictionary<ComponentTypeEnum, string> VanillaModuleIDs = new Dictionary<ComponentTypeEnum, string>()
-	{
-		{ ComponentTypeEnum.BigButton, "ButtonComponentSolver" },
-		{ ComponentTypeEnum.Keypad, "KeypadComponentSolver" },
-		{ ComponentTypeEnum.Maze, "InvisibleWallsComponentSolver" },
-		{ ComponentTypeEnum.Memory, "MemoryComponentSolver" },
-		{ ComponentTypeEnum.Morse, "MorseCodeComponentSolver" },
-		{ ComponentTypeEnum.NeedyCapacitor, "NeedyDischargeComponentSolver" },
-		{ ComponentTypeEnum.NeedyKnob, "NeedyKnobComponentSolver" },
-		{ ComponentTypeEnum.NeedyVentGas, "NeedyVentComponentSolver" },
-		{ ComponentTypeEnum.Password, "PasswordComponentSolver" },
-		{ ComponentTypeEnum.Simon, "SimonComponentSolver" },
-		{ ComponentTypeEnum.Venn, "VennWireComponentSolver" },
-		{ ComponentTypeEnum.WhosOnFirst, "WhosOnFirstComponentSolver" },
-		{ ComponentTypeEnum.Wires, "WireSetComponentSolver" },
-		{ ComponentTypeEnum.WireSequence, "WireSequenceComponentSolver" }
-	};
 
 	public static string GetModuleID(BombComponent bombComponent)
 	{
@@ -70,13 +45,23 @@ static class TimeMode
 			case ComponentTypeEnum.Timer:
 				break;
 			default:
-				string ModuleIDs;
-				if (VanillaModuleIDs.TryGetValue(bombComponent.ComponentType, out ModuleIDs))
-					return ModuleIDs;
-
-				break;
+				return bombComponent.ComponentType.ToString();
 		}
 
 		return null;
 	}
+}
+
+class ModeSettings
+{
+	public float TimeModeStartingTime = 5;
+	public float TimeModeStartingMultiplier = 9.0f;
+	public float TimeModeMaxMultiplier = 10.0f;
+	public float TimeModeMinMultiplier = 1.0f;
+	public float TimeModeSolveBonus = 0.1f;
+	public float TimeModeMultiplierStrikePenalty = 1.5f;
+	public float TimeModeTimerStrikePenalty = 0.25f;
+	public float TimeModeMinimumTimeLost = 15;
+	public float TimeModeMinimumTimeGained = 20;
+	public Dictionary<string, double> ComponentValues = new Dictionary<string, double>();
 }

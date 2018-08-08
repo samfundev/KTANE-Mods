@@ -142,7 +142,7 @@ GameObject:
   - component: {fileID: 114219162854245852}
   - component: {fileID: 114928244077103038}
   m_Layer: 0
-  m_Name: Background
+  m_Name: HUD
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -278,6 +278,8 @@ MonoBehaviour:
   m_Script: {fileID: 1560981497, guid: f9655ca10095c2c45b4f86c01198f02e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  HUD: {fileID: 1612515157141516}
+  Edgework: {fileID: 1030454269542194}
   TimerPrefab: {fileID: 114783092735840602}
   TimerShadowPrefab: {fileID: 114017238200423530}
   StrikesPrefab: {fileID: 114644350289844892}
@@ -819,7 +821,7 @@ Canvas:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1937715181069766}
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 3
   m_RenderMode: 0
   m_Camera: {fileID: 0}
@@ -1015,7 +1017,7 @@ RectTransform:
   - {fileID: 224498926072317920}
   - {fileID: 224294513853117046}
   m_Father: {fileID: 224779323244688788}
-  m_RootOrder: 1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
@@ -1050,8 +1052,8 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_Children:
-  - {fileID: 224810501136941064}
   - {fileID: 224625312071220978}
+  - {fileID: 224810501136941064}
   m_Father: {fileID: 4685014628005906}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1072,7 +1074,7 @@ RectTransform:
   m_Children:
   - {fileID: 224117383101460140}
   m_Father: {fileID: 224779323244688788}
-  m_RootOrder: 0
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}

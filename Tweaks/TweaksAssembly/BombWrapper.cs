@@ -3,7 +3,6 @@ using UnityEngine;
 using Assets.Scripts.Records;
 using System.Collections.Generic;
 using System.Linq;
-using System.Collections;
 
 class BombWrapper
 {
@@ -14,7 +13,6 @@ class BombWrapper
 		timerComponent = bomb.GetTimer();
 		widgetManager = bomb.WidgetManager;
 
-		// UI
 		foreach (BombComponent component in Bomb.BombComponents)
 		{
 			component.OnPass += delegate
@@ -23,22 +21,16 @@ class BombWrapper
 
 				if (Tweaks.settings.TimeMode)
 				{
-					int ComponentValue;
-					if (!TimeMode.ComponentValues.TryGetValue(TimeMode.GetModuleID(component), out ComponentValue))
+					double ComponentValue;
+					if (!TimeMode.settings.ComponentValues.TryGetValue(TimeMode.GetModuleID(component), out ComponentValue))
 					{
 						ComponentValue = 6;
 					}
 
-					float time = TimeMode.Multiplier * ComponentValue;
-					if (time < 20)
-					{
-						CurrentTimer = CurrentTimer + 20;
-					}
-					else
-					{
-						CurrentTimer = CurrentTimer + time;
-					}
-					TimeMode.Multiplier += 0.1f;
+					float time = (float) (TimeMode.Multiplier * ComponentValue);
+					CurrentTimer += Math.Max(TimeMode.settings.TimeModeMinimumTimeGained, time);
+
+					TimeMode.Multiplier = TimeMode.Multiplier + TimeMode.settings.TimeModeSolveBonus;
 				}
 
 				return false;
@@ -50,16 +42,16 @@ class BombWrapper
 
 				if (Tweaks.settings.TimeMode)
 				{
-					TimeMode.Multiplier -= 1.5f;
-					if (CurrentTimer < (15 / 0.25f))
+					TimeMode.Multiplier = Math.Max(TimeMode.Multiplier - TimeMode.settings.TimeModeMultiplierStrikePenalty, TimeMode.settings.TimeModeMinMultiplier);
+					if (CurrentTimer < (TimeMode.settings.TimeModeMinimumTimeLost / TimeMode.settings.TimeModeMultiplierStrikePenalty))
 					{
-						CurrentTimer = CurrentTimer - 15;
+						CurrentTimer -= TimeMode.settings.TimeModeMinimumTimeLost;
 					}
 					else
 					{
-						float timeReducer = CurrentTimer * 0.25f;
+						float timeReducer = CurrentTimer * TimeMode.settings.TimeModeTimerStrikePenalty;
 						double easyText = Math.Round(timeReducer, 1);
-						CurrentTimer = CurrentTimer - timeReducer;
+						CurrentTimer -= timeReducer;
 					}
 
 					// Set strikes to 0
@@ -137,7 +129,10 @@ class BombWrapper
 	public float CurrentTimer
 	{
 		get => timerComponent.TimeRemaining;
-		set => timerComponent.TimeRemaining = (value < 0) ? 0 : value;
+		set {
+			timerComponent.TimeRemaining = (value < 0) ? 0 : value;
+			timerComponent.text.text = timerComponent.GetFormattedTime(value, true);
+		}
 	}
 
 	public string CurrentTimerFormatted => timerComponent.GetFormattedTime(CurrentTimer, true);

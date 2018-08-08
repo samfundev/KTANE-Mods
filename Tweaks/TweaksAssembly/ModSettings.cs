@@ -16,9 +16,14 @@ class ModConfig<T>
     {
         get
         {
-            return Path.Combine(Application.persistentDataPath, "Modsettings\\" + _filename + ".json");
-        }
+            return Path.Combine(Path.Combine(Application.persistentDataPath, "Modsettings"), _filename + ".json");
+		}
     }
+
+	private string SerializeSettings(T settings)
+	{
+		return JsonConvert.SerializeObject(settings, Formatting.Indented);
+	}
 
     public T Settings
     {
@@ -28,10 +33,11 @@ class ModConfig<T>
             {
                 if (!File.Exists(SettingsPath))
 				{
-                    File.WriteAllText(SettingsPath, JsonConvert.SerializeObject(Activator.CreateInstance<T>(), Formatting.Indented));
+                    File.WriteAllText(SettingsPath, SerializeSettings(Activator.CreateInstance<T>()));
                 }
-
-                return JsonConvert.DeserializeObject<T>(File.ReadAllText(SettingsPath));
+				
+                T deserialized = JsonConvert.DeserializeObject<T>(File.ReadAllText(SettingsPath));
+				return deserialized != null ? deserialized : Activator.CreateInstance<T>();
             }
             catch
             {
@@ -43,13 +49,13 @@ class ModConfig<T>
         {
             if (value.GetType() == typeof(T))
             {
-                File.WriteAllText(SettingsPath, JsonConvert.SerializeObject(value, Formatting.Indented));
+                File.WriteAllText(SettingsPath, SerializeSettings(value));
             }
         }
     }
 
     public override string ToString()
     {
-        return JsonConvert.SerializeObject(Settings, Formatting.Indented);
+        return SerializeSettings(Settings);
     }
 }

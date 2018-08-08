@@ -10,6 +10,9 @@ class BombStatus : MonoBehaviour
 {
 	public static BombStatus Instance;
 
+	public GameObject HUD = null;
+	public GameObject Edgework = null;
+
 	public Text TimerPrefab = null;
 	public Text TimerShadowPrefab = null;
 	public Text StrikesPrefab = null;
@@ -103,7 +106,7 @@ class BombStatus : MonoBehaviour
 	{
 		if (Tweaks.settings.TimeMode)
 		{
-			string conf = "x" + String.Format("{0:0.0}", TimeMode.Multiplier);
+			string conf = "<size=36>x</size>" + String.Format("{0:0.0}", Math.Min(TimeMode.Multiplier, TimeMode.settings.TimeModeMaxMultiplier));
 			StrikesPrefab.color = Color.yellow;
 			StrikeLimitPrefab.color = Color.yellow;
 			StrikesPrefab.text = conf;
@@ -115,33 +118,19 @@ class BombStatus : MonoBehaviour
 			StrikeLimitPrefab.color = Color.red;
 		}
 
-		float success = PlayerSuccessRating;
+		float success = PlayerPaceRating;
 		ConfidencePrefab.text = Mathf.Round(success * 100).ToString() + "%";
-		ConfidencePrefab.color = success < 0.5f ? Color.Lerp(Color.red, yellow, success * 2) : Color.Lerp(yellow, Color.green, success * 2 - 0.5f);
+		ConfidencePrefab.color = success < 0 ? Color.Lerp(Color.gray, Color.red, Mathf.Sqrt(-success)) : Color.Lerp(Color.gray, Color.green, Mathf.Sqrt(success));
 	}
 
-	public float PlayerSuccessRating
+	public float PlayerPaceRating
 	{
 		get
 		{
-			float solvesMax = 0.5f;
-			float strikesMax = 0.3f;
-			float timeMax = 0.2f;
+			float remaining = currentBomb.CurrentTimer;
 
-			float timeRemaining = currentBomb.CurrentTimer;
-			float totalTime = currentBomb.bombStartingTimer;
-
-			int strikesAvailable = (currentTotalStrikes - 1) - currentStrikes; // Strikes without exploding
-
-			float solvesCounter = (float) currentSolves / (currentTotalModules - 1);
-			float strikesCounter = (float) strikesAvailable / (currentTotalStrikes - 1);
-			float timeCounter = timeRemaining / totalTime;
-
-			float solvesScore = solvesCounter * solvesMax;
-			float strikesScore = strikesCounter * strikesMax;
-			float timeScore = timeCounter * timeMax;
-
-			return solvesScore + strikesScore + timeScore;
+			return Tweaks.settings.TimeMode ? remaining / (TimeMode.settings.TimeModeStartingTime * 60) - 1 :
+				(float) currentSolves / currentTotalModules - (currentBomb.bombStartingTimer - remaining / currentBomb.timerComponent.GetRate()) / currentBomb.bombStartingTimer;
 		}
 	}
 
