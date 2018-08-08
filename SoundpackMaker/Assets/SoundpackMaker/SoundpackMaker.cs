@@ -97,7 +97,7 @@ public class SoundpackMaker : MonoBehaviour
 		        }
 		        else
 		        {
-		            AudioClip clip = new WWW("file:///" + path).audioClip;
+		            AudioClip clip = new WWW("file:///" + path).GetAudioClip();
 		            while (clip.loadState != AudioDataLoadState.Loaded)
 		            {
 		            }
@@ -207,8 +207,8 @@ public class SoundpackMaker : MonoBehaviour
 	    if (realMod != null)
 	        return;
 
-		ModSettings Soundpacks = new ModSettings("EnabledSoundpacks", typeof(List<string>));
-		List<string> enabledSoundpacks = (List<string>) Soundpacks.Settings;
+		ModConfig<List<string>> Soundpacks = new ModConfig<List<string>>("EnabledSoundpacks");
+		List<string> enabledSoundpacks = Soundpacks.Settings;
 
 		if (!Directory.Exists(SoundsDirectory))
 		{
@@ -218,7 +218,7 @@ public class SoundpackMaker : MonoBehaviour
 			return;
 		}
 
-	    Type ModManager = ReflectionHelper.FindType("ModManager");
+	    Type ModManager = FindType("ModManager");
 	    FieldInfo ModManagerInstanceField = ModManager.GetField("Instance", BindingFlags.Public | BindingFlags.Static);
 	    FieldInfo ModManagerLoadedModsDictField = ModManager.GetField("loadedMods", BindingFlags.NonPublic | BindingFlags.Instance);
 	    object ModManagerInstance = ModManagerInstanceField.GetValue(null);
