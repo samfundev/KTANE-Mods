@@ -5,10 +5,10 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<title>Minesweeper — Keep Talking and Nobody Explodes Module</title>
     <meta name="viewport" content="initial-scale=1">
-    <link rel='stylesheet' type='text/css' href='css/font.css'>
+    <link rel="stylesheet" type="text/css" href="css/font.css">
     <link rel="stylesheet" type="text/css" href="css/normalize.css">
     <link rel="stylesheet" type="text/css" href="css/main.css">
-	<script src='js/highlighter.js'></script>
+	<script src="js/highlighter.js"></script>
 	<style>
 		.borderless {
 			border: none;
@@ -17,6 +17,30 @@
 		.color-lookup {
 			float: right;
 			margin-left: 1.5em;
+		}
+
+		.red {
+			background: red;
+		}
+
+		.orange {
+			background: orange;
+		}
+
+		.yellow {
+			background: yellow;
+		}
+
+		.green {
+			background: green;
+		}
+
+		.blue {
+			background: blue;
+		}
+
+		.purple {
+			background: purple;
 		}
 	</style>
 </head>
@@ -28,7 +52,7 @@
 			<span class="page-header-section-title">Minesweeper</span>
 		</div>
 		<div class="page-content">
-			<img src="img/Component/Minesweeper.svg" class="diagram">
+			<img class="diagram" src="img/Component/Minesweeper.svg">
 			<h2>On the Subject of Minesweeper</h2>
 			<p class="flavour-text">Somehow Minesweeper on a bomb feels oddly redundant.</p>
 			<ul>
@@ -44,25 +68,25 @@
 			<h3>Locating the starting cell</h3>
 			<table class="color-lookup borderless">
 				<tr>
-					<th>Color</th><th>#</th>
+					<th colspan="2">Color</th><th>#</th>
 				</tr>
 				<tr>
-					<td>Red</td><td>5</td>
+					<td>Red</td><td class="red"></td><td>5</td>
 				</tr>
 				<tr>
-					<td>Orange</td><td>2</td>
+					<td>Orange</td><td class="orange"></td><td>2</td>
 				</tr>
 				<tr>
-					<td>Yellow</td><td>3</td>
+					<td>Yellow</td><td class="yellow"></td><td>3</td>
 				</tr>
 				<tr>
-					<td>Green</td><td>1</td>
+					<td>Green</td><td class="green"></td><td>1</td>
 				</tr>
 				<tr>
-					<td>Blue</td><td>6</td>
+					<td>Blue</td><td class="blue"></td><td>6</td>
 				</tr>
 				<tr>
-					<td>Purple</td><td>4</td>
+					<td>Purple</td><td class="purple"></td><td>4</td>
 				</tr>
 			</table>
 
@@ -77,6 +101,8 @@
 
 			<p><u>NOTE:</u> Clicking on a number while digging will dig all cells around it that aren't flagged. Holding down on a cell will flag it instead of digging it.</p>
 		</div>
+        <div class="page-footer relative-footer">Page 1 of 1</div>
 	</div>
 </div>
+
 </body></html>
