@@ -16,6 +16,7 @@ public class MinesweeperModule : MonoBehaviour
 	public GameObject ModeToggle;
 	public GameObject CellBase;
 	public GameObject Grid;
+	public GameObject ColorblindLabel;
 
 	public GameObject[] Guides;
 
@@ -343,20 +344,22 @@ public class MinesweeperModule : MonoBehaviour
 		string solName = numToName[sol]; // This is the solution color's name.
 		unpickedNames.Remove(solName);
 
+		bool colorblind = GetComponent<KMColorblindMode>().ColorblindModeActive;
 		foreach (Cell cell in Picks)
 		{
-			if (cell == Picks[number])
-			{
-				cell._renderer.color = Colors[solName];
-				cell.Color = solName;
-			}
+			string name;
+			if (cell == Picks[number]) name = solName;
 			else
 			{
-				string name = unpickedNames[Random.Range(0, unpickedNames.Count)];
-				cell._renderer.color = Colors[name];
-				cell.Color = name;
+				name = unpickedNames[Random.Range(0, unpickedNames.Count)];
 				unpickedNames.Remove(name);
 			}
+
+			cell._renderer.color = Colors[name];
+			cell.Color = name;
+			
+			char letter = name == "black" ? 'K' : name[0];
+			if (colorblind) Instantiate(ColorblindLabel, cell._object.transform).GetComponent<TextMesh>().text = letter.ToString();
 		}
 
 		Log("Color order: " + Picks.Select((a) => a.Color).Aggregate((a, b) => a + ", " + b) + ".");
