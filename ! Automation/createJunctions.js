@@ -30,6 +30,7 @@ const junctions = [
 	"Assets\\Plugins",
 	"Assets\\KM_Assets",
 	"Assets\\TestHarness",
+	"Assets\\Shared_Assets",
 	"ProjectSettings",
 ];
 
