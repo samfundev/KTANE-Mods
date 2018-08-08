@@ -559,4 +559,21 @@ public class CheapCheckoutModule : MonoBehaviour
 			}
         }
     }
+
+	IEnumerator TwitchHandleForcedSolve()
+	{
+		if (Total > Display)
+		{
+			if (Change != 0) {
+				Clear.OnInteract();
+				yield return new WaitForSeconds(0.1f);
+			}
+
+			Submit.OnInteract();
+
+			while (waiting) yield return true;
+		}
+
+		yield return ProcessTwitchCommand("submit " + (Paid - Total).ToString());
+	}
 }

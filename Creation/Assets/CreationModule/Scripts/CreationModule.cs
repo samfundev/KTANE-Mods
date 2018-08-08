@@ -618,11 +618,47 @@ public class CreationModule : MonoBehaviour
                     yield return new WaitForSeconds(0.1f);
                 }
 
-                yield return new WaitUntil(delegate
-                {
-                    return !Combining || Solved;
-                });
+                yield return new WaitUntil(() => !Combining || Solved);
             }
         }
     }
+
+	IEnumerable MakeElement(string targetElement)
+	{
+		if (!Combinations.ContainsKey(targetElement)) yield break;
+
+		var neededElements = Combinations[targetElement];
+		foreach (string neededElement in neededElements)
+			if (Required.Contains(neededElement))
+				foreach (object obj in MakeElement(neededElement)) yield return obj;
+
+		switch (Weather)
+		{
+			case "Rain": neededElements = Replace(neededElements, "Water", "Fire"); break;
+			case "Windy": neededElements = Replace(neededElements, "Air", "Earth"); break;
+			case "Heat Wave": neededElements = Replace(neededElements, "Fire", "Water"); break;
+			case "Meteor Shower": neededElements = Replace(neededElements, "Earth", "Air"); break;
+			case "Clear": break;
+		}
+
+		foreach (Transform child in Elements.transform)
+		{
+			GameObject element = child.gameObject;
+			if (element.activeInHierarchy && element != Halo)
+			{
+				if (neededElements.Contains(element.GetComponent<Renderer>().sharedMaterial.name))
+				{
+					element.GetComponent<KMSelectable>().OnInteract();
+					yield return new WaitForSeconds(0.1f);
+				}
+			}
+		}
+
+		while (Combining && !Solved) yield return true;
+	}
+
+	IEnumerator TwitchHandleForcedSolve()
+	{
+		foreach (object obj in MakeElement(Lifeform)) yield return obj;
+	}
 }

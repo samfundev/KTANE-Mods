@@ -420,4 +420,9 @@ public class SkewedModule : MonoBehaviour
             Submit.OnInteract();
         }
     }
+
+	IEnumerator TwitchHandleForcedSolve()
+	{
+		yield return ProcessTwitchCommand(String.Concat(Solution[0], Solution[1], Solution[2]));
+	}
 }

@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Random = UnityEngine.Random;
+using System.Linq;
 
 public class Tuple<T, U>
 {
@@ -181,8 +182,9 @@ public class BrokenButtonModule : MonoBehaviour
     void FindCorrectButtons()
     {
         if (Pressed.Count == 5)
-        {
-            DebugMsg("Solution: Press the correct submit button because you've pressed 5 buttons. (" + (SubmitButton ? "Right" : "Left") + " submit button.)");
+		{
+			Solution = new List<GameObject>();
+			DebugMsg("Solution: Press the correct submit button because you've pressed 5 buttons. (" + (SubmitButton ? "Right" : "Left") + " submit button.)");
         }
         else
         {
@@ -467,4 +469,16 @@ public class BrokenButtonModule : MonoBehaviour
 
         return null;
     }
+
+	IEnumerator TwitchHandleForcedSolve()
+	{
+		while (Solution.Count > 0)
+		{
+			Solution[Random.Range(0, Solution.Count - 1)].GetComponent<KMSelectable>().OnInteract();
+			yield return new WaitForSeconds(0.1f);
+		}
+
+		SubmitButtons.First(button => button.name == "Right" == SubmitButton).GetComponent<KMSelectable>().OnInteract();
+		yield return new WaitForSeconds(0.1f);
+	}
 }

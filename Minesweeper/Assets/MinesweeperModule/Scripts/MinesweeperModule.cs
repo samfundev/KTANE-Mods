@@ -373,6 +373,21 @@ public class MinesweeperModule : MonoBehaviour
 		UpdateSelectable();
 	}
 
+	void SolveModule()
+	{
+		foreach (Cell c in Game.Cells)
+		{
+			if (!c.Mine)
+			{
+				c.Dug = true;
+				c.UpdateSprite();
+			}
+		}
+
+		Module.HandlePass();
+		LogBoard();
+	}
+
 	void LogBoard()
 	{
 		if (!loggedLegend)
@@ -610,17 +625,7 @@ public class MinesweeperModule : MonoBehaviour
 
 					if (Game.Solved)
 					{
-						foreach (Cell c in Game.Cells)
-						{
-							if (!c.Mine)
-							{
-								c.Dug = true;
-								c.UpdateSprite();
-							}
-						}
-
-						Module.HandlePass();
-						LogBoard();
+						SolveModule();
 					}
 
 					UpdateSelectable();
@@ -899,5 +904,79 @@ public class MinesweeperModule : MonoBehaviour
 				yield return new WaitForSeconds(0.1f);
 			}
 		}
+	}
+
+	IEnumerator TwitchHandleForcedSolve()
+	{
+		if (!StartFound)
+		{
+			StartingCell.Click();
+			yield return new WaitForSeconds(0.1f);
+		}
+		
+		List<Cell> Unused = Game.Cells.Where(cell => cell.Number != 0 && cell.Dug).ToList(); // Cells that have a number in them but haven't been used by the solver yet.
+		List<Cell> Used = new List<Cell>(); // Store the used cells temporarily until the loop is over.
+		List<Cell> UnusedTemp = new List<Cell>(); // Store the new unused cells temporarily until the loop is over.
+
+		bool Changed = true;
+		while (Unused.Count > 0 && Changed && !Game.Solved)
+		{
+			Changed = false;
+
+			foreach (Cell cell in Unused)
+			{
+				int Flagged = 0;
+				int Covered = 0;
+				foreach (Cell adj in cell.Around)
+				{
+					if (!adj.Dug)
+					{
+						Covered++;
+					}
+
+					if (adj.Flagged)
+					{
+						Flagged++;
+					}
+				}
+
+				bool DigAll = Flagged == cell.Number;
+				bool FlagAll = Covered == cell.Number;
+				if (DigAll || FlagAll)
+				{
+					Changed = true;
+					Used.Add(cell);
+					foreach (Cell adj in cell.Around)
+					{
+						if (!adj.Dug)
+						{
+							targetAlpha = DigAll ? 0 : 1;
+
+							if (DigAll)
+							{
+								UnusedTemp.AddRange(adj.Dig());
+							}
+							else if (FlagAll)
+							{
+								adj.Flagged = true;
+							}
+							adj.UpdateSprite();
+							yield return new WaitForSeconds(0.05f);
+						}
+					}
+				}
+			}
+
+			foreach (Cell cell in Used)
+			{
+				Unused.Remove(cell);
+			}
+			Used.Clear();
+
+			Unused.AddRange(UnusedTemp);
+			UnusedTemp.Clear();
+		}
+
+		SolveModule();
 	}
 }

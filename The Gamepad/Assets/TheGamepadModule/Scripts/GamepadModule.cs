@@ -374,4 +374,13 @@ public class GamepadModule : MonoBehaviour
 
         return null;
     }
+
+	IEnumerator TwitchHandleForcedSolve()
+	{
+		foreach (KMSelectable selectable in ProcessTwitchCommand("submit " + solution))
+		{
+			selectable.OnInteract();
+			yield return new WaitForSeconds(0.1f);
+		}
+	}
 }
