@@ -104,9 +104,9 @@ class BombStatus : MonoBehaviour
 	Color yellow = new Color(1, 1, 0);
 	public void UpdateConfidence()
 	{
-		if (Tweaks.settings.TimeMode)
+		if (Tweaks.settings.Mode == Mode.Time)
 		{
-			string conf = "<size=36>x</size>" + String.Format("{0:0.0}", Math.Min(TimeMode.Multiplier, TimeMode.settings.TimeModeMaxMultiplier));
+			string conf = "<size=36>x</size>" + String.Format("{0:0.0}", Math.Min(Modes.Multiplier, Modes.settings.TimeModeMaxMultiplier));
 			StrikesPrefab.color = Color.yellow;
 			StrikeLimitPrefab.color = Color.yellow;
 			StrikesPrefab.text = conf;
@@ -118,6 +118,13 @@ class BombStatus : MonoBehaviour
 			StrikeLimitPrefab.color = Color.red;
 		}
 
+        if (Tweaks.settings.Mode == Mode.Zen)
+        {
+            //Not Implemented, yet
+            //Does some weird stuff in Zen mode
+            ConfidencePrefab.text = "N/I";
+            return;
+        }
 		float success = PlayerPaceRating;
 		ConfidencePrefab.text = Mathf.Round(success * 100).ToString() + "%";
 		ConfidencePrefab.color = success < 0 ? Color.Lerp(Color.gray, Color.red, Mathf.Sqrt(-success)) : Color.Lerp(Color.gray, Color.green, Mathf.Sqrt(success));
@@ -129,7 +136,7 @@ class BombStatus : MonoBehaviour
 		{
 			float remaining = currentBomb.CurrentTimer;
 
-			return Tweaks.settings.TimeMode ? remaining / (TimeMode.settings.TimeModeStartingTime * 60) - 1 :
+			return Tweaks.settings.Mode == Mode.Time ? remaining / (Modes.settings.TimeModeStartingTime * 60) - 1 :
 				(float) currentSolves / currentTotalModules - (currentBomb.bombStartingTimer - remaining / currentBomb.timerComponent.GetRate()) / currentBomb.bombStartingTimer;
 		}
 	}

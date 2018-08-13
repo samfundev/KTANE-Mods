@@ -43,4 +43,9 @@ public static class GeneralExtensions
 
 		return stringBuilder.ToString();
 	}
+
+    public static IEnumerable<T> Shuffle<T>(this IEnumerable<T> source)
+    {
+        return source.OrderBy(x => UnityEngine.Random.value);
+    }
 }

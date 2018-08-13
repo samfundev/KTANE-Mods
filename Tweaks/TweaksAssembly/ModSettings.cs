@@ -1,8 +1,10 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using System;
 using System.IO;
 using UnityEngine;
 
+[JsonConverter(typeof(StringEnumConverter))]
 class ModConfig<T>
 {
     public ModConfig(string name)
@@ -11,7 +13,7 @@ class ModConfig<T>
     }
 
     string _filename = null;
-
+    
     string SettingsPath
     {
         get
@@ -22,7 +24,7 @@ class ModConfig<T>
 
 	private string SerializeSettings(T settings)
 	{
-		return JsonConvert.SerializeObject(settings, Formatting.Indented);
+		return JsonConvert.SerializeObject(settings, Formatting.Indented, new StringEnumConverter());
 	}
 
     public T Settings

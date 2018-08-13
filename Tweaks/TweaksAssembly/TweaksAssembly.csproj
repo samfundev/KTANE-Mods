@@ -55,6 +55,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BetterCasePicker.cs" />
+    <Compile Include="BombInfo.cs" />
     <Compile Include="BombStatus.cs" />
     <Compile Include="GeneralExtensions.cs" />
     <Compile Include="Logging\ProbingLogging.cs" />
@@ -65,7 +66,8 @@
     <Compile Include="ReflectedTypes.cs" />
     <Compile Include="ReflectionHelper.cs" />
     <Compile Include="BombWrapper.cs" />
-    <Compile Include="TimeMode.cs" />
+    <Compile Include="Modes.cs" />
+    <Compile Include="TTKComponentSolver.cs" />
     <Compile Include="Tweaks.cs" />
     <Compile Include="TweaksProperties.cs" />
   </ItemGroup>

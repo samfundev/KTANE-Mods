@@ -1,6 +1,7 @@
 ﻿using Assets.Scripts.Records;
 using System;
 using System.Reflection;
+using UnityEngine;
 
 static class ReflectedTypes
 {
@@ -20,6 +21,27 @@ static class ReflectedTypes
 	public static FieldInfo CurrencyAPIEndpointField;
 
 	public static FieldInfo IsInteractingField;
+	public static FieldInfo ZenModeBool { get; set; }
+    public static FieldInfo TimeModeBool { get; set; }
+    
+    public static void FindModeBoolean(MonoBehaviour KMModule)
+	{
+    	Component[] allComponents = KMModule.GetComponentsInChildren<Component>(true);
+    	foreach (Component component in allComponents)
+    	{
+        	Type type = component.GetType();
+			var modeType = KMModule.GetComponent(type);
+			var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+			ZenModeBool = type.GetField("TwitchZenMode", flags);
+			if (ZenModeBool == null) ZenModeBool = type.GetField("ZenModeActive", flags);
+			TimeModeBool = type.GetField("TwitchTimeMode", flags);
+			if (TimeModeBool == null) TimeModeBool = type.GetField("TimeModeActive", flags);
+			if (ZenModeBool?.GetValue(ZenModeBool.IsStatic ? null : modeType) is bool)
+			Tweaks.settings.Mode == Mode.Zen ? ZenModeBool.SetValue(modeType, true) : ZenModeBool.SetValue(modeType, false);
+			else if (TimeModeBool?.GetValue(TimeModeBool.IsStatic ? null : modeType) is bool)
+			Tweaks.settings.Mode == Mode.Time ? TimeModeBool.SetValue(modeType, true) : TimeModebool.SetValue(modeType, false);
+    	}
+	}
 
 	public static void UpdateTypes()
 	{

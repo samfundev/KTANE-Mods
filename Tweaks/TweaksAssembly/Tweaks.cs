@@ -49,9 +49,9 @@ class Tweaks : MonoBehaviour
 			settings = modConfig.Settings;
 			modConfig.Settings = settings; // Write any settings that the user doesn't have in their settings file.
 
-			TimeMode.settings = TimeMode.modConfig.Settings;
-			TimeMode.UpdateComponentValues();
-			TimeMode.modConfig.Settings = TimeMode.settings;
+			Modes.settings = Modes.modConfig.Settings;
+			Modes.UpdateComponentValues();
+			Modes.modConfig.Settings = Modes.settings;
 			
 			if ((scene.name == "mainScene" || scene.name == "gameplayScene") && changeFadeTime) SceneManager.Instance.RapidFadeInTime = settings.FadeTime;
 
@@ -99,11 +99,12 @@ class Tweaks : MonoBehaviour
 			if (state == KMGameInfo.State.Gameplay)
 			{
 				if (settings.BetterCasePicker) BetterCasePicker.PickCase();
+                if (settings.Mode == Mode.Zen) GetSettings();
 				
 				BombStatus.Instance.HUD.SetActive(settings.BombHUD);
 				BombStatus.Instance.Edgework.SetActive(settings.ShowEdgework);
 
-				TimeMode.Multiplier = TimeMode.settings.TimeModeStartingMultiplier;
+				Modes.Multiplier = Modes.settings.TimeModeStartingMultiplier;
 
 				bombWrappers = new BombWrapper[] { };
 				StartCoroutine(CheckForBombs());
@@ -113,7 +114,7 @@ class Tweaks : MonoBehaviour
 				StartCoroutine(ModifyFreeplayDevice(true));
 			}
 
-			bool disableRecords = (state == KMGameInfo.State.Gameplay && (settings.BombHUD || settings.ShowEdgework || settings.TimeMode));
+			bool disableRecords = (state == KMGameInfo.State.Gameplay && (settings.BombHUD || settings.ShowEdgework || settings.Mode != Mode.Normal));
 
 			Assets.Scripts.Stats.StatsManager.Instance.DisableStatChanges =
 			Assets.Scripts.Records.RecordManager.Instance.DisableBestRecords = disableRecords;
@@ -136,7 +137,7 @@ class Tweaks : MonoBehaviour
 			bombWrappers[i] = bombWrapper;
 			bombWrapper.holdable.OnLetGo += delegate () { BombStatus.Instance.currentBomb = null; };
 
-			if (settings.TimeMode) bombWrapper.CurrentTimer = TimeMode.settings.TimeModeStartingTime * 60;
+			if (settings.Mode == Mode.Time) bombWrapper.CurrentTimer = Modes.settings.TimeModeStartingTime * 60;
 		}
 
 		if (ReflectedTypes.FactoryRoomType != null && ReflectedTypes.FiniteSequenceModeType != null)
@@ -167,8 +168,8 @@ class Tweaks : MonoBehaviour
 						bombWrappers[0] = bombWrapper;
 						bombWrapper.holdable.OnLetGo += delegate () { BombStatus.Instance.currentBomb = null; };
 
-						if (globalTimerEnabled && settings.TimeMode)
-							bombWrapper.CurrentTimer = TimeMode.settings.TimeModeStartingTime * 60;
+						if (globalTimerEnabled && settings.Modes.Equals(Mode.Time))
+							bombWrapper.CurrentTimer = Modes.settings.TimeModeStartingTime * 60;
 					}
 				}
 			}
@@ -186,37 +187,63 @@ class Tweaks : MonoBehaviour
 			ExecOnDescendants(freeplayDevice.gameObject, gameObj =>
 			{
 				if (gameObj.name == "FreeplayLabel" || gameObj.name == "Free Play Label")
-					gameObj.GetComponent<TMPro.TextMeshPro>().text = settings.TimeMode ? "TIME MODE" : "FREE PLAY";
+					gameObj.GetComponent<TMPro.TextMeshPro>().text = settings.Mode.Equals(Mode.Time) ? "TIME MODE" : settings.Mode.Equals(Mode.Zen) ? "ZEN MODE" : "FREE PLAY";
 			});
 			
-			freeplayDevice.CurrentSettings.Time = settings.TimeMode ? TimeMode.settings.TimeModeStartingTime * 60 : originalTime;
+			freeplayDevice.CurrentSettings.Time = settings.Mode == Mode.Time ? Modes.settings.TimeModeStartingTime * 60 : originalTime;
 			TimeSpan timeSpan = TimeSpan.FromSeconds(freeplayDevice.CurrentSettings.Time);
 			freeplayDevice.TimeText.text = string.Format("{0}:{1:00}", (int) timeSpan.TotalMinutes, timeSpan.Seconds);
 
 			if (!firstTime) yield break;
-			if (!settings.TimeMode) originalTime = freeplayDevice.CurrentSettings.Time;
+			if (settings.Mode == Mode.Normal) originalTime = freeplayDevice.CurrentSettings.Time;
 			
 			freeplayDevice.TimeIncrement.OnPush += delegate { ReflectedTypes.IsInteractingField.SetValue(freeplayDevice.TimeIncrement, true); };
 			freeplayDevice.TimeIncrement.OnInteractEnded += delegate
 			{
 				originalTime = freeplayDevice.CurrentSettings.Time;
-				if (!settings.TimeMode) return;
+				if (settings.Mode != Mode.Time) return;
 
-				TimeMode.settings.TimeModeStartingTime = freeplayDevice.CurrentSettings.Time / 60;
-				TimeMode.modConfig.Settings = TimeMode.settings;
-			};
-
-			freeplayDevice.TimeDecrement.OnPush += delegate { ReflectedTypes.IsInteractingField.SetValue(freeplayDevice.TimeDecrement, true); };
-			freeplayDevice.TimeDecrement.OnInteractEnded += delegate
-			{
-				originalTime = freeplayDevice.CurrentSettings.Time;
-				if (!settings.TimeMode) return;
-
-				TimeMode.settings.TimeModeStartingTime = freeplayDevice.CurrentSettings.Time / 60;
-				TimeMode.modConfig.Settings = TimeMode.settings;
+				Modes.settings.TimeModeStartingTime = freeplayDevice.CurrentSettings.Time / 60;
+				Modes.modConfig.Settings = Modes.settings;
 			};
 		}
 	}
+    /*This method was intended to take a string value from ModeSettings
+    To allow a user to give a value for "TimePenalty" and "StartTime"
+    [StartTime was removed as I forgot that the user would determine the start time
+    via missions, bomb creator, or freeplay - so a settings option for it is unnecessary]
+    TimePenalty is saved as a string so that a user can input the following commands:
+    1m2s
+    1m:2s
+    1:2
+    1m
+    30s
+    However, it probably doesn't work.*/
+    void GetSettings()
+    {
+        float result = 0;
+        float result2 = 0;
+        bool check;
+        var time = settings.ZenTimePenalty;
+        if (time.Contains("m") || time.Contains(":"))
+        {
+            var results = time.Split(':', 'm');
+            results[0] = new string(results[0].Where(c => char.IsDigit(c)).ToArray());
+            int end = results.Length - 1;
+            results[end] = new string(results[end].Where(c => char.IsDigit(c)).ToArray());
+            check = float.TryParse(results[end], out result2);
+            result = result2;
+            check = float.TryParse(results[0], out result2);
+            result += (result2 * 60);
+        }
+        else if (time.EndsWith("s"))
+        {
+            check = float.TryParse(time.Replace("s", ""), out result);
+            result = result * 60;
+        }
+        else if (time.Length.Equals(2) && float.TryParse(time, out result)) { }
+        Modes.timePenalty = result;
+    }
 
 	void OnApplicationQuit()
 	{
@@ -257,7 +284,7 @@ class TweakSettings
 	public bool FixFER = false;
 	public bool BombHUD = false;
 	public bool ShowEdgework = false;
-	public bool TimeMode = false;
+	public Mode Mode = Mode.Normal;
 
 	public override bool Equals(object obj)
 	{
@@ -269,7 +296,7 @@ class TweakSettings
 			   FixFER == settings.FixFER &&
 			   BombHUD == settings.BombHUD &&
 			   ShowEdgework == settings.ShowEdgework &&
-			   TimeMode == settings.TimeMode;
+			   Mode == settings.Mode;
 	}
 
 	public override int GetHashCode()
@@ -281,7 +308,7 @@ class TweakSettings
 		hashCode = hashCode * -1521134295 + FixFER.GetHashCode();
 		hashCode = hashCode * -1521134295 + BombHUD.GetHashCode();
 		hashCode = hashCode * -1521134295 + ShowEdgework.GetHashCode();
-		hashCode = hashCode * -1521134295 + TimeMode.GetHashCode();
+		hashCode = hashCode * -1521134295 + Mode.GetHashCode();
 		return hashCode;
 	}
 }

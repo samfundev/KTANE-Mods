@@ -2,11 +2,22 @@
 using Assets.Scripts.Missions;
 using UnityEngine;
 
-static class TimeMode
+public enum Mode
+{
+    Normal,
+    Time,
+    //VS,
+    Zen
+}
+
+static class Modes
 {
 	public static ModConfig<ModeSettings> modConfig = new ModConfig<ModeSettings>("ModeSettings");
 	public static ModeSettings settings = modConfig.Settings;
 	public static float Multiplier = settings.TimeModeStartingMultiplier;
+    public static float timePenalty = 1.0f;
+    public static float normalRate;
+    public static float initialTime;
 
 	#pragma warning disable 649
 	struct ModuleInfo
@@ -63,5 +74,10 @@ class ModeSettings
 	public float TimeModeTimerStrikePenalty = 0.25f;
 	public float TimeModeMinimumTimeLost = 15;
 	public float TimeModeMinimumTimeGained = 20;
+	public string ZenTimePenalty = "1m";
+    //Base the penalty on a percentage of the starting time instead of doing a value in the settings.
+    //This is currently not used, but it is meant to decide how much time is added to ZenTimePenalty if it is not
+    //a static value.
+    //public bool PenaltyPercentage = false;
 	public Dictionary<string, double> ComponentValues = new Dictionary<string, double>();
 }
