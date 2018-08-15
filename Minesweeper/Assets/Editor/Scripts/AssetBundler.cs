@@ -392,7 +392,7 @@ public class AssetBundler
         foreach (string assetPath in assetPaths)
         {
             var pluginImporter = AssetImporter.GetAtPath(assetPath) as PluginImporter;
-			
+
             if (pluginImporter != null && !pluginImporter.isNativePlugin && pluginImporter.GetCompatibleWithAnyPlatform())
             {
                 string assetName = Path.GetFileName(assetPath);
