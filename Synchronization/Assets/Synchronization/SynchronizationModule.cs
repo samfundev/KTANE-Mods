@@ -17,12 +17,12 @@ public class SynchronizationModule : MonoBehaviour
 	public KMSelectable SyncButton;
 	public TextMesh DisplayText;
 	public GameObject[] LightObjects;
-	static MonoBehaviour MonoBehaviour; // TODO: Remove this.
+	public GameObject AnimationPivot;
 
-	static float FlashingSpeed = 0.3f;
+	static float FlashingSpeed = 0.35f;
 	int DisplayNumber;
 	bool Solved = false;
-	int SelectedSpeed = 0;
+	Light SelectedLight;
 	int[] SyncMethod;
 
 	static int idCounter = 1;
@@ -34,20 +34,23 @@ public class SynchronizationModule : MonoBehaviour
 	{
 		bool _state = true;
 		Color _color = Color.white;
+		MonoBehaviour _module;
 
 		Material lightMat;
 		Coroutine flashingCoroutine;
 
-		public GameObject gameObject;
+		public GameObject gObject;
 		public GameObject selection;
 		public int speed = 0;
 		public float randomDelay = Random.value * FlashingSpeed;
+		public int syncIndex = 0; // Used for sync animation ordering.
 
-		public Light(GameObject light)
+		public Light(GameObject light, MonoBehaviour module)
 		{
 			lightMat = light.GetComponent<Renderer>().material;
-			gameObject = light;
+			gObject = light;
 			selection = light.transform.Find("Selection").gameObject;
+			_module = module;
 		}
 
 		void UpdateMat()
@@ -95,7 +98,7 @@ public class SynchronizationModule : MonoBehaviour
 		{
 			if (speed > 0 && flashingCoroutine == null)
 			{
-				flashingCoroutine = MonoBehaviour.StartCoroutine(Flash());
+				flashingCoroutine = _module.StartCoroutine(Flash());
 			}
 		}
 
@@ -103,17 +106,35 @@ public class SynchronizationModule : MonoBehaviour
 		{
 			if (flashingCoroutine != null)
 			{
-				MonoBehaviour.StopCoroutine(flashingCoroutine);
+				_module.StopCoroutine(flashingCoroutine);
 				flashingCoroutine = null;
 			}
 		}
 	}
 
-	void ApplyToSpeed(int speed, Action<Light> action)
+	class Vector2Int
 	{
-		foreach (Light light in Lights)
+		public int x;
+		public int y;
+
+		public Vector2Int(int x, int y)
 		{
-			if (light.speed == speed) action(light);
+			this.x = x;
+			this.y = y;
+		}
+
+		public static Vector2Int operator +(Vector2Int a, Vector2Int b)
+		{
+			return new Vector2Int(a.x + b.x, a.y + b.y);
+		}
+	}
+
+	void ApplyToSpeed(Light light, Action<Light> action)
+	{
+		int speed = light.speed;
+		foreach (Light l in Lights)
+		{
+			if (l.speed == speed) action(l);
 		}
 	}
 
@@ -127,20 +148,11 @@ public class SynchronizationModule : MonoBehaviour
 		Log(string.Format(data.ToString(), formatting));
 	}
 
-	public class TestSettings
-	{
-		public float FlashSpeed = 0.3f;
-	}
-
 	void Start()
 	{
-		MonoBehaviour = this;
-
 		moduleID = idCounter++;
 
-		FlashingSpeed = new ModConfig<TestSettings>("SynchronizationSettings").Settings.FlashSpeed;
-
-		Lights = LightObjects.Select(obj => new Light(obj)).ToArray();
+		Lights = LightObjects.Select(obj => new Light(obj, this)).ToArray();
 
 		DisplayNumber = Random.Range(1, 10);
 		DisplayText.text = DisplayNumber.ToString();
@@ -154,71 +166,121 @@ public class SynchronizationModule : MonoBehaviour
 	{
 		return delegate ()
 		{
-			if (light.speed == 0 || Solved) return false;
+			if (light.speed == 0 || Solved || syncPause) return false;
 			
-			light.gameObject.GetComponent<KMSelectable>().AddInteractionPunch(0.5f);
+			light.gObject.GetComponent<KMSelectable>().AddInteractionPunch(0.5f);
 			Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
 
-			if (SelectedSpeed == 0)
+			if (SelectedLight == null)
 			{
-				ApplyToSpeed(light.speed, l =>
+				ApplyToSpeed(light, l =>
 				{
 					l.selection.SetActive(true);
 					l.StopFlashing();
 				});
 
-				SelectedSpeed = light.speed;
+				SelectedLight = light;
 			}
 			else
 			{
-				if (SelectedSpeed == light.speed)
+				if (SelectedLight.speed == light.speed)
 				{
-					ApplyToSpeed(light.speed, l =>
+					ApplyToSpeed(light, l =>
 					{
 						l.selection.SetActive(false);
 						l.StartFlashing();
 					});
 
-					SelectedSpeed = 0;
+					SelectedLight = null;
 				}
 				else
 				{
-					Light firstLight = Lights.First(l => l.speed == SelectedSpeed);
-					bool valid = ValidateSync(firstLight, light);
-					if (valid)
-					{
-						ApplyToSpeed(light.speed, l =>
-						{
-							l.StopFlashing();
-							l.StartFlashing();
-						});
-
-						ApplyToSpeed(SelectedSpeed, l =>
-						{
-							l.randomDelay = light.randomDelay;
-							l.speed = light.speed;
-							l.selection.SetActive(false);
-							l.StartFlashing();
-						});
-					}
-					else
-					{
-						Module.HandleStrike();
-
-						ApplyToSpeed(SelectedSpeed, l =>
-						{
-							l.selection.SetActive(false);
-							l.StartFlashing();
-						});
-					}
-
-					Log("{0} synced {1} while {2} and {3} while {4}.", valid ? "Successfully" : "Incorrectly", SelectedSpeed, firstLight.state ? "on" : "off", light.speed, light.state ? "on" : "off");
-
-					SelectedSpeed = 0;
+					StartCoroutine(SyncLights(light));
 				}
 			}
 
 			return false;
+		};
+	}
+
+	bool syncPause = false;
+	IEnumerator SyncLights(Light light)
+	{
+		syncPause = true;
+
+		ApplyToSpeed(light, l => l.StopFlashing());
+		
+		List<Action<float>> animations = new List<Action<float>>();
+		var lightsToSync = Lights.Where(l => l.speed == SelectedLight.speed).OrderBy(l => l.syncIndex).Concat(Lights.OrderBy(l => l.syncIndex).Where(l => l.speed == light.speed)).ToArray();
+		for (int i = 0; i < lightsToSync.Length -1 ; i++)
+		{
+			animations.Add(SyncAnimation(lightsToSync[i], lightsToSync[i + 1]));
+		}
+		ApplyToSpeed(SelectedLight, l => l.selection.SetActive(false));
+
+		float animStart = Time.time;
+		float alpha = 0;
+		while (alpha < 1)
+		{
+			alpha = Math.Min(Time.time - animStart, 1);
+			foreach (Action<float> animation in animations) animation(alpha);
+			yield return null;
+		}
+		
+		bool valid = ValidateSync(SelectedLight, light);
+		if (valid)
+		{
+			int startingIndex = Lights.Where(l => l.speed == SelectedLight.speed).Count() + 1;
+			ApplyToSpeed(light, l =>
+			{
+				l.StopFlashing();
+				l.StartFlashing();
+				l.syncIndex = startingIndex++;
+			});
+
+			ApplyToSpeed(SelectedLight, l =>
+			{
+				l.randomDelay = light.randomDelay;
+				l.speed = light.speed;
+				l.StartFlashing();
+			});
+		}
+		else
+		{
+			Module.HandleStrike();
+
+			ApplyToSpeed(light, l => l.StartFlashing());
+			ApplyToSpeed(SelectedLight, l => l.StartFlashing());
+		}
+
+		Log("{0} synced {1} while {2} and {3} while {4}.", valid ? "Successfully" : "Incorrectly", SelectedLight.speed, SelectedLight.state ? "on" : "off", light.speed, light.state ? "on" : "off");
+
+		SelectedLight = null;
+		syncPause = false;
+	}
+
+	Action<float> SyncAnimation(Light lightA, Light lightB)
+	{
+		Vector3 lightAlP = lightA.gObject.transform.localPosition;
+		Vector3 lightBlP = lightB.gObject.transform.localPosition;
+		Transform animationPivot = Instantiate(AnimationPivot, AnimationPivot.transform.parent).transform;
+		
+		animationPivot.localPosition = lightAlP;
+		animationPivot.localRotation = Quaternion.Euler(0, Mathf.Atan2(lightBlP.x - lightAlP.x, lightBlP.z - lightAlP.z) * 180f / Mathf.PI, 0);
+
+		Transform streak = animationPivot.Find("Streak").transform;
+		Transform beginning = animationPivot.Find("Beginning").transform;
+		Transform end = animationPivot.Find("End").transform;
+		float distance = (lightAlP - lightBlP).magnitude;
+
+		animationPivot.gameObject.SetActive(true);
+		return alpha =>
+		{
+			beginning.localPosition = new Vector3(0, 0.0001f, distance * Math.Min(alpha * 2, 1));
+			end.localPosition = new Vector3(0, 0.0001f, distance * Math.Max(alpha - 0.5f, 0) * 2);
+			streak.localPosition = new Vector3(0, 0.0001f, distance * alpha);
+			streak.localScale = new Vector3(0.0435f, 0, (-Math.Abs(alpha * 2 - 1) + 1) * distance);
+			if (alpha == 1) Destroy(animationPivot.gameObject);
 		};
 	}
 
@@ -313,10 +375,10 @@ public class SynchronizationModule : MonoBehaviour
 	};
 
 	int[] lightToCol = new int[] { 0, 1, 2, 7, 8, 3, 6, 5, 4 }; // Since the chart columns are in a different order than my light indexes
-	Vector2[] lightToDir = new Vector2[] {
-		new Vector2(-1, -1), new Vector2(0, -1), new Vector2(1, -1),
-		new Vector2(-1, 0), new Vector2(0, 0), new Vector2(1, 0),
-		new Vector2(-1, 1), new Vector2(0, 1), new Vector2(1, 1)
+	Vector2Int[] lightToDir = new Vector2Int[] {
+		new Vector2Int(-1, -1), new Vector2Int(0, -1), new Vector2Int(1, -1),
+		new Vector2Int(-1, 0), new Vector2Int(0, 0), new Vector2Int(1, 0),
+		new Vector2Int(-1, 1), new Vector2Int(0, 1), new Vector2Int(1, 1)
 	};
 
 	void Activate()
@@ -352,7 +414,7 @@ public class SynchronizationModule : MonoBehaviour
 
 		foreach (Light l in Lights)
 		{
-			l.gameObject.GetComponent<KMSelectable>().OnInteract += SetupInteraction(l);
+			l.gObject.GetComponent<KMSelectable>().OnInteract += SetupInteraction(l);
 		}
 
 		List<int> speeds = new List<int>() { 1, 2, 3, 4, 5 };
@@ -379,7 +441,7 @@ public class SynchronizationModule : MonoBehaviour
 
 		int fastestLight = Array.IndexOf(Lights, Lights.Where(l => l.speed != 0).Aggregate((l1, l2) => l1.speed > l2.speed ? l1 : l2));
 		int slowestLight = Array.IndexOf(Lights, Lights.Where(l => l.speed != 0).Aggregate((l1, l2) => l1.speed < l2.speed ? l1 : l2));
-		Vector2 chartPos = new Vector2(
+		Vector2Int chartPos = new Vector2Int(
 			lightToCol[fastestLight],
 			Mathf.FloorToInt((DisplayNumber - 1) / 3)
 		);
@@ -390,8 +452,8 @@ public class SynchronizationModule : MonoBehaviour
 		for (int i = 0; i < Lights[4].speed; i++)
 		{
 			chartPos += lightToDir[slowestLight];
-			chartPos.x = WrapInt((int) chartPos.x, 8); // TODO: Make this better and not use loops anymore.
-			chartPos.y = WrapInt((int) chartPos.y, 2);
+			chartPos.x = (chartPos.x % 9 + 9) % 9;
+			chartPos.y = (chartPos.y % 3 + 3) % 3;
 		}
 		Log("Ended at column {0}, row {1}", chartPos.x + 1, chartPos.y + 1);
 
@@ -577,12 +639,12 @@ public class SynchronizationModule : MonoBehaviour
 					yield return null;
 					while (lightA.state != lightAState) yield return true;
 
-					lightA.gameObject.GetComponent<KMSelectable>().OnInteract();
+					lightA.gObject.GetComponent<KMSelectable>().OnInteract();
 					yield return new WaitForSeconds(0.1f);
 
 					while (lightB.state != lightBState) yield return true;
 
-					lightB.gameObject.GetComponent<KMSelectable>().OnInteract();
+					lightB.gObject.GetComponent<KMSelectable>().OnInteract();
 					yield return new WaitForSeconds(0.1f);
 				}
 			}

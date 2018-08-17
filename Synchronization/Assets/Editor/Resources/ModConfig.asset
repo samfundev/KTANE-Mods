@@ -13,7 +13,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: Synchronization
   title: Synchronization
-  description: 
+  description: "[h1]About[/h1]\r\nHopefully you can keep time like a musican \n\r\n[h1]Manual[/h1]\r\n[url=https://ktane.timwi.de/HTML/Synchronization.html]HTML[/url]\r\n[url=https://ktane.timwi.de/PDF/Synchronization.pdf]PDF[/url]\r\n\r\n[h1]Module
+    ID[/h1]\r\nSynchronizationModule"
   version: 
   outputFolder: C:\Program Files (x86)\Steam\steamapps\common\Keep Talking and Nobody
     Explodes\mods
