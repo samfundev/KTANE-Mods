@@ -248,7 +248,6 @@ class Tweaks : MonoBehaviour
         else if (time.EndsWith("s"))
         {
             check = float.TryParse(time.Replace("s", ""), out result);
-            result = result * 60;
         }
         else if (time.Length.Equals(2) && float.TryParse(time, out result)) { }
         Modes.timePenalty = result;
