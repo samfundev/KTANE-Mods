@@ -10,10 +10,10 @@ class BombStatus : MonoBehaviour
 {
 	public static BombStatus Instance;
 
-	public GameObject HUD = null;
-	public GameObject Edgework = null;
+    public GameObject HUD = null;
+    public GameObject Edgework = null;
 
-	public Text TimerPrefab = null;
+    public Text TimerPrefab = null;
 	public Text TimerShadowPrefab = null;
 	public Text StrikesPrefab = null;
 	public Text StrikeLimitPrefab = null;
@@ -127,17 +127,16 @@ class BombStatus : MonoBehaviour
         }
 		float success = PlayerPaceRating;
 		ConfidencePrefab.text = Mathf.Round(success * 100).ToString() + "%";
-		ConfidencePrefab.color = success < 0 ? Color.Lerp(Color.gray, Color.red, Mathf.Sqrt(-success)) : Color.Lerp(Color.gray, Color.green, Mathf.Sqrt(success));
+		ConfidencePrefab.color = success < 0 ? Color.Lerp(Color.gray, Color.red, Mathf.Sqrt(-success)) : Color.Lerp(Color.grey, Color.green, Mathf.Sqrt(success));
 	}
 
 	public float PlayerPaceRating
 	{
 		get
 		{
-			float remaining = currentBomb.CurrentTimer;
+            float remaining = currentBomb.CurrentTimer;
 
-			return Tweaks.settings.Mode == Mode.Time ? remaining / (Modes.settings.TimeModeStartingTime * 60) - 1 :
-				(float) currentSolves / currentTotalModules - (currentBomb.bombStartingTimer - remaining / currentBomb.timerComponent.GetRate()) / currentBomb.bombStartingTimer;
+			return Tweaks.settings.Mode == Mode.Time ? remaining / (Modes.settings.TimeModeStartingTime * 60) - 1 : (float) currentSolves / currentTotalModules - (currentBomb.bombStartingTimer - remaining / currentBomb.timerComponent.GetRate()) / currentBomb.bombStartingTimer;
 		}
 	}
 

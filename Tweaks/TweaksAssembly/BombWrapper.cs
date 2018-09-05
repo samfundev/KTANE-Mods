@@ -40,7 +40,7 @@ class BombWrapper
 					{
 						ComponentValue = 6;
 					}
-
+                    
 					float time = (float) (Modes.Multiplier * ComponentValue);
 					CurrentTimer += Math.Max(Modes.settings.TimeModeMinimumTimeGained, time);
 
@@ -98,36 +98,40 @@ class BombWrapper
 			{ "Probing", bombComponent => new ProbingLogging(bombComponent) }
 		};
 
-		foreach (KMBombModule component in bomb.BombComponents.Select(x => x.GetComponent<KMBombModule>()).Where(x => x != null))
-		{
-			// Correct the position of the status light
-			if (component.ModuleType == "ForeignExchangeRates" || component.ModuleType == "resistors" || component.ModuleType == "CryptModule")
-			{
-				component.transform.Find("Model").transform.localPosition = new Vector3(0.004f, 0, 0);
-			}
-			else if (component.ModuleType == "TwoBits")
-			{
-				component.GetComponentInChildren<StatusLightParent>().transform.localPosition = new Vector3(0.075167f, 0.01986f, 0.076057f);
-			}
+        foreach (KMBombModule component in bomb.BombComponents.Select(x => x.GetComponent<KMBombModule>()).Where(x => x != null))
+        {
+            // Correct the position of the status light
+            if (component.ModuleType == "ForeignExchangeRates" || component.ModuleType == "resistors" || component.ModuleType == "CryptModule")
+            {
+                component.transform.Find("Model").transform.localPosition = new Vector3(0.004f, 0, 0);
+            }
+            else if (component.ModuleType == "TwoBits")
+            {
+                component.GetComponentInChildren<StatusLightParent>().transform.localPosition = new Vector3(0.075167f, 0.01986f, 0.076057f);
+            }
 
             switch (component.ModuleType)
             {
                 //TTK is our favorite Zen mode compatible module
                 //Of course, everything here is repurposed from Twitch Plays.
                 case "TurnTheKey":
-                    new TTKComponentSolver(component, bomb, Tweaks.settings.Mode.Equals(Mode.Zen)? Modes.initialTime : timerComponent.TimeRemaining);
+                    new TTKComponentSolver(component, bomb, Tweaks.settings.Mode.Equals(Mode.Zen) ? Modes.initialTime : timerComponent.TimeRemaining);
                     break;
                 /*case "ButtonV2":
                     break;
                 case "theSwan":
                     break;*/
-				default:
-					if (component.GetComponent<BombComponent>().ComponentType == ComponentTypeEnum.Mod) ReflectedTypes.FindModeBoolean(component);
+                default:
+                    if (component.GetComponent<BombComponent>().ComponentType == ComponentTypeEnum.Mod)
+                    {
+                        ReflectedTypes.FindModeBoolean(component);
+                    }
+                    break;
             }
             
             /*if (component.GetComponent<BombComponent>().ComponentType == Assets.Scripts.Missions.ComponentTypeEnum.BigButton)
             {
-
+              
             }*/
 
 			/*

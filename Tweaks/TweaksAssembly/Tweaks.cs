@@ -105,7 +105,6 @@ class Tweaks : MonoBehaviour
 				BombStatus.Instance.Edgework.SetActive(settings.ShowEdgework);
 
 				Modes.Multiplier = Modes.settings.TimeModeStartingMultiplier;
-
 				bombWrappers = new BombWrapper[] { };
 				StartCoroutine(CheckForBombs());
 			}
@@ -113,8 +112,8 @@ class Tweaks : MonoBehaviour
 			{
 				StartCoroutine(ModifyFreeplayDevice(true));
 			}
-
-			bool disableRecords = (state == KMGameInfo.State.Gameplay && (settings.BombHUD || settings.ShowEdgework || settings.Mode != Mode.Normal));
+            
+			bool disableRecords = (state == KMGameInfo.State.Gameplay && (settings.BombHUD || settings.ShowEdgework || (settings.Mode != Mode.Normal)));
 
 			Assets.Scripts.Stats.StatsManager.Instance.DisableStatChanges =
 			Assets.Scripts.Records.RecordManager.Instance.DisableBestRecords = disableRecords;
@@ -168,14 +167,14 @@ class Tweaks : MonoBehaviour
 						bombWrappers[0] = bombWrapper;
 						bombWrapper.holdable.OnLetGo += delegate () { BombStatus.Instance.currentBomb = null; };
 
-						if (globalTimerEnabled && settings.Modes.Equals(Mode.Time))
+						if (globalTimerEnabled && settings.Mode.Equals(Mode.Time))
 							bombWrapper.CurrentTimer = Modes.settings.TimeModeStartingTime * 60;
 					}
 				}
 			}
 		}
 	}
-
+    
 	float originalTime = 300;
 	IEnumerator ModifyFreeplayDevice(bool firstTime)
 	{
@@ -187,7 +186,7 @@ class Tweaks : MonoBehaviour
 			ExecOnDescendants(freeplayDevice.gameObject, gameObj =>
 			{
 				if (gameObj.name == "FreeplayLabel" || gameObj.name == "Free Play Label")
-					gameObj.GetComponent<TMPro.TextMeshPro>().text = settings.Mode.Equals(Mode.Time) ? "TIME MODE" : settings.Mode.Equals(Mode.Zen) ? "ZEN MODE" : "FREE PLAY";
+					gameObj.GetComponent<TMPro.TextMeshPro>().text = settings.Mode == Mode.Time ? "TIME MODE" : settings.Mode == Mode.Zen ? "ZEN MODE" : "FREE PLAY";
 			});
 			
 			freeplayDevice.CurrentSettings.Time = settings.Mode == Mode.Time ? Modes.settings.TimeModeStartingTime * 60 : originalTime;
@@ -199,6 +198,16 @@ class Tweaks : MonoBehaviour
 			
 			freeplayDevice.TimeIncrement.OnPush += delegate { ReflectedTypes.IsInteractingField.SetValue(freeplayDevice.TimeIncrement, true); };
 			freeplayDevice.TimeIncrement.OnInteractEnded += delegate
+			{
+				originalTime = freeplayDevice.CurrentSettings.Time;
+				if (settings.Mode != Mode.Time) return;
+
+				Modes.settings.TimeModeStartingTime = freeplayDevice.CurrentSettings.Time / 60;
+				Modes.modConfig.Settings = Modes.settings;
+			};
+
+			freeplayDevice.TimeDecrement.OnPush += delegate { ReflectedTypes.IsInteractingField.SetValue(freeplayDevice.TimeDecrement, true); };
+			freeplayDevice.TimeDecrement.OnInteractEnded += delegate
 			{
 				originalTime = freeplayDevice.CurrentSettings.Time;
 				if (settings.Mode != Mode.Time) return;
@@ -224,7 +233,7 @@ class Tweaks : MonoBehaviour
         float result = 0;
         float result2 = 0;
         bool check;
-        var time = settings.ZenTimePenalty;
+        var time = Modes.settings.ZenModeTimePenalty;
         if (time.Contains("m") || time.Contains(":"))
         {
             var results = time.Split(':', 'm');
@@ -284,9 +293,9 @@ class TweakSettings
 	public bool FixFER = false;
 	public bool BombHUD = false;
 	public bool ShowEdgework = false;
-	public Mode Mode = Mode.Normal;
+    public Mode Mode = Mode.Normal;
 
-	public override bool Equals(object obj)
+    public override bool Equals(object obj)
 	{
 		var settings = obj as TweakSettings;
 		return settings != null &&
