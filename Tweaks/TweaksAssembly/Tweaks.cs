@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -99,7 +98,6 @@ class Tweaks : MonoBehaviour
 			if (state == KMGameInfo.State.Gameplay)
 			{
 				if (settings.BetterCasePicker) BetterCasePicker.PickCase();
-                if (settings.Mode == Mode.Zen) GetSettings();
 				
 				BombStatus.Instance.HUD.SetActive(settings.BombHUD);
 				BombStatus.Instance.Edgework.SetActive(settings.ShowEdgework);
@@ -113,7 +111,7 @@ class Tweaks : MonoBehaviour
 				StartCoroutine(ModifyFreeplayDevice(true));
 			}
             
-			bool disableRecords = (state == KMGameInfo.State.Gameplay && (settings.BombHUD || settings.ShowEdgework || (settings.Mode != Mode.Normal)));
+			bool disableRecords = (state == KMGameInfo.State.Gameplay && (settings.BombHUD || settings.ShowEdgework || settings.Mode != Mode.Normal));
 
 			Assets.Scripts.Stats.StatsManager.Instance.DisableStatChanges =
 			Assets.Scripts.Records.RecordManager.Instance.DisableBestRecords = disableRecords;
@@ -217,41 +215,6 @@ class Tweaks : MonoBehaviour
 			};
 		}
 	}
-    /*This method was intended to take a string value from ModeSettings
-    To allow a user to give a value for "TimePenalty" and "StartTime"
-    [StartTime was removed as I forgot that the user would determine the start time
-    via missions, bomb creator, or freeplay - so a settings option for it is unnecessary]
-    TimePenalty is saved as a string so that a user can input the following commands:
-    1m2s
-    1m:2s
-    1:2
-    1m
-    30s
-    However, it probably doesn't work.*/
-    void GetSettings()
-    {
-        float result = 0;
-        float result2 = 0;
-        bool check;
-        var time = Modes.settings.ZenModeTimePenalty;
-        if (time.Contains("m") || time.Contains(":"))
-        {
-            var results = time.Split(':', 'm');
-            results[0] = new string(results[0].Where(c => char.IsDigit(c)).ToArray());
-            int end = results.Length - 1;
-            results[end] = new string(results[end].Where(c => char.IsDigit(c)).ToArray());
-            check = float.TryParse(results[end], out result2);
-            result = result2;
-            check = float.TryParse(results[0], out result2);
-            result += (result2 * 60);
-        }
-        else if (time.EndsWith("s"))
-        {
-            check = float.TryParse(time.Replace("s", ""), out result);
-        }
-        else if (time.Length.Equals(2) && float.TryParse(time, out result)) { }
-        Modes.timePenalty = result;
-    }
 
 	void OnApplicationQuit()
 	{

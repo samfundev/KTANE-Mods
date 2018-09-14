@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Assets.Scripts.Missions;
-using UnityEngine;
 
 public enum Mode
 {
@@ -74,7 +73,7 @@ class ModeSettings
 	public float TimeModeTimerStrikePenalty = 0.25f;
 	public float TimeModeMinimumTimeLost = 15;
 	public float TimeModeMinimumTimeGained = 20;
-    public string ZenModeTimePenalty = "1m";
+    public float ZenModeTimePenalty = 1;
     //Base the penalty on a percentage of the starting time instead of doing a value in the settings.
     //This is currently not used, but it is meant to decide how much time is added to ZenTimePenalty if it is not
     //a static value.

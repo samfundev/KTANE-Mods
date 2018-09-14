@@ -27,7 +27,7 @@
 		}));
         AddProperty("ZenModeTimePenalty", new Property(() => Modes.settings.ZenModeTimePenalty, value =>
         {
-            Modes.settings.ZenModeTimePenalty = (string) value;
+            Modes.settings.ZenModeTimePenalty = (float) value;
             Modes.modConfig.Settings = Modes.settings;
         }));
 	}

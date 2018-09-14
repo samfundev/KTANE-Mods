@@ -13,9 +13,7 @@ class BombWrapper
 		holdable = bomb.GetComponentInChildren<FloatingHoldable>();
 		timerComponent = bomb.GetTimer();
 		widgetManager = bomb.WidgetManager;
-        //This probably doesn't belong here
-        //but this is where I had this in the original code
-        //TODO: Move this where it belongs
+
         if (Tweaks.settings.Mode == Mode.Zen)
         {
             Modes.normalRate = -timerComponent.GetRate();
@@ -55,15 +53,13 @@ class BombWrapper
                 //Ideally, catch this before the strikes are recorded
                 if (Tweaks.settings.Mode == Mode.Zen)
                 {
-                    //TODO: NumStrikesToLose is read only on this page,
-                    //So probably needs to be repurposed for this mod.
                     bomb.NumStrikesToLose += 1;
-                    bomb.GetTimer().SetRateModifier(Modes.normalRate);
+                    timerComponent.SetRateModifier(Modes.normalRate);
                     /*timePenalty is the amount of time gained per strike.
                     This feature was a request from Elias.
                     The function for setting timePenalty can be found in Tweaks.cs
                     The actual variable is located in Modes.cs*/
-                    bomb.GetTimer().SetTimeRemaing(bomb.GetTimer().TimeRemaining + (Modes.timePenalty));
+                    CurrentTimer += Modes.settings.ZenModeTimePenalty * 60;
                 }
 
 				BombStatus.Instance.UpdateStrikes();

@@ -1,6 +1,7 @@
 ﻿using Assets.Scripts.Records;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
@@ -22,72 +23,47 @@ static class ReflectedTypes
 	public static FieldInfo CurrencyAPIEndpointField;
 
 	public static FieldInfo IsInteractingField;
-    public static List<FieldInfo> ZenModeBool { get; set; }
-    public static List<FieldInfo> TimeModeBool { get; set; }
-    public static List<MonoBehaviour> Modules { get; set; }
-    private static List<Type> Type;
+	static Dictionary<MonoBehaviour, ModuleFields> CachedFields = new Dictionary<MonoBehaviour, ModuleFields>();
+
+	class ModuleFields
+	{
+		public FieldInfo ZenModeBool;
+		public FieldInfo TimeModeBool;
+	}
 
     //Combination of FindTimeMode, FindZenMode, and their related properties in Twitch Plays
     public static void FindModeBoolean(MonoBehaviour KMModule)
     {
         //Everything's handled in this method, so just assign the various methods based on a list.
-        //If the lists haven't been initialized yet, do that now
-        if (Modules == null)
-        {
-            ZenModeBool = new List<FieldInfo>();
-            TimeModeBool = new List<FieldInfo>();
-            Modules = new List<MonoBehaviour>();
-            Type = new List<Type>();
-        }
         //If the module has already been added to the list, we can use the predetermined types again
         //Otherwise, add some null values in case the selected module doesn't have what we're looking for
-        if (!Modules.Contains(KMModule))
-        {
-            Modules.Add(KMModule);
-            ZenModeBool.Add(null);
-            TimeModeBool.Add(null);
-            Type.Add(null);
-            Type.Add(null);
-        }
-        //Keep the index of KMModule in sync with its methods
-        var i = Modules.IndexOf(KMModule);
+        if (!CachedFields.ContainsKey(KMModule)) CachedFields[KMModule] = new ModuleFields();
+
+		ModuleFields fields = CachedFields[KMModule];
+
         //Search all of the components in the module for Zen/Time fields
-        Component[] allComponents = KMModule.GetComponentsInChildren<Component>(true);
+        var allComponents = KMModule.GetComponentsInChildren<Component>(true).Where(component => component != null);
         foreach (Component component in allComponents)
         {
+			//If we already have the method for this value, continue
+			Type componentType = component.GetType();
+            if (fields.ZenModeBool == null) fields.ZenModeBool = componentType.GetField("TwitchZenMode", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
             //If we already have the method for this value, continue
-            if (ZenModeBool[i] == null)
-            {
-                Type[i * 2] = component.GetType();
-                ZenModeBool[i] = Type[i * 2].GetField("TwitchZenMode", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
-                if (ZenModeBool[i] == null) ZenModeBool[i] = Type[i * 2].GetField("ZenModeActive", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
-            }
-            //If we already have the method for this value, continue
-            if (TimeModeBool[i] == null)
-            {
-                Type[(i * 2) + 1] = component.GetType();
-                TimeModeBool[i] = Type[(i * 2) + 1].GetField("TimeModeActive", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
-                if (TimeModeBool[i] == null) TimeModeBool[i] = Type[(i * 2) + 1].GetField("TimeModeActive", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
-            }
+            if (fields.TimeModeBool == null) fields.TimeModeBool = componentType.GetField("TimeModeActive", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
             //Unfortunately if both values aren't in the module, we have to go through this for loop each time
             //Should probably set a variable somewhere to not go through the loop if we already know it's empty
-            if ((ZenModeBool[i] != null) && (TimeModeBool[i] != null)) break;
+            if (fields.ZenModeBool != null && fields.TimeModeBool != null) break;
         }
-        if (ZenModeBool[i] != null)
-        {
-            if (!(ZenModeBool[i]?.GetValue(ZenModeBool[i].IsStatic ? null : KMModule.GetComponent(KMModule.GetComponentInChildren(Type[i * 2]).GetType())) is bool)) return;
+        if (fields.ZenModeBool != null && fields.ZenModeBool.FieldType == typeof(bool)) {
             //Assign the current mode to the variable. Since this is usually a boolean value, this needs to be an if/else statement
-            if (Tweaks.settings.Mode == Mode.Zen) ZenModeBool[i].SetValue(KMModule.GetComponent(KMModule.GetComponentInChildren(Type[i * 2]).GetType()), true);
-            else ZenModeBool[i].SetValue(KMModule.GetComponent(KMModule.GetComponentInChildren(Type[i * 2]).GetType()), false);
+            fields.ZenModeBool.SetValue(KMModule.GetComponentInChildren(fields.ZenModeBool.FieldType), Tweaks.settings.Mode == Mode.Zen);
         }
-        if (TimeModeBool[i] != null)
+        if (fields.TimeModeBool != null && fields.TimeModeBool.FieldType == typeof(bool))
         {
             //Since I combined Time/Zen together here, Type needs to be separated by two variables as to not cause exceptions when loading.
             //As such, I assign i * 2 to Zen types and i * 2 + 1 to Time types, assuming they would ever be different.
             //This is because many modules only include one of the variables, and the type would continue changing even after zen mode was assigned.
-            if (!(TimeModeBool[i]?.GetValue(TimeModeBool[i].IsStatic ? null : KMModule.GetComponent(KMModule.GetComponentInChildren(Type[(i * 2) + 1]).GetType())) is bool)) return;
-            if (Tweaks.settings.Mode == Mode.Time) TimeModeBool[i].SetValue(KMModule.GetComponent(KMModule.GetComponentInChildren(Type[(i * 2) + 1]).GetType()), true);
-            else TimeModeBool[i].SetValue(KMModule.GetComponent(KMModule.GetComponentInChildren(Type[(i * 2) + 1]).GetType()), false);
+            fields.TimeModeBool.SetValue(KMModule.GetComponentInChildren(fields.TimeModeBool.FieldType), Tweaks.settings.Mode == Mode.Time);
         }
     }
 

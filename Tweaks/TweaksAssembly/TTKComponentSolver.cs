@@ -50,8 +50,13 @@ public class TTKComponentSolver
         Animator keyAnimator = (Animator)_keyAnimatorField.GetValue(module.GetComponent(_componentType));
         KMAudio keyAudio = (KMAudio)_keyAudioField.GetValue(module.GetComponent(_componentType));
         int time = (int)_targetTimeField.GetValue(module.GetComponent(_componentType));
-        var remaining = BombInfo.GetRemainingModuleNames(currentBomb.BombComponents);
-        if (!remaining.Exists(x => !x.Equals("Turn The Key")) && remaining.Contains("Turn The Key"))
+
+		var solvedModules = currentBomb.BombComponents.Where(component => component.IsSolvable);
+		var remaining = currentBomb.BombComponents.Where(component => component.IsSolvable && !solvedModules.Contains(component))
+			.Select(component => component.GetModuleDisplayName())
+			.ToList();
+
+		if (!remaining.Exists(x => !x.Equals("Turn The Key")) && remaining.Contains("Turn The Key"))
         {
             passCheck = true;
         }
