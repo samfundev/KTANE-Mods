@@ -1,6 +1,8 @@
+/* eslint-env node, es6 */
+
 const fs = require("fs-extra");
 const { promisify } = require("util");
-const { join, resolve } = require("path");
+const { join, resolve, dirname } = require("path");
 
 const readdir = promisify(fs.readdir);
 const stat = promisify(fs.stat);
@@ -32,6 +34,9 @@ const junctions = [
 	"Assets\\TestHarness",
 	"Assets\\Shared_Assets",
 	"ProjectSettings",
+	"Manual\\css",
+	"Manual\\js",
+	"Manual\\img"
 ];
 
 process.chdir("..");
@@ -51,14 +56,18 @@ process.chdir("..");
 				continue;
 			}
 
-			let [err, stats] = await catchify(lstat(folder));
-			if (err == null) {
-				if (stats.isSymbolicLink()) continue;
-				else await fs.remove(folder);
-			}
-
-			await symlink(resolve(join("! Source Project", junc)), folder, "junction");
-			console.log(`Created junction for "${folder}"`);
+			access(dirname(folder)).then(async () => {
+				let [err, stats] = await catchify(lstat(folder));
+				if (err == null) {
+					if (stats.isSymbolicLink()) return;
+					else await fs.remove(folder);
+				}
+	
+				await symlink(resolve(join("! Source Project", junc)), folder, "junction").catch(() => {});
+				console.log(`Created junction for "${folder}"`);
+			}).catch(error => {
+				if (!junc.startsWith("Manual\\")) console.error(error);
+			});
 		}
 	}
 })();
