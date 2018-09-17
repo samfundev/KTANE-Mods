@@ -85,12 +85,13 @@ public class SynchronizationModule : MonoBehaviour
 		{
 			yield return new WaitForSeconds(randomDelay);
 
+			WaitForSeconds flashPause = new WaitForSeconds((6 - speed) * FlashingSpeed);
 			while (true)
 			{
 				state = true;
-				yield return new WaitForSeconds(FlashingSpeed);
+				yield return flashPause;
 				state = false;
-				yield return new WaitForSeconds((6 - speed) * FlashingSpeed);
+				yield return flashPause;
 			}
 		}
 
@@ -609,7 +610,7 @@ public class SynchronizationModule : MonoBehaviour
 		{
 			string[] split = subcommand.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-			if (split[0].Length == 1 && split.Length == 1)
+			if (split.Length == 1 && split[0].Length == 1)
 			{
 				int seconds;
 				if (int.TryParse(split[0], out seconds))
@@ -625,7 +626,7 @@ public class SynchronizationModule : MonoBehaviour
 					yield return new WaitForSeconds(0.1f);
 				}
 			}
-			else if (EqualsAny(split[1], "on", "+", "true", "t", "off", "-", "false", "f") && EqualsAny(split[3], "on", "+", "true", "t", "off", "-", "false", "f") && split.Length == 4)
+			else if (split.Length == 4 && EqualsAny(split[1], "on", "+", "true", "t", "off", "-", "false", "f") && EqualsAny(split[3], "on", "+", "true", "t", "off", "-", "false", "f"))
 			{
 				Light lightA = StringToLight(split[0]);
 				Light lightB = StringToLight(split[2]);
