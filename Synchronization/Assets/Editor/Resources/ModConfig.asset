@@ -13,8 +13,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: Synchronization
   title: Synchronization
-  description: "[h1]About[/h1]\r\nHopefully you can keep time like a musican \n\r\n[h1]Manual[/h1]\r\n[url=https://ktane.timwi.de/HTML/Synchronization.html]HTML[/url]\r\n[url=https://ktane.timwi.de/PDF/Synchronization.pdf]PDF[/url]\r\n\r\n[h1]Module
-    ID[/h1]\r\nSynchronizationModule"
+  description: "[h1]About[/h1]\r\nThis module has become horribly desynchronized!
+    Can you fix it? Sync all the lights up on the module and then sync the module
+    to the bomb to solve this module.\r\n\r\n[h1]Manual[/h1]\r\n[url=https://ktane.timwi.de/HTML/Synchronization.html]HTML[/url]\r\n[url=https://ktane.timwi.de/PDF/Synchronization.pdf]PDF[/url]\r\n\r\n[h1]Credits[/h1]\r\nModule
+    Idea by TheAuthorOfOZ\r\nImplemented by samfun123\r\n\r\n[h1]Module ID[/h1]\r\nSynchronizationModule"
   version: 
   outputFolder: C:\Program Files (x86)\Steam\steamapps\common\Keep Talking and Nobody
     Explodes\mods
