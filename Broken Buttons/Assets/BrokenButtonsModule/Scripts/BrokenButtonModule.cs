@@ -29,6 +29,7 @@ public class BrokenButtonModule : MonoBehaviour
 {
     public GameObject[] Buttons;
     public GameObject[] SubmitButtons;
+	public AudioClip SolveClip;
 
     public KMAudio BombAudio;
     public KMBombModule BombModule;
@@ -75,6 +76,7 @@ public class BrokenButtonModule : MonoBehaviour
     List<string> Pressed = new List<string>();
     bool LetterE = false;
     bool Solved = false;
+	bool Animating = false;
 
     static int idCounter = 1;
     int moduleID;
@@ -362,8 +364,9 @@ public class BrokenButtonModule : MonoBehaviour
             GetTextMesh(Button).text = GetNewWord("-");
             KMSelectable selectable = button.GetComponent<KMSelectable>() as KMSelectable;
             selectable.OnInteract += delegate ()
-            {
-                ButtonPress(selectable);
+			{
+				if (Animating) return false;
+				ButtonPress(selectable);
 
                 var index = Solution.IndexOf(Button);
                 if (index > -1 && Pressed.Count < 5)
@@ -374,13 +377,12 @@ public class BrokenButtonModule : MonoBehaviour
                     }
 
                     Pressed.Add(GetTextMesh(Button).text);
-                    GetTextMesh(Button).text = GetNewWord(GetTextMesh(Button).text);
-                    LogButtons();
-                    FindCorrectButtons();
-                }
+					StartCoroutine(SwapButtonText(Button));
+				}
                 else
                 {
                     BombModule.HandleStrike();
+					StartCoroutine(StrikeButtonAnimation(Button));
 
                     if (Pressed.Count == 5)
                     {
@@ -399,6 +401,7 @@ public class BrokenButtonModule : MonoBehaviour
             KMSelectable selectable = button.GetComponent<KMSelectable>() as KMSelectable;
             selectable.OnInteract += delegate ()
             {
+				if (Animating) return false;
                 ButtonPress(selectable);
 
                 bool correct = (name == "Right");
@@ -407,10 +410,13 @@ public class BrokenButtonModule : MonoBehaviour
                     Solved = true;
                     BombModule.HandlePass();
 					DebugMsg("Module solved.");
+					StartCoroutine(SolveAnimation());
                 }
                 else
                 {
                     BombModule.HandleStrike();
+					StartCoroutine(StrikeButtonAnimation(button));
+
                     LogButtons();
                 }
 
@@ -420,6 +426,111 @@ public class BrokenButtonModule : MonoBehaviour
 
         FindCorrectButtons();
     }
+
+	float SharpHitCurve(float alpha)
+	{
+		return Mathf.Round(Mathf.Exp(-Mathf.Pow(alpha - 0.5f, 2) / (2f * Mathf.Pow(0.09319812f, 2))) * 10000) / 10000; // Rounded to make sure it ends at 0.
+	}
+
+	IEnumerable TimeBasedAnimation(float length)
+	{
+		float startTime = Time.time;
+		float alpha = 0;
+		while (alpha < 1)
+		{
+			alpha = Mathf.Min((Time.time - startTime) / length, 1);
+			yield return alpha;
+		}
+	}
+
+	IEnumerator StrikeButtonAnimation(GameObject Button)
+	{
+		Animating = true;
+		
+		Vector2 textureScale = new Vector2(Random.Range(0.1f, 1f), Random.Range(0.1f, 1f));
+
+		TextMesh textMesh = GetTextMesh(Button);
+		foreach (float alpha in TimeBasedAnimation(0.3f))
+		{
+			float curvedAlpha = Mathf.Min(-Mathf.Pow(alpha - 0.5f, 2) / (0.25f / 1.5f) + 1.5f, 1);
+			textMesh.color = Color.Lerp(Color.black, Color.red, curvedAlpha);
+			Material mat = textMesh.GetComponent<Renderer>().material;
+			mat.mainTextureScale = Vector2.Lerp(Vector2.one, textureScale, curvedAlpha);
+
+			yield return null;
+		}
+
+		Animating = false;
+	}
+
+	IEnumerator SwapButtonText(GameObject Button)
+	{
+		Animating = true;
+		BombAudio.PlaySoundAtTransform("Correct", transform);
+		bool swapped = false;
+		TextMesh textMesh = GetTextMesh(Button);
+
+		Vector2 textureOffset = new Vector2(Random.Range(0f, 2f), Random.Range(0f, 2f));
+		Vector2 textureScale = new Vector2(Random.Range(-2f, 2f), Random.Range(-2f, 2f));
+
+		foreach (float alpha in TimeBasedAnimation(0.3f))
+		{
+			float curvedAlpha = SharpHitCurve(alpha);
+			Material mat = textMesh.GetComponent<Renderer>().material;
+			mat.mainTextureScale = Vector2.Lerp(Vector2.one, textureScale, curvedAlpha);
+			mat.mainTextureOffset = Vector2.Lerp(Vector2.zero, textureOffset, curvedAlpha);
+
+			if (!swapped && alpha > 0.5f)
+			{
+				swapped = true;
+
+				textMesh.text = GetNewWord(textMesh.text);
+				LogButtons();
+				FindCorrectButtons();
+			}
+
+			yield return null;
+		}
+
+		Animating = false;
+	}
+
+	IEnumerator SolveAnimation()
+	{
+		Animating = true;
+		BombAudio.PlaySoundAtTransform("Solve", transform);
+
+		float[] samples = new float[SolveClip.samples * SolveClip.channels];
+		SolveClip.GetData(samples, 0);
+
+		float max = samples.Max(sample => Mathf.Abs(sample));
+		samples = samples.Select(sample => sample / max).ToArray();
+
+		Vector2[] scaleVectors = new[] { new Vector2(Random.Range(-1f, 1f), Random.Range(-1f, 1f)), new Vector2(Random.Range(-1f, 1f), Random.Range(-1f, 1f)) };
+		Vector2[] offsetVectors = new[] { new Vector2(Random.Range(-2f, 2f), Random.Range(-2f, 2f)), new Vector2(Random.Range(-2f, 2f), Random.Range(-2f, 2f)) };
+
+		float prevAlpha = 0;
+		foreach (float alpha in TimeBasedAnimation(SolveClip.length))
+		{
+			int startSample = (int) (prevAlpha * (samples.Length - 1));
+			int endSample = (int) (alpha * (samples.Length - 1));
+			float sample = samples.Skip(startSample).Take(endSample - startSample + 1).Max(s => Mathf.Abs(s));
+
+			for (int i = 0; i < 2; i++) {
+				TextMesh textMesh = GetTextMesh(SubmitButtons[i]);
+				Material mat = textMesh.GetComponent<Renderer>().material;
+				mat.mainTextureScale = Vector2.one + Vector2.Lerp(Vector2.zero, scaleVectors[i], sample);
+				mat.mainTextureOffset = Vector2.Lerp(Vector2.zero, offsetVectors[i], sample * 0.1f);
+				textMesh.color = Color.HSVToRGB(Random.value, 1, Math.Abs(sample));
+			}
+
+			prevAlpha = alpha;
+
+			yield return null;
+		}
+
+		Animating = false;
+	}
 
     #pragma warning disable 414
     private string TwitchHelpMessage = "Press the button by name with !{0} press \"this\". Press the button in column 2 row 3 with !{0} press 2 3. Press the right submit button with !{0} submit right.";

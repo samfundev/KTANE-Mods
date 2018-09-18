@@ -3861,6 +3861,7 @@ MonoBehaviour:
   SubmitButtons:
   - {fileID: 125536}
   - {fileID: 190216}
+  SolveClip: {fileID: 8300000, guid: 03fc451faba8d9c4a9cc15cb9aa53571, type: 3}
   BombAudio: {fileID: 11476186}
   BombModule: {fileID: 11464216}
   BombInfo: {fileID: 11455424}
