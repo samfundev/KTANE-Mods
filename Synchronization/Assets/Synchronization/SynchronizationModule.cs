@@ -229,6 +229,9 @@ public class SynchronizationModule : MonoBehaviour
 		}
 		
 		bool valid = ValidateSync(SelectedLight, light);
+
+		Log("{0} synced {1} while {2} and {3} while {4}.", valid ? "Successfully" : "Incorrectly", SelectedLight.speed, SelectedLight.state ? "on" : "off", light.speed, light.state ? "on" : "off");
+
 		if (valid)
 		{
 			int startingIndex = Lights.Where(l => l.speed == SelectedLight.speed).Count() + 1;
@@ -253,8 +256,6 @@ public class SynchronizationModule : MonoBehaviour
 			ApplyToSpeed(light, l => l.StartFlashing());
 			ApplyToSpeed(SelectedLight, l => l.StartFlashing());
 		}
-
-		Log("{0} synced {1} while {2} and {3} while {4}.", valid ? "Successfully" : "Incorrectly", SelectedLight.speed, SelectedLight.state ? "on" : "off", light.speed, light.state ? "on" : "off");
 
 		SelectedLight = null;
 		syncPause = false;
@@ -635,7 +636,7 @@ public class SynchronizationModule : MonoBehaviour
 					bool lightAState = EqualsAny(split[1], "on", "+", "true", "t");
 					bool lightBState = EqualsAny(split[3], "on", "+", "true", "t");
 
-					if (lightA.speed == 0 || lightB.speed == 0) yield break;
+					if (lightA.speed == 0 || lightB.speed == 0 || lightA.speed != lightB.speed) yield break;
 
 					yield return null;
 					while (lightA.state != lightAState) yield return true;
