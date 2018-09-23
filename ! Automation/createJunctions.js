@@ -1,5 +1,3 @@
-/* eslint-env node, es6 */
-
 const fs = require("fs-extra");
 const { join, resolve, dirname, extname } = require("path");
 
