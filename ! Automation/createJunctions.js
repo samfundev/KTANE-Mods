@@ -1,14 +1,7 @@
 /* eslint-env node, es6 */
 
 const fs = require("fs-extra");
-const { promisify } = require("util");
-const { join, resolve, dirname } = require("path");
-
-const readdir = promisify(fs.readdir);
-const stat = promisify(fs.stat);
-const lstat = promisify(fs.lstat);
-const symlink = promisify(fs.symlink);
-const access = promisify(fs.access);
+const { join, resolve, dirname, extname } = require("path");
 
 function catchify(promise) {
 	return promise
@@ -22,8 +15,7 @@ const KM_Assetless = [
 	"BombTimeExtender",
 	"MissionMaker",
 	"PacingExtender",
-	"SoundpackMaker",
-	"Tweaks"
+	"SoundpackMaker"
 ]
 
 const junctions = [
@@ -36,17 +28,24 @@ const junctions = [
 	"ProjectSettings",
 	"Manual\\css",
 	"Manual\\js",
-	"Manual\\img"
+	"Manual\\img\\page-bg-noise-01.png",
+	"Manual\\img\\page-bg-noise-02.png",
+	"Manual\\img\\page-bg-noise-03.png",
+	"Manual\\img\\page-bg-noise-04.png",
+	"Manual\\img\\page-bg-noise-05.png",
+	"Manual\\img\\page-bg-noise-06.png",
+	"Manual\\img\\page-bg-noise-07.png",
+	"Manual\\img\\web-background.jpg"
 ];
 
 process.chdir("..");
 
 (async function() {
-	let files = await readdir(".", undefined);
+	let files = await fs.readdir(".", undefined);
 	for (let file of files) {
 		if (file != "! Template Project" && (file.startsWith("! ") || file.startsWith("."))) continue;
 
-		let stats = await stat(file);
+		let stats = await fs.stat(file);
 		if (!stats.isDirectory()) continue;
 
 		for (let junc of junctions) {
@@ -56,15 +55,16 @@ process.chdir("..");
 				continue;
 			}
 
-			access(dirname(folder)).then(async () => {
-				let [err, stats] = await catchify(lstat(folder));
+			fs.access(dirname(folder)).then(async () => {
+				let [err, stats] = await catchify(fs.lstat(folder));
 				if (err == null) {
 					if (stats.isSymbolicLink()) return;
 					else await fs.remove(folder);
 				}
 	
-				await symlink(resolve(join("! Source Project", junc)), folder, "junction").catch(() => {});
-				console.log(`Created junction for "${folder}"`);
+				await fs.symlink(resolve(join("! Source Project", junc)), folder, extname(junc) == "" ? "junction" : "file")
+					.catch(console.error)
+					.then(() => console.log(`Created junction for "${folder}"`));
 			}).catch(error => {
 				if (!junc.startsWith("Manual\\")) console.error(error);
 			});
