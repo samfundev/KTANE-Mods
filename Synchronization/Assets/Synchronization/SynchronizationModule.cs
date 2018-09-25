@@ -636,7 +636,7 @@ public class SynchronizationModule : MonoBehaviour
 					bool lightAState = EqualsAny(split[1], "on", "+", "true", "t");
 					bool lightBState = EqualsAny(split[3], "on", "+", "true", "t");
 
-					if (lightA.speed == 0 || lightB.speed == 0 || lightA.speed != lightB.speed) yield break;
+					if (lightA.speed == 0 || lightB.speed == 0 || lightA.speed == lightB.speed) yield break;
 
 					yield return null;
 					while (lightA.state != lightAState) yield return true;
@@ -655,8 +655,6 @@ public class SynchronizationModule : MonoBehaviour
 	
 	IEnumerator TwitchHandleForcedSolve()
 	{
-		IEnumerator processCommand;
-
 		while (true)
 		{
 			var speedDuplicates = Lights.Select(l => l.speed).Where(s => s != 0).GroupBy(s => s);
@@ -701,12 +699,11 @@ public class SynchronizationModule : MonoBehaviour
 			}
 
 			bool[] lightStates = { true, false, !altRuleState };
-
-			processCommand = ProcessTwitchCommand(string.Format("{0} {1} {2} {3}", Array.FindIndex(Lights, light => light.speed == lightASpeed) + 1, lightStates[SyncMethod[1]], Array.FindIndex(Lights, light => light.speed == lightBSpeed) + 1, lightStates[SyncMethod[1]]));
-			while (processCommand.MoveNext()) yield return processCommand.Current;
+			
+			yield return ProcessTwitchCommand(string.Format("{0} {1} {2} {3}", Array.FindIndex(Lights, light => light.speed == lightASpeed) + 1, lightStates[SyncMethod[1]], Array.FindIndex(Lights, light => light.speed == lightBSpeed) + 1, lightStates[SyncMethod[1]]));
+			yield return new WaitUntil(() => syncPause == false);
 		}
 
-		processCommand = ProcessTwitchCommand(DisplayNumber.ToString());
-		while (processCommand.MoveNext()) yield return processCommand.Current;
+		yield return ProcessTwitchCommand(DisplayNumber.ToString());
 	}
 }
