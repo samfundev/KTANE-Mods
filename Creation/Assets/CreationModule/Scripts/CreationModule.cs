@@ -195,7 +195,7 @@ public class CreationModule : MonoBehaviour
             int Offset;
             if (BombInfo.GetOnIndicators().Any())
             {
-                if (BombInfo.GetBatteryCount(KMBombInfoExtensions.KnownBatteryType.D) == 0)
+                if (BombInfo.GetBatteryCount(KMBombInfoExtensions.KnownBatteryType.AA) == BombInfo.GetBatteryCount())
                 {
                     Offset = 0;
                 }
@@ -205,7 +205,7 @@ public class CreationModule : MonoBehaviour
                 }
             } else if (BombInfo.GetOffIndicators().Any())
             {
-                if (BombInfo.GetBatteryCount(KMBombInfoExtensions.KnownBatteryType.AA) == 0)
+                if (BombInfo.GetBatteryCount(KMBombInfoExtensions.KnownBatteryType.D) == BombInfo.GetBatteryCount())
                 {
                     Offset = 2;
                 }
