@@ -24,6 +24,7 @@ public class SynchronizationModule : MonoBehaviour
 	bool Solved = false;
 	Light SelectedLight;
 	int[] SyncMethod;
+	int[] InitialSpeeds = new int[9];
 
 	static int idCounter = 1;
 	int moduleID;
@@ -202,6 +203,34 @@ public class SynchronizationModule : MonoBehaviour
 
 			return false;
 		};
+	}
+
+	Coroutine resetCoroutine;
+	IEnumerator HoldToReset()
+	{
+		yield return new WaitForSeconds(2f);
+
+		syncPause = true;
+
+		foreach (Light light in Lights)
+		{
+			light.color = Color.yellow;
+		}
+
+		yield return new WaitForSeconds(0.4f);
+
+		for (int i = 0; i < 9; i++)
+		{
+			Light light = Lights[i];
+			light.StopFlashing();
+			light.speed = InitialSpeeds[i];
+			light.StartFlashing();
+
+			light.color = Color.white;
+		}
+
+		syncPause = false;
+		Log("Reset module to the initial state.");
 	}
 
 	bool syncPause = false;
@@ -410,8 +439,21 @@ public class SynchronizationModule : MonoBehaviour
 					Module.HandleStrike();
 				}
 			}
+			else
+			{
+				resetCoroutine = StartCoroutine(HoldToReset());
+			}
 
 			return false;
+		};
+
+		SyncButton.OnInteractEnded += delegate ()
+		{
+			if (resetCoroutine != null && !syncPause)
+			{
+				StopCoroutine(resetCoroutine);
+				resetCoroutine = null;
+			}
 		};
 
 		foreach (Light l in Lights)
@@ -430,6 +472,11 @@ public class SynchronizationModule : MonoBehaviour
 		foreach (int lightIndex in lightIndexes)
 		{
 			Lights[lightIndex].state = true;
+		}
+
+		for (int i = 0; i < 9; i++)
+		{
+			InitialSpeeds[i] = Lights[i].speed;
 		}
 
 		foreach (Light light in Lights)
@@ -465,6 +512,7 @@ public class SynchronizationModule : MonoBehaviour
 
 	IEnumerator Startup()
 	{
+		if (Application.isEditor) yield break;
 		yield return new WaitForSeconds(1);
 
 		int[][] patterns = new int[][] {
@@ -602,7 +650,7 @@ public class SynchronizationModule : MonoBehaviour
 	}
 
 	#pragma warning disable 414
-	private string TwitchHelpMessage = "To sync a pair of lights do !{0} topm on centerm +. To sync to the bomb timer use !{0} 5. Commands are chainable.";
+	private string TwitchHelpMessage = "To sync a pair of lights do !{0} topm on centerm +. To sync to the bomb timer use !{0} 5. To reset the module use !{0} reset. Commands are chainable.";
 	#pragma warning restore 414
 
 	public IEnumerator ProcessTwitchCommand(string command)
@@ -611,20 +659,31 @@ public class SynchronizationModule : MonoBehaviour
 		{
 			string[] split = subcommand.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-			if (split.Length == 1 && split[0].Length == 1)
+			if (split.Length == 1)
 			{
-				int seconds;
-				if (int.TryParse(split[0], out seconds))
+				if (split[0].Length == 1)
+				{
+					int seconds;
+					if (int.TryParse(split[0], out seconds))
+					{
+						yield return null;
+						while (!((int) BombInfo.GetTime() % 60).ToString().Contains(split[0]))
+						{
+							yield return "trycancel";
+							yield return true;
+						}
+
+						SyncButton.OnInteract();
+						yield return new WaitForSeconds(0.1f);
+					}
+				}
+				else if (split[0] == "reset")
 				{
 					yield return null;
-					while (!((int) BombInfo.GetTime() % 60).ToString().Contains(split[0]))
-					{
-						yield return "trycancel";
-						yield return true;
-					}
 
 					SyncButton.OnInteract();
-					yield return new WaitForSeconds(0.1f);
+					yield return new WaitForSeconds(2.1f);
+					SyncButton.OnInteractEnded();
 				}
 			}
 			else if (split.Length == 4 && EqualsAny(split[1], "on", "+", "true", "t", "off", "-", "false", "f") && EqualsAny(split[3], "on", "+", "true", "t", "off", "-", "false", "f"))
