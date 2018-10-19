@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Assets.Scripts.Progression;
+using Assets.Scripts.Settings;
 
 [RequireComponent(typeof(KMService))]
 [RequireComponent(typeof(KMGameInfo))]
@@ -25,6 +27,13 @@ class Tweaks : MonoBehaviour
 		
 		FreeplayDevice.MAX_SECONDS_TO_SOLVE = float.MaxValue;
 		FreeplayDevice.MIN_MODULE_COUNT = 1;
+
+		if (settings.EnableModsOnlyKey)
+		{
+			var lastFreeplaySettings = FreeplaySettings.CreateDefaultFreeplaySettings();
+			lastFreeplaySettings.OnlyMods = true;
+			ProgressionManager.Instance.RecordLastFreeplaySettings(lastFreeplaySettings);
+		}
 
 		// Setup API/properties other mods to interact with
 		GameObject infoObject = new GameObject("Tweaks_Info", typeof(TweaksProperties));
@@ -252,6 +261,7 @@ class TweakSettings
 	public float FadeTime = 1f;
 	public bool InstantSkip = true;
 	public bool BetterCasePicker = true;
+	public bool EnableModsOnlyKey = false;
 	public bool FixFER = false;
 	public bool BombHUD = false;
 	public bool ShowEdgework = false;
