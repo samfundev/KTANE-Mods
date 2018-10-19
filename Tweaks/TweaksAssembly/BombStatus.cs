@@ -16,9 +16,7 @@ class BombStatus : MonoBehaviour
     public Text TimerPrefab = null;
 	public Text TimerShadowPrefab = null;
 	public Text StrikesPrefab = null;
-	public Text StrikeLimitPrefab = null;
 	public Text SolvesPrefab = null;
-	public Text TotalModulesPrefab = null;
 	public Text ConfidencePrefab = null;
 	public Text EdgeworkPrefab = null;
 
@@ -42,9 +40,7 @@ class BombStatus : MonoBehaviour
 			if (currentBomb != null)
 			{
 				UpdateSolves();
-				UpdateTotalModules();
 				UpdateStrikes();
-				UpdateStrikeLimit();
 				EdgeworkPrefab.text = EdgeworkText;
 			}
 		}
@@ -68,8 +64,8 @@ class BombStatus : MonoBehaviour
 		if (currentBomb == null) yield break;
 		currentStrikes = currentBomb.StrikeCount;
 		currentTotalStrikes = currentBomb.StrikeLimit;
-		string strikesText = currentStrikes.ToString().PadLeft(currentTotalStrikes.ToString().Length, Char.Parse("0"));
-		StrikesPrefab.text = strikesText;
+		string strikesText = currentStrikes.ToString().PadLeft(currentTotalStrikes.ToString().Length, '0');
+		StrikesPrefab.text = Tweaks.CurrentMode != Mode.Zen ? $"{strikesText}<size=25>/{currentTotalStrikes}</size>" : strikesText;
 	}
 
 	public void UpdateStrikes(bool delay = false)
@@ -77,28 +73,13 @@ class BombStatus : MonoBehaviour
 		StartCoroutine(UpdateStrikesCoroutine(delay));
 	}
 
-	public void UpdateStrikeLimit()
-	{
-		if (currentBomb == null) return;
-		currentTotalStrikes = currentBomb.StrikeLimit;
-		string totalStrikesText = currentTotalStrikes.ToString();
-		StrikeLimitPrefab.text = "/" + totalStrikesText;
-	}
-
 	public void UpdateSolves()
 	{
 		if (currentBomb == null) return;
 		currentSolves = currentBomb.bombSolvedModules;
-		string solves = currentSolves.ToString().PadLeft(currentBomb.bombSolvableModules.ToString().Length, Char.Parse("0"));
-		SolvesPrefab.text = solves;
-	}
-
-	public void UpdateTotalModules()
-	{
-		if (currentBomb == null) return;
 		currentTotalModules = currentBomb.bombSolvableModules;
-		string total = currentTotalModules.ToString();
-		TotalModulesPrefab.text = "/" + total;
+		string solves = currentSolves.ToString().PadLeft(currentTotalModules.ToString().Length, '0');
+		SolvesPrefab.text = $"{solves}<size=25>/{currentTotalModules}</size>";
 	}
 
 	Color yellow = new Color(1, 1, 0);
@@ -108,14 +89,11 @@ class BombStatus : MonoBehaviour
 		{
 			string conf = "<size=36>x</size>" + String.Format("{0:0.0}", Math.Min(Modes.Multiplier, Modes.settings.TimeModeMaxMultiplier));
 			StrikesPrefab.color = Color.yellow;
-			StrikeLimitPrefab.color = Color.yellow;
 			StrikesPrefab.text = conf;
-			StrikeLimitPrefab.text = "";
 		}
 		else
 		{
 			StrikesPrefab.color = Color.red;
-			StrikeLimitPrefab.color = Color.red;
 		}
 
         if (Tweaks.settings.Mode == Mode.Zen)
