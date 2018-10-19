@@ -15,7 +15,12 @@ class Tweaks : MonoBehaviour
 	public static ModConfig<TweakSettings> modConfig = new ModConfig<TweakSettings>("TweakSettings");
 	public static TweakSettings settings = modConfig.Settings;
 
+	public static bool TwitchPlaysActive => GameObject.Find("TwitchPlays_Info") == null;
+	public static Mode CurrentMode => TwitchPlaysActive ? Mode.Normal : settings.Mode;
+
 	public static KMGameInfo GameInfo;
+	[HideInInspector]
+	public KMGameInfo.State CurrentState;
 
 	void Awake()
 	{
@@ -102,6 +107,7 @@ class Tweaks : MonoBehaviour
 		
 		GameInfo.OnStateChange += delegate (KMGameInfo.State state)
 		{
+			CurrentState = state;
 			watcher.EnableRaisingEvents = state == KMGameInfo.State.Setup;
 
 			if (state == KMGameInfo.State.Gameplay)
@@ -110,6 +116,7 @@ class Tweaks : MonoBehaviour
 				
 				BombStatus.Instance.HUD.SetActive(settings.BombHUD);
 				BombStatus.Instance.Edgework.SetActive(settings.ShowEdgework);
+				BombStatus.Instance.ConfidencePrefab.gameObject.SetActive(settings.Mode != Mode.Zen);
 
 				Modes.Multiplier = Modes.settings.TimeModeStartingMultiplier;
 				bombWrappers = new BombWrapper[] { };
@@ -144,6 +151,15 @@ class Tweaks : MonoBehaviour
 			bombWrapper.holdable.OnLetGo += delegate () { BombStatus.Instance.currentBomb = null; };
 
 			if (settings.Mode == Mode.Time) bombWrapper.CurrentTimer = Modes.settings.TimeModeStartingTime * 60;
+		}
+
+		if (settings.Mode == Mode.Zen)
+		{
+			GameplayMusicController gameplayMusic = MusicManager.Instance.GameplayMusicController;
+			gameplayMusic.StopMusic();
+			var controller = gameplayMusic.GetComponent<DarkTonic.MasterAudio.PlaylistController>();
+			controller.ClearQueue();
+			controller.QueuePlaylistClip(controller.CurrentPlaylist.MusicSettings[0].songName, true);
 		}
 
 		if (ReflectedTypes.FactoryRoomType != null && ReflectedTypes.FiniteSequenceModeType != null)
@@ -228,8 +244,8 @@ class Tweaks : MonoBehaviour
 		}
 	}
     
-	float originalTime = 300;
-	IEnumerator ModifyFreeplayDevice(bool firstTime)
+	static float originalTime = 300;
+	public static IEnumerator ModifyFreeplayDevice(bool firstTime)
 	{
 		yield return null;
 		SetupRoom setupRoom = FindObjectOfType<SetupRoom>();
@@ -239,7 +255,7 @@ class Tweaks : MonoBehaviour
 			ExecOnDescendants(freeplayDevice.gameObject, gameObj =>
 			{
 				if (gameObj.name == "FreeplayLabel" || gameObj.name == "Free Play Label")
-					gameObj.GetComponent<TMPro.TextMeshPro>().text = settings.Mode == Mode.Time ? "TIME MODE" : settings.Mode == Mode.Zen ? "ZEN MODE" : "FREE PLAY";
+					gameObj.GetComponent<TMPro.TextMeshPro>().text = settings.Mode == Mode.Normal ? "free play" : $"{settings.Mode.ToString()} mode";
 			});
 			
 			freeplayDevice.CurrentSettings.Time = settings.Mode == Mode.Time ? Modes.settings.TimeModeStartingTime * 60 : originalTime;
@@ -281,7 +297,7 @@ class Tweaks : MonoBehaviour
 		Debug.LogFormat("[Tweaks] " + format, args);
 	}
 
-	void ExecOnDescendants(GameObject gameObj, Action<GameObject> func)
+	static void ExecOnDescendants(GameObject gameObj, Action<GameObject> func)
 	{
 		foreach (Transform child in gameObj.transform)
 		{

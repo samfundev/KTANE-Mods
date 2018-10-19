@@ -6,24 +6,23 @@
 		{
 			Tweaks.settings.Mode = (Mode) value;
 			Tweaks.modConfig.Settings = Tweaks.settings;
+			StartCoroutine(Tweaks.ModifyFreeplayDevice(false));
 		}));
-        //Compatibility for mods looking for bool values for each mode
-        AddProperty("TimeMode", new Property(() => Tweaks.settings.Mode.Equals(Mode.Time), value =>
-        {
-            if ((bool)value) Tweaks.settings.Mode = Mode.Time;
-            //If statement here in case Zen Mode was already set
-            else if (Tweaks.settings.Mode != Mode.Zen) Tweaks.settings.Mode = Mode.Normal;
-        }));
-        AddProperty("ZenMode", new Property(() => Tweaks.settings.Mode.Equals(Mode.Zen), value =>
-        {
-            if ((bool)value) Tweaks.settings.Mode = Mode.Zen;
-            //If statement here in case Time Mode was already set
-            else if (Tweaks.settings.Mode != Mode.Time) Tweaks.settings.Mode = Mode.Normal;
-        }));
+        AddProperty("TimeMode", new Property(() => Tweaks.settings.Mode.Equals(Mode.Time), value => {
+			Tweaks.settings.Mode = (bool) value ? Mode.Time : Mode.Normal;
+			Tweaks.modConfig.Settings = Tweaks.settings;
+			StartCoroutine(Tweaks.ModifyFreeplayDevice(false));
+		}));
+        AddProperty("ZenMode", new Property(() => Tweaks.settings.Mode.Equals(Mode.Zen), value => {
+			Tweaks.settings.Mode = (bool) value ? Mode.Zen : Mode.Normal;
+			Tweaks.modConfig.Settings = Tweaks.settings;
+			StartCoroutine(Tweaks.ModifyFreeplayDevice(false));
+		}));
 		AddProperty("TimeModeStartingTime", new Property(() => Modes.settings.TimeModeStartingTime, value =>
 		{
 			Modes.settings.TimeModeStartingTime = (float) value;
 			Modes.modConfig.Settings = Modes.settings;
+			StartCoroutine(Tweaks.ModifyFreeplayDevice(false));
 		}));
         AddProperty("ZenModeTimePenalty", new Property(() => Modes.settings.ZenModeTimePenalty, value =>
         {

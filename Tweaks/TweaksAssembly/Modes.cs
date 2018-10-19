@@ -15,7 +15,6 @@ static class Modes
 	public static ModeSettings settings = modConfig.Settings;
 	public static float Multiplier = settings.TimeModeStartingMultiplier;
     public static float timePenalty = 1.0f;
-    public static float normalRate;
     public static float initialTime;
 
 	#pragma warning disable 649
@@ -64,6 +63,10 @@ static class Modes
 
 class ModeSettings
 {
+    public float ZenModeTimePenalty = 0;
+	public float ZenModeTimePenaltyIncrease = 0;
+	public float ZenModeTimerSpeedUp = 0.25f;
+	public float ZenModeTimerMaxSpeed = 2;
 	public float TimeModeStartingTime = 5;
 	public float TimeModeStartingMultiplier = 9.0f;
 	public float TimeModeMaxMultiplier = 10.0f;
@@ -73,10 +76,5 @@ class ModeSettings
 	public float TimeModeTimerStrikePenalty = 0.25f;
 	public float TimeModeMinimumTimeLost = 15;
 	public float TimeModeMinimumTimeGained = 20;
-    public float ZenModeTimePenalty = 1;
-    //Base the penalty on a percentage of the starting time instead of doing a value in the settings.
-    //This is currently not used, but it is meant to decide how much time is added to ZenTimePenalty if it is not
-    //a static value.
-    //public bool PenaltyPercentage = false;
     public Dictionary<string, double> ComponentValues = new Dictionary<string, double>();
 }

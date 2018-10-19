@@ -15,7 +15,7 @@ public class TTKComponentSolver
         module = bombModule;
         currentBomb = bomb;
         initialTime = startTime;
-        if (Tweaks.settings.Mode.Equals(Mode.Zen) && initialTime < 600) initialTime = initialTime * 10; 
+        if (Tweaks.CurrentMode.Equals(Mode.Zen) && initialTime < 600) initialTime = initialTime * 10; 
         _lock = (MonoBehaviour)_lockField.GetValue(module.GetComponent(_componentType));
         if (SceneManager.Instance.GameplayState.Bombs != null) _lock?.StartCoroutine(ReWriteTTK());
         module.OnActivate = OnActivate;
@@ -30,8 +30,8 @@ public class TTKComponentSolver
     {
         int time = (int)_targetTimeField.GetValue(module.GetComponent(_componentType));
         int timeRemaining = (int)currentBomb.GetTimer().TimeRemaining;
-        if ((Tweaks.settings.Mode.Equals(Mode.Zen) && timeRemaining > time)) return false;
-        if (Tweaks.settings.Mode.Equals(Mode.Zen))
+        if ((Tweaks.CurrentMode.Equals(Mode.Zen) && timeRemaining > time)) return false;
+        if (Tweaks.CurrentMode.Equals(Mode.Zen))
             return !((int)_targetTimeField.GetValue(module.GetComponent(_componentType)) < time) && IsTargetTurnTimeCorrect(turnTime);
         return false;
     }
@@ -112,7 +112,7 @@ public class TTKComponentSolver
                 return;
             }
             _keyTurnTimes.Clear();
-            for (int i = (Tweaks.settings.Mode.Equals(Mode.Zen) ? 45 : 3); i < (Tweaks.settings.Mode.Equals(Mode.Zen) ? initialTime : (currentBomb.GetTimer().TimeRemaining - 45)); i += 3)
+            for (int i = (Tweaks.CurrentMode.Equals(Mode.Zen) ? 45 : 3); i < (Tweaks.CurrentMode.Equals(Mode.Zen) ? initialTime : (currentBomb.GetTimer().TimeRemaining - 45)); i += 3)
             {
                 _keyTurnTimes.Add(i);
             }
@@ -151,7 +151,7 @@ public class TTKComponentSolver
         while (!module.GetComponent<BombComponent>().IsSolved)
         {
             int time = Mathf.FloorToInt(currentBomb.GetTimer().TimeRemaining);
-            if (((!Tweaks.settings.Mode.Equals(Mode.Zen) && time < expectedTime) || (Tweaks.settings.Mode.Equals(Mode.Zen) && time > expectedTime)) &&
+            if (((!Tweaks.CurrentMode.Equals(Mode.Zen) && time < expectedTime) || (Tweaks.CurrentMode.Equals(Mode.Zen) && time > expectedTime)) &&
                 !(bool)_solvedField.GetValue(module.GetComponent(_componentType)))
             {
                 module.HandleStrike();

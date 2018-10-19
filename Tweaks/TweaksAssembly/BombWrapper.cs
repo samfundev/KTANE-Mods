@@ -7,6 +7,13 @@ using System.Linq;
 
 class BombWrapper
 {
+	Dictionary<Mode, Color> ModeColors = new Dictionary<Mode, Color>()
+	{
+		{ Mode.Normal, Color.red },
+		{ Mode.Zen, Color.cyan },
+		{ Mode.Time, new Color(1, 0.5f, 0) }
+	};
+
 	public BombWrapper(Bomb bomb)
 	{
 		Bomb = bomb;
@@ -14,16 +21,22 @@ class BombWrapper
 		timerComponent = bomb.GetTimer();
 		widgetManager = bomb.WidgetManager;
 
-        if (Tweaks.settings.Mode == Mode.Zen)
+		Color modeColor = ModeColors[Tweaks.CurrentMode];
+		BombStatus.Instance.TimerPrefab.color = modeColor;
+		timerComponent.text.color = modeColor;
+		timerComponent.StrikeIndicator.RedColour = modeColor;
+
+		if (Tweaks.CurrentMode == Mode.Zen)
         {
-            Modes.normalRate = -timerComponent.GetRate();
-            timerComponent.text.color = Color.blue;
-            timerComponent.SetRateModifier(Modes.normalRate);
+			ZenModeTimePenalty = Mathf.Abs(Modes.settings.ZenModeTimePenalty);
+			ZenModeTimerRate = -timerComponent.GetRate();
+			timerComponent.SetRateModifier(ZenModeTimerRate);
             Modes.initialTime = timerComponent.TimeRemaining;
-            timerComponent.SetTimeRemaing(1);
+			timerComponent.SetTimeRemaing(0.001f);
+
             //This was in the original code to make sure the bomb didn't explode on the first strike
             bomb.NumStrikesToLose += 1;
-        }
+		}
 
 		foreach (BombComponent component in Bomb.BombComponents)
 		{
@@ -31,7 +44,7 @@ class BombWrapper
 			{
 				BombStatus.Instance.UpdateSolves();
 
-				if (Tweaks.settings.Mode == Mode.Time)
+				if (Tweaks.CurrentMode == Mode.Time)
 				{
 					double ComponentValue;
 					if (!Modes.settings.ComponentValues.TryGetValue(Modes.GetModuleID(component), out ComponentValue))
@@ -51,20 +64,20 @@ class BombWrapper
 			component.OnStrike += delegate
 			{
                 //Ideally, catch this before the strikes are recorded
-                if (Tweaks.settings.Mode == Mode.Zen)
+                if (Tweaks.CurrentMode == Mode.Zen)
                 {
                     bomb.NumStrikesToLose += 1;
-                    timerComponent.SetRateModifier(Modes.normalRate);
-                    /*timePenalty is the amount of time gained per strike.
-                    This feature was a request from Elias.
-                    The function for setting timePenalty can be found in Tweaks.cs
-                    The actual variable is located in Modes.cs*/
-                    CurrentTimer += Modes.settings.ZenModeTimePenalty * 60;
+
+					ZenModeTimerRate = Mathf.Max(ZenModeTimerRate - Mathf.Abs(Modes.settings.ZenModeTimerSpeedUp), -Mathf.Abs(Modes.settings.ZenModeTimerMaxSpeed));
+                    timerComponent.SetRateModifier(ZenModeTimerRate);
+
+                    CurrentTimer += ZenModeTimePenalty * 60;
+					ZenModeTimePenalty += Mathf.Abs(Modes.settings.ZenModeTimePenaltyIncrease);
                 }
 
 				BombStatus.Instance.UpdateStrikes();
 
-				if (Tweaks.settings.Mode == Mode.Time)
+				if (Tweaks.CurrentMode == Mode.Time)
 				{
 					Modes.Multiplier = Math.Max(Modes.Multiplier - Modes.settings.TimeModeMultiplierStrikePenalty, Modes.settings.TimeModeMinMultiplier);
 					if (CurrentTimer < (Modes.settings.TimeModeMinimumTimeLost / Modes.settings.TimeModeMultiplierStrikePenalty))
@@ -111,7 +124,7 @@ class BombWrapper
                 //TTK is our favorite Zen mode compatible module
                 //Of course, everything here is repurposed from Twitch Plays.
                 case "TurnTheKey":
-                    new TTKComponentSolver(component, bomb, Tweaks.settings.Mode.Equals(Mode.Zen) ? Modes.initialTime : timerComponent.TimeRemaining);
+                    new TTKComponentSolver(component, bomb, Tweaks.CurrentMode.Equals(Mode.Zen) ? Modes.initialTime : timerComponent.TimeRemaining);
                     break;
                 /*case "ButtonV2":
                     break;
@@ -168,6 +181,9 @@ class BombWrapper
 			LogChildren(child, depth + 1);
 		}
 	}
+
+	private float ZenModeTimePenalty;
+	private float ZenModeTimerRate;
 
 	public Bomb Bomb = null;
 	public FloatingHoldable holdable;
