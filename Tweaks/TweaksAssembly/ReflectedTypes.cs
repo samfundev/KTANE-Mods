@@ -22,6 +22,10 @@ static class ReflectedTypes
 	public static Type ForeignExchangeRatesType;
 	public static FieldInfo CurrencyAPIEndpointField;
 
+	public static Type PortalRoomType;
+	public static MethodInfo RedLightsMethod;
+	public static FieldInfo RoomLightField;
+
 	public static FieldInfo IsInteractingField;
 	static Dictionary<MonoBehaviour, ModuleFields> CachedFields = new Dictionary<MonoBehaviour, ModuleFields>();
 
@@ -81,6 +85,10 @@ static class ReflectedTypes
 
 		ForeignExchangeRatesType = ReflectionHelper.FindType("ForeignExchangeRates");
 		CurrencyAPIEndpointField = ForeignExchangeRatesType?.GetField("CURRENCY_API_ENDPOINT", BindingFlags.Static | BindingFlags.NonPublic);
+
+		PortalRoomType = ReflectionHelper.FindType("PortalRoom", "HexiBombRoom");
+		RedLightsMethod = PortalRoomType?.GetMethod("RedLight", BindingFlags.Instance | BindingFlags.Public);
+		RoomLightField = PortalRoomType?.GetField("RoomLight", BindingFlags.Instance | BindingFlags.Public);
 
 		IsInteractingField = typeof(InteractiveObject).GetField("isInteracting", BindingFlags.NonPublic | BindingFlags.Instance);
 	}

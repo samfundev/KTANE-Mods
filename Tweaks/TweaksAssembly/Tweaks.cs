@@ -178,7 +178,53 @@ class Tweaks : MonoBehaviour
 							bombWrapper.CurrentTimer = Modes.settings.TimeModeStartingTime * 60;
 					}
 				}
+
+				yield break;
 			}
+		}
+
+		// This code only runs if we aren't in the Factory room.
+		SceneManager.Instance.GameplayState.Room.PacingActions.RemoveAll(pacingAction => pacingAction.EventType == Assets.Scripts.Pacing.PaceEvent.OneMinuteLeft);
+		UnityEngine.Object portalRoom = null;
+		if (ReflectedTypes.PortalRoomType != null && ReflectedTypes.RedLightsMethod != null && ReflectedTypes.RoomLightField != null)
+		{
+			portalRoom = FindObjectOfType(ReflectedTypes.PortalRoomType);
+		}
+		bool lastState = false;
+		IEnumerator portalEmergencyRoutine = null;
+		while (CurrentState == KMGameInfo.State.Gameplay)
+		{
+			bool targetState = settings.Mode != Mode.Zen && bombWrappers.Any((BombWrapper bombWrapper) => !bombWrapper.Bomb.IsSolved() && bombWrapper.CurrentTimer < 60f);
+			if (targetState != lastState)
+			{
+				foreach (Assets.Scripts.Props.EmergencyLight emergencyLight in FindObjectsOfType<Assets.Scripts.Props.EmergencyLight>())
+				{
+					if (targetState)
+					{
+						emergencyLight.Activate();
+					}
+					else
+					{
+						emergencyLight.Deactivate();
+					}
+				}
+				if (portalRoom != null)
+				{
+					if (targetState)
+					{
+						portalEmergencyRoutine = (IEnumerator) ReflectedTypes.RedLightsMethod.Invoke(portalRoom, null);
+						StartCoroutine(portalEmergencyRoutine);
+					}
+					else
+					{
+						StopCoroutine(portalEmergencyRoutine);
+						portalEmergencyRoutine = null;
+						((GameObject) ReflectedTypes.RoomLightField.GetValue(portalRoom)).GetComponent<Light>().color = new Color(0.5f, 0.5f, 0.5f);
+					}
+				}
+				lastState = targetState;
+			}
+			yield return null;
 		}
 	}
     
