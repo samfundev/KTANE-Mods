@@ -15,7 +15,7 @@ class Tweaks : MonoBehaviour
 	public static ModConfig<TweakSettings> modConfig = new ModConfig<TweakSettings>("TweakSettings");
 	public static TweakSettings settings = modConfig.Settings;
 
-	public static bool TwitchPlaysActive => GameObject.Find("TwitchPlays_Info") == null;
+	public static bool TwitchPlaysActive => GameObject.Find("TwitchPlays_Info") != null;
 	public static Mode CurrentMode => TwitchPlaysActive ? Mode.Normal : settings.Mode;
 
 	public static KMGameInfo GameInfo;
@@ -116,7 +116,7 @@ class Tweaks : MonoBehaviour
 				
 				BombStatus.Instance.HUD.SetActive(settings.BombHUD);
 				BombStatus.Instance.Edgework.SetActive(settings.ShowEdgework);
-				BombStatus.Instance.ConfidencePrefab.gameObject.SetActive(settings.Mode != Mode.Zen);
+				BombStatus.Instance.ConfidencePrefab.gameObject.SetActive(CurrentMode != Mode.Zen);
 
 				Modes.Multiplier = Modes.settings.TimeModeStartingMultiplier;
 				bombWrappers = new BombWrapper[] { };
@@ -127,7 +127,7 @@ class Tweaks : MonoBehaviour
 				StartCoroutine(ModifyFreeplayDevice(true));
 			}
             
-			bool disableRecords = (state == KMGameInfo.State.Gameplay && (settings.BombHUD || settings.ShowEdgework || settings.Mode != Mode.Normal));
+			bool disableRecords = (state == KMGameInfo.State.Gameplay && (settings.BombHUD || settings.ShowEdgework || CurrentMode != Mode.Normal));
 
 			Assets.Scripts.Stats.StatsManager.Instance.DisableStatChanges =
 			Assets.Scripts.Records.RecordManager.Instance.DisableBestRecords = disableRecords;
@@ -150,10 +150,10 @@ class Tweaks : MonoBehaviour
 			bombWrappers[i] = bombWrapper;
 			bombWrapper.holdable.OnLetGo += delegate () { BombStatus.Instance.currentBomb = null; };
 
-			if (settings.Mode == Mode.Time) bombWrapper.CurrentTimer = Modes.settings.TimeModeStartingTime * 60;
+			if (CurrentMode == Mode.Time) bombWrapper.CurrentTimer = Modes.settings.TimeModeStartingTime * 60;
 		}
 
-		if (settings.Mode == Mode.Zen)
+		if (CurrentMode == Mode.Zen)
 		{
 			GameplayMusicController gameplayMusic = MusicManager.Instance.GameplayMusicController;
 			gameplayMusic.StopMusic();
@@ -190,7 +190,7 @@ class Tweaks : MonoBehaviour
 						bombWrappers[0] = bombWrapper;
 						bombWrapper.holdable.OnLetGo += delegate () { BombStatus.Instance.currentBomb = null; };
 
-						if (globalTimerEnabled && settings.Mode.Equals(Mode.Time))
+						if (globalTimerEnabled && CurrentMode.Equals(Mode.Time))
 							bombWrapper.CurrentTimer = Modes.settings.TimeModeStartingTime * 60;
 					}
 				}
@@ -210,7 +210,7 @@ class Tweaks : MonoBehaviour
 		IEnumerator portalEmergencyRoutine = null;
 		while (CurrentState == KMGameInfo.State.Gameplay)
 		{
-			bool targetState = settings.Mode != Mode.Zen && bombWrappers.Any((BombWrapper bombWrapper) => !bombWrapper.Bomb.IsSolved() && bombWrapper.CurrentTimer < 60f);
+			bool targetState = CurrentMode != Mode.Zen && bombWrappers.Any((BombWrapper bombWrapper) => !bombWrapper.Bomb.IsSolved() && bombWrapper.CurrentTimer < 60f);
 			if (targetState != lastState)
 			{
 				foreach (Assets.Scripts.Props.EmergencyLight emergencyLight in FindObjectsOfType<Assets.Scripts.Props.EmergencyLight>())
@@ -255,21 +255,21 @@ class Tweaks : MonoBehaviour
 			ExecOnDescendants(freeplayDevice.gameObject, gameObj =>
 			{
 				if (gameObj.name == "FreeplayLabel" || gameObj.name == "Free Play Label")
-					gameObj.GetComponent<TMPro.TextMeshPro>().text = settings.Mode == Mode.Normal ? "free play" : $"{settings.Mode.ToString()} mode";
+					gameObj.GetComponent<TMPro.TextMeshPro>().text = CurrentMode == Mode.Normal ? "free play" : $"{CurrentMode.ToString()} mode";
 			});
 			
-			freeplayDevice.CurrentSettings.Time = settings.Mode == Mode.Time ? Modes.settings.TimeModeStartingTime * 60 : originalTime;
+			freeplayDevice.CurrentSettings.Time = CurrentMode == Mode.Time ? Modes.settings.TimeModeStartingTime * 60 : originalTime;
 			TimeSpan timeSpan = TimeSpan.FromSeconds(freeplayDevice.CurrentSettings.Time);
 			freeplayDevice.TimeText.text = string.Format("{0}:{1:00}", (int) timeSpan.TotalMinutes, timeSpan.Seconds);
 
 			if (!firstTime) yield break;
-			if (settings.Mode == Mode.Normal) originalTime = freeplayDevice.CurrentSettings.Time;
+			if (CurrentMode == Mode.Normal) originalTime = freeplayDevice.CurrentSettings.Time;
 			
 			freeplayDevice.TimeIncrement.OnPush += delegate { ReflectedTypes.IsInteractingField.SetValue(freeplayDevice.TimeIncrement, true); };
 			freeplayDevice.TimeIncrement.OnInteractEnded += delegate
 			{
 				originalTime = freeplayDevice.CurrentSettings.Time;
-				if (settings.Mode != Mode.Time) return;
+				if (CurrentMode != Mode.Time) return;
 
 				Modes.settings.TimeModeStartingTime = freeplayDevice.CurrentSettings.Time / 60;
 				Modes.modConfig.Settings = Modes.settings;
@@ -279,7 +279,7 @@ class Tweaks : MonoBehaviour
 			freeplayDevice.TimeDecrement.OnInteractEnded += delegate
 			{
 				originalTime = freeplayDevice.CurrentSettings.Time;
-				if (settings.Mode != Mode.Time) return;
+				if (CurrentMode != Mode.Time) return;
 
 				Modes.settings.TimeModeStartingTime = freeplayDevice.CurrentSettings.Time / 60;
 				Modes.modConfig.Settings = Modes.settings;

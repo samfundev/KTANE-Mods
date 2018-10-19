@@ -44,7 +44,7 @@ class BombStatus : MonoBehaviour
 				EdgeworkPrefab.text = EdgeworkText;
 			}
 		}
-		GetComponent<Canvas>().enabled = currentBomb != null && GameObject.Find("TwitchPlays_Info") == null;
+		GetComponent<Canvas>().enabled = currentBomb != null && !Tweaks.TwitchPlaysActive;
 		if (currentBomb == null) return;
 
 		string formattedTime = currentBomb.GetFullFormattedTime;
