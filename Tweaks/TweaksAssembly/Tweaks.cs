@@ -91,7 +91,7 @@ class Tweaks : MonoBehaviour
 					ReflectedTypes.UpdateTypes();
 
 					if (ReflectedTypes.CurrencyAPIEndpointField != null)
-						ReflectedTypes.CurrencyAPIEndpointField.SetValue(null, settings.FixFER ? "http://exchangeratesapi.io/api" : "http://api.fixer.io");
+						ReflectedTypes.CurrencyAPIEndpointField.SetValue(null, settings.FixFER ? "http://api.exchangeratesapi.io" : "http://api.fixer.io");
 
 					break;
 				case "gameplayScene":
