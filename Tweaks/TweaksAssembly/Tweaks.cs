@@ -112,6 +112,11 @@ class Tweaks : MonoBehaviour
 
 			if (state == KMGameInfo.State.Gameplay)
 			{
+				bool disableRecords = settings.BombHUD || settings.ShowEdgework || CurrentMode != Mode.Normal;
+
+				Assets.Scripts.Stats.StatsManager.Instance.DisableStatChanges =
+				Assets.Scripts.Records.RecordManager.Instance.DisableBestRecords = disableRecords;
+
 				if (settings.BetterCasePicker) BetterCasePicker.PickCase();
 				
 				BombStatus.Instance.HUD.SetActive(settings.BombHUD);
@@ -126,11 +131,6 @@ class Tweaks : MonoBehaviour
 			{
 				StartCoroutine(ModifyFreeplayDevice(true));
 			}
-            
-			bool disableRecords = (state == KMGameInfo.State.Gameplay && (settings.BombHUD || settings.ShowEdgework || CurrentMode != Mode.Normal));
-
-			Assets.Scripts.Stats.StatsManager.Instance.DisableStatChanges =
-			Assets.Scripts.Records.RecordManager.Instance.DisableBestRecords = disableRecords;
 		};
 	}
 
@@ -151,6 +151,7 @@ class Tweaks : MonoBehaviour
 			bombWrapper.holdable.OnLetGo += delegate () { BombStatus.Instance.currentBomb = null; };
 
 			if (CurrentMode == Mode.Time) bombWrapper.CurrentTimer = Modes.settings.TimeModeStartingTime * 60;
+			else if (CurrentMode == Mode.Zen) bombWrapper.CurrentTimer = 0.001f;
 		}
 
 		if (CurrentMode == Mode.Zen)
@@ -167,11 +168,18 @@ class Tweaks : MonoBehaviour
 			UnityEngine.Object factoryRoom = FindObjectOfType(ReflectedTypes.FactoryRoomType);
 			if (factoryRoom)
 			{
+				if (ReflectedTypes.FactoryRoomDataType != null && ReflectedTypes.WarningTimeField != null)
+				{
+					var roomData = FindObjectOfType(ReflectedTypes.FactoryRoomDataType);
+					if (roomData != null)
+						ReflectedTypes.WarningTimeField.SetValue(roomData, CurrentMode == Mode.Zen ? 0 : 60);
+				}
+
 				object gameMode = ReflectedTypes.GameModeProperty.GetValue(factoryRoom, null);
 				if (ReflectedTypes.FiniteSequenceModeType.IsAssignableFrom(gameMode.GetType()))
 				{
 					IEnumerable<object> adaptations = ((IEnumerable) ReflectedTypes.AdaptationsProperty.GetValue(gameMode, null)).Cast<object>();
-					bool globalTimerEnabled = !adaptations.Any(adaptation => ReflectedTypes.GlobalTimerAdaptationType.IsAssignableFrom(adaptation.GetType()));
+					bool globalTimerDisabled = !adaptations.Any(adaptation => ReflectedTypes.GlobalTimerAdaptationType.IsAssignableFrom(adaptation.GetType()));
 
 					Func<Component> getBomb = () => (Component) ReflectedTypes._CurrentBombField.GetValue(gameMode);
 
@@ -190,8 +198,13 @@ class Tweaks : MonoBehaviour
 						bombWrappers[0] = bombWrapper;
 						bombWrapper.holdable.OnLetGo += delegate () { BombStatus.Instance.currentBomb = null; };
 
-						if (globalTimerEnabled && CurrentMode.Equals(Mode.Time))
-							bombWrapper.CurrentTimer = Modes.settings.TimeModeStartingTime * 60;
+						if (globalTimerDisabled)
+						{
+							if (CurrentMode == Mode.Time)
+								bombWrapper.CurrentTimer = Modes.settings.TimeModeStartingTime * 60;
+							else if (CurrentMode == Mode.Zen)
+								bombWrapper.CurrentTimer = 0.001f;
+						}
 					}
 				}
 

@@ -14,6 +14,8 @@ static class ReflectedTypes
 	public static Type FiniteSequenceModeType;
 	public static PropertyInfo GameModeProperty;
 	public static FieldInfo _CurrentBombField;
+	public static Type FactoryRoomDataType;
+	public static FieldInfo WarningTimeField;
 
 	public static PropertyInfo AdaptationsProperty;
 	public static Type FactoryGameModeAdaptationType;
@@ -72,6 +74,8 @@ static class ReflectedTypes
 		FiniteSequenceModeType = ReflectionHelper.FindType("FactoryAssembly.FiniteSequenceMode");
 		GameModeProperty = FactoryRoomType?.GetProperty("GameMode", BindingFlags.NonPublic | BindingFlags.Instance);
 		_CurrentBombField = FiniteSequenceModeType?.GetField("_currentBomb", BindingFlags.NonPublic | BindingFlags.Instance);
+		FactoryRoomDataType = ReflectionHelper.FindType("FactoryAssembly.FactoryRoomData");
+		WarningTimeField = FactoryRoomDataType?.GetField("WarningTime", BindingFlags.Public | BindingFlags.Instance);
 
 		AdaptationsProperty = FactoryGameModeType?.GetProperty("Adaptations", BindingFlags.NonPublic | BindingFlags.Instance);
 		FactoryGameModeAdaptationType = ReflectionHelper.FindType("FactoryAssembly.FactoryGameModeAdaptation");

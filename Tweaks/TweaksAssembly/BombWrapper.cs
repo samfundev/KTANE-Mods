@@ -32,7 +32,6 @@ class BombWrapper
 			ZenModeTimerRate = -timerComponent.GetRate();
 			timerComponent.SetRateModifier(ZenModeTimerRate);
             Modes.initialTime = timerComponent.TimeRemaining;
-			timerComponent.SetTimeRemaing(0.001f);
 
             //This was in the original code to make sure the bomb didn't explode on the first strike
             bomb.NumStrikesToLose += 1;

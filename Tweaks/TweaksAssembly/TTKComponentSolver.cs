@@ -15,7 +15,9 @@ public class TTKComponentSolver
         module = bombModule;
         currentBomb = bomb;
         initialTime = startTime;
-        if (Tweaks.CurrentMode.Equals(Mode.Zen) && initialTime < 600) initialTime = initialTime * 10; 
+
+		if (Tweaks.TwitchPlaysActive) return; // Don't modify TTKs if TP is active.
+		if (Tweaks.CurrentMode.Equals(Mode.Zen) && initialTime < 600) initialTime = initialTime * 10; 
         _lock = (MonoBehaviour)_lockField.GetValue(module.GetComponent(_componentType));
         if (SceneManager.Instance.GameplayState.Bombs != null) _lock?.StartCoroutine(ReWriteTTK());
         module.OnActivate = OnActivate;
