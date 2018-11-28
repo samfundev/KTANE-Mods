@@ -1,10 +1,7 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 public abstract class ModuleTweak
 {
-	public static string moduleType;
-	protected static Type componentType;
 	protected Component component;
 
 	protected readonly BombComponent bombComponent = null;

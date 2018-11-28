@@ -1,20 +1,26 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 
 class WordScramblePatch : ModuleTweak
 {
 	public WordScramblePatch(BombComponent bombComponent) : base(bombComponent)
 	{
-		component = bombComponent.GetComponent(componentType);
-		if (AnswerField == null || _solutionField == null || EnterButtonField == null) return;
+		componentType = componentType ?? (componentType = ReflectionHelper.FindType("WordScrambleModule"));
+		AnswerField = AnswerField ?? (AnswerField = componentType.GetField("Answer", BindingFlags.NonPublic | BindingFlags.Instance));
+		SolutionField = SolutionField ?? (SolutionField = componentType.GetField("_solution", BindingFlags.NonPublic | BindingFlags.Instance));
+		EnterButtonField = EnterButtonField ?? (EnterButtonField = componentType.GetField("EnterButton", BindingFlags.Public | BindingFlags.Instance));
 
-		if ((string) _solutionField.GetValue(component) == "sapper")
+		component = bombComponent.GetComponent(componentType);
+		if (AnswerField == null || SolutionField == null || EnterButtonField == null) return;
+
+		if ((string) SolutionField.GetValue(component) == "sapper")
 		{
 			var enterButton = (KMSelectable) EnterButtonField.GetValue(component);
 			var previousInteraction = enterButton.OnInteract;
 			enterButton.OnInteract = () =>
 			{
 				if ((string) AnswerField.GetValue(component) == "papers")
-					_solutionField.SetValue(component, "papers");
+					SolutionField.SetValue(component, "papers");
 
 				previousInteraction();
 
@@ -23,15 +29,8 @@ class WordScramblePatch : ModuleTweak
 		}
 	}
 
-	static readonly FieldInfo AnswerField;
-	static readonly FieldInfo _solutionField;
-	static readonly FieldInfo EnterButtonField;
-
-	static WordScramblePatch()
-	{
-		componentType = ReflectionHelper.FindType("WordScrambleModule");
-		AnswerField = componentType?.GetField("Answer", BindingFlags.NonPublic | BindingFlags.Instance);
-		_solutionField = componentType?.GetField("_solution", BindingFlags.NonPublic | BindingFlags.Instance);
-		EnterButtonField = componentType?.GetField("EnterButton", BindingFlags.Public | BindingFlags.Instance);
-	}
+	static Type componentType;
+	static FieldInfo AnswerField;
+	static FieldInfo SolutionField;
+	static FieldInfo EnterButtonField;
 }

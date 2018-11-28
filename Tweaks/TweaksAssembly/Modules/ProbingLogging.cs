@@ -7,7 +7,6 @@ using UnityEngine;
 
 public class ProbingLogging : ModuleTweak
 {
-	new public string moduleType = "ProbingModule";
 	static readonly string typeName = "ProbingModule";
 
 	[Flags]
@@ -48,11 +47,21 @@ public class ProbingLogging : ModuleTweak
 
 	public ProbingLogging(BombComponent bombComponent) : base(bombComponent)
 	{
+		componentType = componentType ?? (componentType = ReflectionHelper.FindType(typeName));
+		mWiresField = mWiresField ?? (mWiresField = componentType.GetField("mWires", NonPublicInstance));
+		mTargetWireAField = mTargetWireAField ?? (mTargetWireAField = componentType.GetField("mTargetWireA", NonPublicInstance));
+		mTargetWireBField = mTargetWireBField ?? (mTargetWireBField = componentType.GetField("mTargetWireB", NonPublicInstance));
+
 		component = bombComponent.GetComponent(componentType);
 		moduleID = idCounter++;
 		bombInfo = bombComponent.GetComponent<KMBombInfo>();
 		mNumStrikes = bombInfo.GetStrikes();
 		bombComponent.GetComponent<KMBombModule>().OnActivate += () => bActive = true;
+		bombComponent.GetComponent<KMBombModule>().OnPass += () =>
+		{
+			Debug.Log($"[Probing #{moduleID}] Module solved.");
+			return true;
+		};
 
 		mWires = ((Array) mWiresField.GetValue(component)).Cast<WireValues>();
 		LogWires();
@@ -107,17 +116,10 @@ public class ProbingLogging : ModuleTweak
 		Debug.Log($"[Probing #{moduleID}] The blue clip should be connected to a wire containing {FormatWireValue(blueTargetValues)} because {blueClipRules[blueTargetValues]}.");
 	}
 
-
+	static Type componentType;
 	static FieldInfo mWiresField;
 	static FieldInfo mTargetWireAField;
 	static FieldInfo mTargetWireBField;
 
 	const BindingFlags NonPublicInstance = BindingFlags.NonPublic | BindingFlags.Instance;
-	static ProbingLogging()
-	{
-		componentType = ReflectionHelper.FindType(typeName);
-		mWiresField = componentType?.GetField("mWires", NonPublicInstance);
-		mTargetWireAField = componentType?.GetField("mTargetWireA", NonPublicInstance);
-		mTargetWireBField = componentType?.GetField("mTargetWireB", NonPublicInstance);
-	}
 }
