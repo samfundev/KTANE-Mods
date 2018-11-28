@@ -50,8 +50,12 @@ class BombWrapper
 					{
 						ComponentValue = 6;
 					}
+
+					double totalModulesMultiplier = 0;
+					Modes.settings.TotalModulesMultiplier.TryGetValue(Modes.GetModuleID(component), out totalModulesMultiplier);
                     
-					float time = (float) (Modes.Multiplier * ComponentValue);
+					float time = (float) (Mathf.Min(Modes.Multiplier, Modes.settings.TimeModeMaxMultiplier) * (ComponentValue + Bomb.BombComponents.Count * totalModulesMultiplier));
+
 					CurrentTimer += Math.Max(Modes.settings.TimeModeMinimumTimeGained, time);
 
 					Modes.Multiplier = Modes.Multiplier + Modes.settings.TimeModeSolveBonus;
@@ -101,23 +105,14 @@ class BombWrapper
 			};
 		}
 
-		Dictionary<string, Func<BombComponent, ModuleLogging>> loggers = new Dictionary<string, Func<BombComponent, ModuleLogging>>()
+		Dictionary<string, Func<BombComponent, ModuleTweak>> moduleTweaks = new Dictionary<string, Func<BombComponent, ModuleTweak>>()
 		{
-			{ "Probing", bombComponent => new ProbingLogging(bombComponent) }
+			{ "Probing", bombComponent => new ProbingLogging(bombComponent) },
+			{ "WordScrambleModule", bombComponent => new WordScramblePatch(bombComponent) }
 		};
 
         foreach (KMBombModule component in bomb.BombComponents.Select(x => x.GetComponent<KMBombModule>()).Where(x => x != null))
         {
-            // Correct the position of the status light
-            if (component.ModuleType == "ForeignExchangeRates" || component.ModuleType == "resistors" || component.ModuleType == "CryptModule")
-            {
-                component.transform.Find("Model").transform.localPosition = new Vector3(0.004f, 0, 0);
-            }
-            else if (component.ModuleType == "TwoBits")
-            {
-                component.GetComponentInChildren<StatusLightParent>().transform.localPosition = new Vector3(0.075167f, 0.01986f, 0.076057f);
-            }
-
             switch (component.ModuleType)
             {
                 //TTK is our favorite Zen mode compatible module
@@ -125,29 +120,29 @@ class BombWrapper
                 case "TurnTheKey":
                     new TTKComponentSolver(component, bomb, Tweaks.CurrentMode.Equals(Mode.Zen) ? Modes.initialTime : timerComponent.TimeRemaining);
                     break;
-                /*case "ButtonV2":
-                    break;
-                case "theSwan":
-                    break;*/
-                default:
-                    if (component.GetComponent<BombComponent>().ComponentType == ComponentTypeEnum.Mod)
-                    {
-                        ReflectedTypes.FindModeBoolean(component);
-                    }
-                    break;
-            }
-            
-            /*if (component.GetComponent<BombComponent>().ComponentType == Assets.Scripts.Missions.ComponentTypeEnum.BigButton)
-            {
-              
-            }*/
 
-			/*
-			// Setup logging
-			if (loggers.ContainsKey(component.ModuleType))
+				// Correct the position of the status light
+				case "ForeignExchangeRates":
+				case "resistors":
+				case "CryptModule":
+				case "LEDEnc":
+					component.transform.Find("Model").transform.localPosition = new Vector3(0.004f, 0, 0);
+					break;
+				case "TwoBits":
+					component.GetComponentInChildren<StatusLightParent>().transform.localPosition = new Vector3(0.075167f, 0.01986f, 0.076057f);
+					break;
+			}
+
+			if (component.GetComponent<BombComponent>().ComponentType == ComponentTypeEnum.Mod)
 			{
-				loggers[component.ModuleType](component.GetComponent<BombComponent>());
-			}*/
+				ReflectedTypes.FindModeBoolean(component);
+			}
+
+			// Setup module tweaks
+			if (moduleTweaks.ContainsKey(component.ModuleType))
+			{
+				moduleTweaks[component.ModuleType](component.GetComponent<BombComponent>());
+			}
 		}
 	}
 

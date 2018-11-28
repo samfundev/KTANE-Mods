@@ -38,11 +38,15 @@ class ModConfig<T>
                     File.WriteAllText(SettingsPath, SerializeSettings(Activator.CreateInstance<T>()));
                 }
 				
-                T deserialized = JsonConvert.DeserializeObject<T>(File.ReadAllText(SettingsPath));
+                T deserialized = JsonConvert.DeserializeObject<T>(
+					File.ReadAllText(SettingsPath),
+					new JsonSerializerSettings { Error = (object sender, Newtonsoft.Json.Serialization.ErrorEventArgs args) => args.ErrorContext.Handled = true }
+				);
 				return deserialized != null ? deserialized : Activator.CreateInstance<T>();
             }
-            catch
+            catch(Exception e)
             {
+				Debug.LogException(e);
                 return Activator.CreateInstance<T>();
             }
         }

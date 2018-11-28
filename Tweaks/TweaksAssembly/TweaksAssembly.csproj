@@ -57,16 +57,17 @@
     <Compile Include="BetterCasePicker.cs" />
     <Compile Include="BombStatus.cs" />
     <Compile Include="GeneralExtensions.cs" />
-    <Compile Include="Logging\ProbingLogging.cs" />
-    <Compile Include="Logging\ModuleLogging.cs" />
+    <Compile Include="Modules\ProbingLogging.cs" />
+    <Compile Include="Modules\ModuleTweak.cs" />
     <Compile Include="ModSettings.cs" />
+    <Compile Include="Modules\WordScramblePatch.cs" />
     <Compile Include="PropertiesBehaviour.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReflectedTypes.cs" />
     <Compile Include="ReflectionHelper.cs" />
     <Compile Include="BombWrapper.cs" />
     <Compile Include="Modes.cs" />
-    <Compile Include="TTKComponentSolver.cs" />
+    <Compile Include="Modules\TTKComponentSolver.cs" />
     <Compile Include="Tweaks.cs" />
     <Compile Include="TweaksProperties.cs" />
   </ItemGroup>

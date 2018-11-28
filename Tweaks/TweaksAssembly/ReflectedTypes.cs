@@ -28,6 +28,9 @@ static class ReflectedTypes
 	public static MethodInfo RedLightsMethod;
 	public static FieldInfo RoomLightField;
 
+	public static FieldInfo UnloadedModsField;
+	public static FieldInfo TocsField;
+
 	public static FieldInfo IsInteractingField;
 	static Dictionary<MonoBehaviour, ModuleFields> CachedFields = new Dictionary<MonoBehaviour, ModuleFields>();
 
@@ -87,6 +90,9 @@ static class ReflectedTypes
 		PortalRoomType = ReflectionHelper.FindType("PortalRoom", "HexiBombRoom");
 		RedLightsMethod = PortalRoomType?.GetMethod("RedLight", BindingFlags.Instance | BindingFlags.Public);
 		RoomLightField = PortalRoomType?.GetField("RoomLight", BindingFlags.Instance | BindingFlags.Public);
+
+		UnloadedModsField = typeof(ModManager).GetField("unloadedMods", BindingFlags.Instance | BindingFlags.NonPublic);
+		TocsField = typeof(Mod).GetField("tocs", BindingFlags.Instance | BindingFlags.NonPublic);
 
 		IsInteractingField = typeof(InteractiveObject).GetField("isInteracting", BindingFlags.NonPublic | BindingFlags.Instance);
 	}

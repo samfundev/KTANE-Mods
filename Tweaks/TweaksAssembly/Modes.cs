@@ -77,4 +77,5 @@ class ModeSettings
 	public float TimeModeMinimumTimeLost = 15;
 	public float TimeModeMinimumTimeGained = 20;
     public Dictionary<string, double> ComponentValues = new Dictionary<string, double>();
+	public Dictionary<string, double> TotalModulesMultiplier = new Dictionary<string, double>();
 }

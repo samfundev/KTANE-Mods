@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-public abstract class ModuleLogging
+public abstract class ModuleTweak
 {
 	public static string moduleType;
 	protected static Type componentType;
@@ -9,7 +9,7 @@ public abstract class ModuleLogging
 
 	protected readonly BombComponent bombComponent = null;
 
-	public ModuleLogging(BombComponent BombComponent)
+	public ModuleTweak(BombComponent BombComponent)
 	{
 		bombComponent = BombComponent;
 	}

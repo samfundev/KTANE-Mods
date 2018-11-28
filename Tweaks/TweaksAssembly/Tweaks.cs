@@ -7,6 +7,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Assets.Scripts.Progression;
 using Assets.Scripts.Settings;
+using Assets.Scripts.BombBinder;
+using Assets.Scripts.Mods.Mission;
 
 [RequireComponent(typeof(KMService))]
 [RequireComponent(typeof(KMGameInfo))]
@@ -21,6 +23,8 @@ class Tweaks : MonoBehaviour
 	public static KMGameInfo GameInfo;
 	[HideInInspector]
 	public KMGameInfo.State CurrentState;
+
+	private HashSet<TableOfContentsMetaData> ModToCMetaData = new HashSet<TableOfContentsMetaData>();
 
 	void Awake()
 	{
@@ -50,17 +54,15 @@ class Tweaks : MonoBehaviour
 		watcher.Changed += delegate (object source, FileSystemEventArgs e)
 		{
 			if (settings.Equals(modConfig.Settings)) return;
-			
-			settings = modConfig.Settings;
-			modConfig.Settings = settings; // Write any settings that the user doesn't have in their settings file.
+
+			UpdateSettings();
 
 			StartCoroutine(ModifyFreeplayDevice(false));
 		};
 
 		UnityEngine.SceneManagement.SceneManager.sceneLoaded += delegate (Scene scene, LoadSceneMode _)
 		{
-			settings = modConfig.Settings;
-			modConfig.Settings = settings; // Write any settings that the user doesn't have in their settings file.
+			UpdateSettings();
 
 			Modes.settings = Modes.modConfig.Settings;
 			Modes.UpdateComponentValues();
@@ -130,6 +132,38 @@ class Tweaks : MonoBehaviour
 			else if (state == KMGameInfo.State.Setup)
 			{
 				StartCoroutine(ModifyFreeplayDevice(true));
+			}
+			else if (state == KMGameInfo.State.Transitioning)
+			{
+				// Because the settings are checked on a scene change and there is no scene change from exiting the gameplay room,
+				// we need to update the settings here in case the user changed their HideTOC settings.
+				UpdateSettings();
+
+				bool modified = false;
+				var ModMissionToCs = ModManager.Instance.ModMissionToCs;
+				foreach (var metaData in ModMissionToCs)
+					modified |= ModToCMetaData.Add(metaData);
+
+				var unloadedMods = (Dictionary<string, Mod>) ReflectedTypes.UnloadedModsField.GetValue(ModManager.Instance);
+				if (unloadedMods != null)
+					foreach (var unloadedMod in unloadedMods.Values)
+					{
+						var tocs = (List<ModTableOfContentsMetaData>) ReflectedTypes.TocsField.GetValue(unloadedMod);
+						if (tocs != null)
+							foreach (var metaData in tocs)
+								modified |= ModToCMetaData.Remove(metaData);
+					}
+
+				var newToCs = ModToCMetaData.Where(metaData => !settings.HideTOC.Any(pattern => metaData.DisplayName.Like(pattern)));
+				modified |= (newToCs.Count() != ModMissionToCs.Count || !newToCs.All(ModMissionToCs.Contains));
+				ModMissionToCs.Clear();
+				ModMissionToCs.AddRange(newToCs);
+				
+				if (modified)
+				{
+					SetupState.LastBombBinderTOCIndex = 0;
+					SetupState.LastBombBinderTOCPage = 0;
+				}
 			}
 		};
 	}
@@ -300,6 +334,12 @@ class Tweaks : MonoBehaviour
 		}
 	}
 
+	public static void UpdateSettings()
+	{
+		settings = modConfig.Settings;
+		modConfig.Settings = settings; // Write any settings that the user doesn't have in their settings file.
+	}
+
 	void OnApplicationQuit()
 	{
 		//Debug.LogFormat("[Tweaks] [OnApplicationQuit] Found output_log: {0}", File.Exists(Path.Combine(Application.dataPath, "output_log.txt")));
@@ -340,6 +380,7 @@ class TweakSettings
 	public bool FixFER = false;
 	public bool BombHUD = false;
 	public bool ShowEdgework = false;
+	public List<string> HideTOC = new List<string>();
     public Mode Mode = Mode.Normal;
 
     public override bool Equals(object obj)
@@ -352,6 +393,7 @@ class TweakSettings
 			   FixFER == settings.FixFER &&
 			   BombHUD == settings.BombHUD &&
 			   ShowEdgework == settings.ShowEdgework &&
+			   HideTOC == settings.HideTOC &&
 			   Mode == settings.Mode;
 	}
 
@@ -364,6 +406,7 @@ class TweakSettings
 		hashCode = hashCode * -1521134295 + FixFER.GetHashCode();
 		hashCode = hashCode * -1521134295 + BombHUD.GetHashCode();
 		hashCode = hashCode * -1521134295 + ShowEdgework.GetHashCode();
+		hashCode = hashCode * -1521134295 + HideTOC.GetHashCode();
 		hashCode = hashCode * -1521134295 + Mode.GetHashCode();
 		return hashCode;
 	}
