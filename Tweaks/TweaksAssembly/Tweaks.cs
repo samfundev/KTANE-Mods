@@ -121,6 +121,7 @@ class Tweaks : MonoBehaviour
 
 				if (settings.BetterCasePicker) BetterCasePicker.PickCase();
 
+				BombStatus.Instance.widgetsActivated = false;
 				BombStatus.Instance.HUD.SetActive(settings.BombHUD);
 				BombStatus.Instance.Edgework.SetActive(settings.ShowEdgework);
 				BombStatus.Instance.ConfidencePrefab.gameObject.SetActive(CurrentMode != Mode.Zen);
