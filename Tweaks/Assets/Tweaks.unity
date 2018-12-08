@@ -160,7 +160,7 @@ Prefab:
     - target: {fileID: 224402699892339930, guid: 0fd7ca0e6bc4a0845b0a528449bd7ebb,
         type: 2}
       propertyPath: m_AnchoredPosition.x
-      value: 52.988243
+      value: 52.635307
       objectReference: {fileID: 0}
     - target: {fileID: 224402699892339930, guid: 0fd7ca0e6bc4a0845b0a528449bd7ebb,
         type: 2}
@@ -170,7 +170,7 @@ Prefab:
     - target: {fileID: 224402699892339930, guid: 0fd7ca0e6bc4a0845b0a528449bd7ebb,
         type: 2}
       propertyPath: m_SizeDelta.x
-      value: 105.97649
+      value: 105.270615
       objectReference: {fileID: 0}
     - target: {fileID: 224402699892339930, guid: 0fd7ca0e6bc4a0845b0a528449bd7ebb,
         type: 2}
@@ -190,7 +190,7 @@ Prefab:
     - target: {fileID: 224105445635435588, guid: 0fd7ca0e6bc4a0845b0a528449bd7ebb,
         type: 2}
       propertyPath: m_AnchoredPosition.x
-      value: 202.49118
+      value: 202.50522
       objectReference: {fileID: 0}
     - target: {fileID: 224105445635435588, guid: 0fd7ca0e6bc4a0845b0a528449bd7ebb,
         type: 2}
@@ -200,7 +200,7 @@ Prefab:
     - target: {fileID: 224105445635435588, guid: 0fd7ca0e6bc4a0845b0a528449bd7ebb,
         type: 2}
       propertyPath: m_SizeDelta.x
-      value: 193.02939
+      value: 194.46922
       objectReference: {fileID: 0}
     - target: {fileID: 224105445635435588, guid: 0fd7ca0e6bc4a0845b0a528449bd7ebb,
         type: 2}
@@ -220,7 +220,7 @@ Prefab:
     - target: {fileID: 224457273748233086, guid: 0fd7ca0e6bc4a0845b0a528449bd7ebb,
         type: 2}
       propertyPath: m_AnchoredPosition.x
-      value: 366.50293
+      value: 366.86993
       objectReference: {fileID: 0}
     - target: {fileID: 224457273748233086, guid: 0fd7ca0e6bc4a0845b0a528449bd7ebb,
         type: 2}
@@ -230,7 +230,7 @@ Prefab:
     - target: {fileID: 224457273748233086, guid: 0fd7ca0e6bc4a0845b0a528449bd7ebb,
         type: 2}
       propertyPath: m_SizeDelta.x
-      value: 134.99413
+      value: 134.26016
       objectReference: {fileID: 0}
     - target: {fileID: 224457273748233086, guid: 0fd7ca0e6bc4a0845b0a528449bd7ebb,
         type: 2}

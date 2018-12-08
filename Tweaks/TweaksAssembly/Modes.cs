@@ -24,15 +24,6 @@ static class Modes
 		public int moduleScore;
 	}
 	#pragma warning restore 649
-	
-	public static void UpdateComponentValues()
-	{
-		foreach (KMGameInfo.KMModuleInfo info in Tweaks.GameInfo.GetAvailableModuleInfo())
-		{
-			if (!settings.ComponentValues.ContainsKey(info.ModuleId))
-				settings.ComponentValues[info.ModuleId] = 6;
-		}
-	}
 
 	public static string GetModuleID(BombComponent bombComponent)
 	{

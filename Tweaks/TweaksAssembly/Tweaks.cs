@@ -65,7 +65,6 @@ class Tweaks : MonoBehaviour
 			UpdateSettings();
 
 			Modes.settings = Modes.modConfig.Settings;
-			Modes.UpdateComponentValues();
 			Modes.modConfig.Settings = Modes.settings;
 			
 			if ((scene.name == "mainScene" || scene.name == "gameplayScene") && changeFadeTime) SceneManager.Instance.RapidFadeInTime = settings.FadeTime;
