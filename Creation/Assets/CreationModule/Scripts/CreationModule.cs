@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using BombInfoExtensions;
 using System.Linq;
+using Random = UnityEngine.Random;
 
 public class CreationModule : MonoBehaviour
 {
@@ -21,8 +22,6 @@ public class CreationModule : MonoBehaviour
 
     static int idCounter = 1;
     int moduleID;
-
-    static System.Random rnd = new System.Random();
 
     KMSelectable ModuleSelectable = null;
     int Day = 1;
@@ -89,7 +88,7 @@ public class CreationModule : MonoBehaviour
     float dx = 0;
     IEnumerator UpdateDisplay()
     {
-        int multiplier = rnd.Next(4, 5);
+		int multiplier = Random.Range(4, 8);
 
         float i = 0;
         float weatherx = wx;
@@ -137,10 +136,10 @@ public class CreationModule : MonoBehaviour
 
     void RandomizeWeather()
     {
-        string weather = Weathers[rnd.Next(Weathers.Count)];
+        string weather = Weathers[Random.Range(0, Weathers.Count)];
         while (weather == Weather)
         {
-            weather = Weathers[rnd.Next(Weathers.Count)];
+            weather = Weathers[Random.Range(0, Weathers.Count)];
         }
         DebugMsg("It's now Day " + Day + ". The current weather conditions are " + weather + ".");
         
@@ -441,7 +440,7 @@ public class CreationModule : MonoBehaviour
         Permutation = -1;
         foreach (GameObject element in BaseElements)
         {
-            var other = BaseElements[rnd.Next(BaseElements.Count)].GetComponent<Renderer>();
+            var other = BaseElements[Random.Range(0, BaseElements.Count)].GetComponent<Renderer>();
             var temp = element.GetComponent<Renderer>().sharedMaterial;
             element.GetComponent<Renderer>().sharedMaterial = other.sharedMaterial;
             other.sharedMaterial = temp;
