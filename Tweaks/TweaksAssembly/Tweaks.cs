@@ -196,7 +196,7 @@ class Tweaks : MonoBehaviour
 			controller.QueuePlaylistClip(controller.CurrentPlaylist.MusicSettings[0].songName, true);
 		}
 
-		if (ReflectedTypes.FactoryRoomType != null && ReflectedTypes.FiniteSequenceModeType != null)
+		if (ReflectedTypes.FactoryRoomType != null && ReflectedTypes.StaticModeType != null)
 		{
 			UnityEngine.Object factoryRoom = FindObjectOfType(ReflectedTypes.FactoryRoomType);
 			if (factoryRoom)
@@ -209,7 +209,7 @@ class Tweaks : MonoBehaviour
 				}
 
 				object gameMode = ReflectedTypes.GameModeProperty.GetValue(factoryRoom, null);
-				if (ReflectedTypes.FiniteSequenceModeType.IsAssignableFrom(gameMode.GetType()))
+				if (ReflectedTypes.StaticModeType != gameMode.GetType())
 				{
 					IEnumerable<object> adaptations = ((IEnumerable) ReflectedTypes.AdaptationsProperty.GetValue(gameMode, null)).Cast<object>();
 					bool globalTimerDisabled = !adaptations.Any(adaptation => ReflectedTypes.GlobalTimerAdaptationType.IsAssignableFrom(adaptation.GetType()));
