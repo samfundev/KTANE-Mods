@@ -386,7 +386,7 @@ public class CreationModule : MonoBehaviour
             Solved = true;
 
             Halo.transform.localPosition = new Vector3(0, 4, 0);
-            Halo.GetComponent<Light>().range = 0.2f;
+            Halo.GetComponent<Light>().range = transform.lossyScale.x * 0.2f;
 
             i = 0.01f;
             while (i < 1)
@@ -458,6 +458,8 @@ public class CreationModule : MonoBehaviour
     void Start()
     {
         moduleID = idCounter++;
+
+		Halo.GetComponent<Light>().range *= transform.lossyScale.x;
         
         ModuleSelectable = gameObject.GetComponent<KMSelectable>();
         foreach (Material mat in Data.Icons)
