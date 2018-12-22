@@ -63,4 +63,26 @@ public static class GeneralExtensions
 			RegexOptions.IgnoreCase | RegexOptions.Singleline
 		).IsMatch(str);
 	}
+
+	public static void EnsureModHighlightable(this KMSelectable selectable)
+	{
+		KMHighlightable highlightable = selectable.Highlight;
+		if (highlightable != null)
+		{
+			ModHighlightable modHighlightable = highlightable.GetComponent<ModHighlightable>();
+			if (modHighlightable == null)
+			{
+				highlightable.gameObject.AddComponent<ModHighlightable>();
+			}
+		}
+	}
+
+	public static void Reproxy(this KMSelectable selectable)
+	{
+		ModSelectable modSelectable = selectable.GetComponent<ModSelectable>();
+		if (modSelectable != null)
+		{
+			modSelectable.CopySettingsFromProxy();
+		}
+	}
 }

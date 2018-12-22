@@ -42,6 +42,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="UnityEditor">
       <HintPath>C:\Program Files\Unity\Editor\Data\Managed\UnityEditor.dll</HintPath>
       <Private>False</Private>
@@ -64,6 +65,8 @@
     <Compile Include="Modules\EmojiMathLogging.cs" />
     <Compile Include="Modules\SwitchesLogging.cs" />
     <Compile Include="Modules\ModuleTweak.cs" />
+    <Compile Include="ModSelectorExtension.cs" />
+    <Compile Include="SettingsPage.cs" />
     <Compile Include="ModSettings.cs" />
     <Compile Include="Modules\WordScramblePatch.cs" />
     <Compile Include="PropertiesBehaviour.cs" />

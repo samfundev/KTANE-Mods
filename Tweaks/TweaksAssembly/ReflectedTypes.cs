@@ -12,6 +12,7 @@ static class ReflectedTypes
 	public static FieldInfo _SizeField = typeof(List<Transform>).GetField("_size", BindingFlags.Instance | BindingFlags.NonPublic);
 
 	public static FieldInfo GameRecordCurrentStrikeIndexField = typeof(GameRecord).GetField("currentStrikeIndex", BindingFlags.NonPublic | BindingFlags.Instance);
+	public static FieldInfo HighlightField = typeof(Highlightable).GetField("highlight", BindingFlags.NonPublic | BindingFlags.Instance);
 	public static PropertyInfo SubmitFieldProperty = typeof(LeaderboardListRequest).GetProperty("SubmitScore", BindingFlags.Public | BindingFlags.Instance);
 	public static FieldInfo InstanceField = typeof(AbstractServices).GetField("instance", BindingFlags.NonPublic | BindingFlags.Static);
 

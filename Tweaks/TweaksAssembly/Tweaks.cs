@@ -171,6 +171,7 @@ class Tweaks : MonoBehaviour
 				}
 
 				StartCoroutine(ModifyFreeplayDevice(true));
+				GetComponentInChildren<ModSelectorExtension>().FindAPI();
 			}
 			else if (state == KMGameInfo.State.Transitioning)
 			{
@@ -206,6 +207,77 @@ class Tweaks : MonoBehaviour
 			}
 		};
 	}
+
+	// TODO: Remove this
+	/*
+	Vector2 scrollPosition;
+	Vector2 scrollPosition2;
+	GameObject inspecting;
+	Dictionary<GameObject, bool> ExpandedObjects = new Dictionary<GameObject, bool>();
+	void OnGUI()
+	{
+		GUILayout.BeginHorizontal();
+		scrollPosition = GUILayout.BeginScrollView(scrollPosition);
+		foreach (GameObject root in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())
+		{
+			DisplayChildren(root);
+		}
+		GUILayout.EndScrollView();
+
+		if (inspecting)
+		{
+			scrollPosition2 = GUILayout.BeginScrollView(scrollPosition2);
+			foreach (Component component in inspecting.GetComponents<Component>())
+			{
+				GUILayout.Label(component.GetType().Name);
+				foreach (System.Reflection.FieldInfo fieldInfo in component.GetType().GetFields())
+				{
+					if (typeof(Array).IsAssignableFrom(fieldInfo.FieldType))
+					{
+						try
+						{
+							foreach (object obj in (Array) fieldInfo.GetValue(component))
+							{
+								GUILayout.Label("    * " + obj);
+							}
+						} catch { }
+					}
+					else
+					{
+						GUILayout.Label(" - " + fieldInfo.Name + " = " + fieldInfo.GetValue(component));
+					}
+				}
+			}
+			GUILayout.EndScrollView();
+		}
+		GUILayout.EndHorizontal();
+	}
+
+	void DisplayChildren(GameObject gameObj)
+	{
+		GUILayout.BeginHorizontal();
+		ExpandedObjects.TryGetValue(gameObj, out bool expanded);
+		expanded = GUILayout.Toggle(expanded, gameObj.name + (gameObj.activeInHierarchy ? " [E]" : " [X]"));
+		ExpandedObjects[gameObj] = expanded;
+
+		if (GUILayout.Button("Inspect")) inspecting = gameObj;
+		GUILayout.EndHorizontal();
+
+		if (!expanded) return;
+
+		GUILayout.BeginHorizontal();
+		GUILayout.Space(10);
+		GUILayout.BeginVertical();
+		foreach (Transform child in gameObj.transform)
+		{
+			GameObject childObj = child.gameObject;
+
+			DisplayChildren(childObj);
+		}
+
+		GUILayout.EndVertical();
+		GUILayout.EndHorizontal();
+	}*/
 
 	public static BombWrapper[] bombWrappers = new BombWrapper[] { };
 
@@ -413,7 +485,7 @@ class Tweaks : MonoBehaviour
 
 	void LogChildren(Transform goTransform, int depth = 0)
 	{
-		Log($"{new String('\t', depth)}{goTransform.name} - {goTransform.localPosition.ToString("N6")}");
+		Log($"{new string('\t', depth)}{goTransform.name} - {goTransform.localPosition.ToString("N6")}");
 		foreach (Transform child in goTransform)
 		{
 			LogChildren(child, depth + 1);
@@ -452,6 +524,7 @@ class TweakSettings
 	public Mode Mode = Mode.Normal;
 	public bool CaseGenerator = true;
 	public List<string> CaseColors = new List<string>();
+	public HashSet<string> PinnedSettings = new HashSet<string>();
 
 	public override bool Equals(object obj)
 	{
@@ -465,15 +538,17 @@ class TweakSettings
 			   HideTOC.SequenceEqual(settings.HideTOC) &&
 			   Mode == settings.Mode &&
 			   CaseGenerator == settings.CaseGenerator &&
-			   CaseColors.SequenceEqual(settings.CaseColors);
+			   CaseColors.SequenceEqual(settings.CaseColors) &&
+			   PinnedSettings.SequenceEqual(settings.PinnedSettings);
 	}
 
 	public override int GetHashCode()
 	{
-		var hashCode = -1862006898;
+		var hashCode = -1948346948;
 		hashCode = hashCode * -1521134295 + FadeTime.GetHashCode();
 		hashCode = hashCode * -1521134295 + InstantSkip.GetHashCode();
 		hashCode = hashCode * -1521134295 + BetterCasePicker.GetHashCode();
+		hashCode = hashCode * -1521134295 + EnableModsOnlyKey.GetHashCode();
 		hashCode = hashCode * -1521134295 + FixFER.GetHashCode();
 		hashCode = hashCode * -1521134295 + BombHUD.GetHashCode();
 		hashCode = hashCode * -1521134295 + ShowEdgework.GetHashCode();
@@ -481,6 +556,7 @@ class TweakSettings
 		hashCode = hashCode * -1521134295 + Mode.GetHashCode();
 		hashCode = hashCode * -1521134295 + CaseGenerator.GetHashCode();
 		hashCode = hashCode * -1521134295 + CaseColors.GetHashCode();
+		hashCode = hashCode * -1521134295 + PinnedSettings.GetHashCode();
 		return hashCode;
 	}
 }
