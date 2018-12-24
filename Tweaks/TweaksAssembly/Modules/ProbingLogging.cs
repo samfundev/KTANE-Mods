@@ -30,7 +30,7 @@ public class ProbingLogging : ModuleTweak
 	// Depending on the value in the target wire, we can deduce the rule used for both clips.
 	Dictionary<WireValues, string> redClipRules = new Dictionary<WireValues, string>()
 	{
-		{ WireValues.A | WireValues.B | WireValues.D, "the red and white wire contains 55 Hz" },
+		{ WireValues.A | WireValues.B | WireValues.D, "the red and white wire contains 50 Hz" },
 		{ WireValues.B | WireValues.C | WireValues.D, "the red and yellow wire doesn't contain 10 Hz" },
 		{ WireValues.A | WireValues.B | WireValues.C, "the other two conditions didn't apply" }
 	};

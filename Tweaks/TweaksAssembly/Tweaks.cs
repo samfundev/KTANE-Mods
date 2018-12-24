@@ -174,17 +174,20 @@ class Tweaks : MonoBehaviour
 		yield return new WaitUntil(() => (SceneManager.Instance.GameplayState.Bombs != null && SceneManager.Instance.GameplayState.Bombs.Count > 0));
 		List<Bomb> bombs = SceneManager.Instance.GameplayState.Bombs;
 
-		Array.Resize(ref bombWrappers, bombs.Count);
-
-		for (int i = 0; i < bombs.Count; i++)
+		void wrapInitialBombs()
 		{
-			Bomb bomb = bombs[i];
-			BombWrapper bombWrapper = new BombWrapper(bomb);
-			bombWrappers[i] = bombWrapper;
-			bombWrapper.holdable.OnLetGo += delegate () { BombStatus.Instance.currentBomb = null; };
+			Array.Resize(ref bombWrappers, bombs.Count);
 
-			if (CurrentMode == Mode.Time) bombWrapper.CurrentTimer = Modes.settings.TimeModeStartingTime * 60;
-			else if (CurrentMode == Mode.Zen) bombWrapper.CurrentTimer = 0.001f;
+			for (int i = 0; i < bombs.Count; i++)
+			{
+				Bomb bomb = bombs[i];
+				BombWrapper bombWrapper = new BombWrapper(bomb);
+				bombWrappers[i] = bombWrapper;
+				bombWrapper.holdable.OnLetGo += delegate () { BombStatus.Instance.currentBomb = null; };
+
+				if (CurrentMode == Mode.Time) bombWrapper.CurrentTimer = Modes.settings.TimeModeStartingTime * 60;
+				else if (CurrentMode == Mode.Zen) bombWrapper.CurrentTimer = 0.001f;
+			}
 		}
 
 		if (CurrentMode == Mode.Zen)
@@ -219,14 +222,10 @@ class Tweaks : MonoBehaviour
 					yield return new WaitUntil(() => getBomb() != null || factoryRoom == null);
 					Component currentBomb = getBomb();
 
+					Array.Resize(ref bombWrappers, 1);
+
 					while (currentBomb != null && factoryRoom != null)
 					{
-						yield return new WaitUntil(() => currentBomb != getBomb() || factoryRoom == null);
-
-						currentBomb = getBomb();
-
-						if (currentBomb == null || factoryRoom == null) break;
-					
 						BombWrapper bombWrapper = new BombWrapper(currentBomb.GetComponent<Bomb>());
 						bombWrappers[0] = bombWrapper;
 						bombWrapper.holdable.OnLetGo += delegate () { BombStatus.Instance.currentBomb = null; };
@@ -238,7 +237,17 @@ class Tweaks : MonoBehaviour
 							else if (CurrentMode == Mode.Zen)
 								bombWrapper.CurrentTimer = 0.001f;
 						}
+
+						yield return new WaitUntil(() => currentBomb != getBomb() || factoryRoom == null);
+
+						currentBomb = getBomb();
+
+						if (currentBomb == null || factoryRoom == null) break;
 					}
+				}
+				else
+				{
+					wrapInitialBombs();
 				}
 
 				yield break;
@@ -246,6 +255,8 @@ class Tweaks : MonoBehaviour
 		}
 
 		// This code only runs if we aren't in the Factory room.
+		wrapInitialBombs();
+
 		SceneManager.Instance.GameplayState.Room.PacingActions.RemoveAll(pacingAction => pacingAction.EventType == Assets.Scripts.Pacing.PaceEvent.OneMinuteLeft);
 		UnityEngine.Object portalRoom = null;
 		if (ReflectedTypes.PortalRoomType != null && ReflectedTypes.RedLightsMethod != null && ReflectedTypes.RoomLightField != null)
@@ -344,10 +355,7 @@ class Tweaks : MonoBehaviour
 		//Debug.LogFormat("[Tweaks] [OnApplicationQuit] Found output_log: {0}", File.Exists(Path.Combine(Application.dataPath, "output_log.txt")));
 	}
 
-	public static void Log(object format, params object[] args)
-	{
-		Debug.LogFormat("[Tweaks] " + format, args);
-	}
+	public static void Log(params object[] args) => Debug.Log("[Tweaks] " + args.Select(Convert.ToString).Join(" "));
 
 	static void ExecOnDescendants(GameObject gameObj, Action<GameObject> func)
 	{
@@ -362,7 +370,7 @@ class Tweaks : MonoBehaviour
 
 	void LogChildren(Transform goTransform, int depth = 0)
 	{
-		Log("{2}{0} - {1}", goTransform.name, goTransform.localPosition.ToString("N6"), new String('\t', depth));
+		Log($"{new String('\t', depth)}{goTransform.name} - {goTransform.localPosition.ToString("N6")}");
 		foreach (Transform child in goTransform)
 		{
 			LogChildren(child, depth + 1);
@@ -392,7 +400,7 @@ class TweakSettings
 			   FixFER == settings.FixFER &&
 			   BombHUD == settings.BombHUD &&
 			   ShowEdgework == settings.ShowEdgework &&
-			   HideTOC == settings.HideTOC &&
+			   HideTOC.SequenceEqual(settings.HideTOC) &&
 			   Mode == settings.Mode;
 	}
 

@@ -76,7 +76,7 @@ static class ReflectedTypes
 		FactoryGameModeType = ReflectionHelper.FindType("FactoryAssembly.FactoryGameMode");
 		StaticModeType = ReflectionHelper.FindType("FactoryAssembly.StaticMode");
 		GameModeProperty = FactoryRoomType?.GetProperty("GameMode", BindingFlags.NonPublic | BindingFlags.Instance);
-		_CurrentBombField = StaticModeType?.GetField("_currentBomb", BindingFlags.NonPublic | BindingFlags.Instance);
+		_CurrentBombField = ReflectionHelper.FindType("FactoryAssembly.FiniteSequenceMode")?.GetField("_currentBomb", BindingFlags.NonPublic | BindingFlags.Instance);
 		FactoryRoomDataType = ReflectionHelper.FindType("FactoryAssembly.FactoryRoomData");
 		WarningTimeField = FactoryRoomDataType?.GetField("WarningTime", BindingFlags.Public | BindingFlags.Instance);
 
