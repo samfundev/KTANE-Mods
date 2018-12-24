@@ -7,7 +7,7 @@ using System.Linq;
 
 class BombWrapper
 {
-	Dictionary<Mode, Color> ModeColors = new Dictionary<Mode, Color>()
+	readonly Dictionary<Mode, Color> ModeColors = new Dictionary<Mode, Color>()
 	{
 		{ Mode.Normal, Color.red },
 		{ Mode.Zen, Color.cyan },
@@ -33,8 +33,8 @@ class BombWrapper
 			timerComponent.SetRateModifier(ZenModeTimerRate);
             Modes.initialTime = timerComponent.TimeRemaining;
 
-            //This was in the original code to make sure the bomb didn't explode on the first strike
-            bomb.NumStrikesToLose += 1;
+			//This was in the original code to make sure the bomb didn't explode on the first strike
+			bomb.NumStrikesToLose++;
 		}
 
 		foreach (BombComponent component in Bomb.BombComponents)
@@ -45,20 +45,18 @@ class BombWrapper
 
 				if (Tweaks.CurrentMode == Mode.Time)
 				{
-					double ComponentValue;
-					if (!Modes.settings.ComponentValues.TryGetValue(Modes.GetModuleID(component), out ComponentValue))
+					if (!Modes.settings.ComponentValues.TryGetValue(Modes.GetModuleID(component), out double ComponentValue))
 					{
 						ComponentValue = 6;
 					}
 
-					double totalModulesMultiplier = 0;
-					Modes.settings.TotalModulesMultiplier.TryGetValue(Modes.GetModuleID(component), out totalModulesMultiplier);
-                    
+					Modes.settings.TotalModulesMultiplier.TryGetValue(Modes.GetModuleID(component), out double totalModulesMultiplier);
+
 					float time = (float) (Mathf.Min(Modes.Multiplier, Modes.settings.TimeModeMaxMultiplier) * (ComponentValue + Bomb.BombComponents.Count * totalModulesMultiplier));
 
 					CurrentTimer += Math.Max(Modes.settings.TimeModeMinimumTimeGained, time);
 
-					Modes.Multiplier = Modes.Multiplier + Modes.settings.TimeModeSolveBonus;
+					Modes.Multiplier += Modes.settings.TimeModeSolveBonus;
 				}
 
 				return false;
@@ -69,7 +67,7 @@ class BombWrapper
                 //Ideally, catch this before the strikes are recorded
                 if (Tweaks.CurrentMode == Mode.Zen)
                 {
-                    bomb.NumStrikesToLose += 1;
+					bomb.NumStrikesToLose++;
 
 					ZenModeTimerRate = Mathf.Max(ZenModeTimerRate - Mathf.Abs(Modes.settings.ZenModeTimerSpeedUp), -Mathf.Abs(Modes.settings.ZenModeTimerMaxSpeed));
                     timerComponent.SetRateModifier(ZenModeTimerRate);
@@ -203,7 +201,7 @@ class BombWrapper
 	public string CurrentTimerFormatted => timerComponent.GetFormattedTime(CurrentTimer, true);
 
 	public string StartingTimerFormatted => timerComponent.GetFormattedTime(bombStartingTimer, true);
-	
+
 	public string GetFullFormattedTime => Math.Max(CurrentTimer, 0).FormatTime();
 
 	public string GetFullStartingTime => Math.Max(bombStartingTimer, 0).FormatTime();

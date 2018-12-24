@@ -62,7 +62,7 @@ static class BetterCasePicker
 			}
 
 			var validBombCases = bombcases.Where(pair => pair.Value >= componentCount);
-			var minBombCases = validBombCases.Count() == 0 ?
+			var minBombCases = !validBombCases.Any() ?
 				bombcases.Where(pair => pair.Value == bombcases.Max(pair2 => pair2.Value)) :
 				validBombCases.Where(pair => pair.Value == validBombCases.Min(pair2 => pair2.Value));
 

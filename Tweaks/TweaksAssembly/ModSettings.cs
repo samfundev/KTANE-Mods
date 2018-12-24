@@ -12,8 +12,8 @@ class ModConfig<T>
         _filename = name;
     }
 
-    string _filename = null;
-    
+	readonly string _filename = null;
+
     string SettingsPath
     {
         get
@@ -37,7 +37,7 @@ class ModConfig<T>
 				{
                     File.WriteAllText(SettingsPath, SerializeSettings(Activator.CreateInstance<T>()));
                 }
-				
+
                 T deserialized = JsonConvert.DeserializeObject<T>(
 					File.ReadAllText(SettingsPath),
 					new JsonSerializerSettings { Error = (object sender, Newtonsoft.Json.Serialization.ErrorEventArgs args) => args.ErrorContext.Handled = true }

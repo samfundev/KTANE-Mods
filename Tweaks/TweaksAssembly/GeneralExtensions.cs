@@ -47,7 +47,7 @@ public static class GeneralExtensions
 
     public static IEnumerable<T> Shuffle<T>(this IEnumerable<T> source)
     {
-        return source.OrderBy(x => UnityEngine.Random.value);
+        return source.OrderBy(_ => UnityEngine.Random.value);
     }
 
 	/// <summary>

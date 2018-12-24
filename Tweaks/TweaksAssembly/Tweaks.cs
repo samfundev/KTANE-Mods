@@ -24,7 +24,7 @@ class Tweaks : MonoBehaviour
 	[HideInInspector]
 	public KMGameInfo.State CurrentState;
 
-	private HashSet<TableOfContentsMetaData> ModToCMetaData = new HashSet<TableOfContentsMetaData>();
+	private readonly HashSet<TableOfContentsMetaData> ModToCMetaData = new HashSet<TableOfContentsMetaData>();
 
 	void Awake()
 	{
@@ -33,7 +33,7 @@ class Tweaks : MonoBehaviour
 		modConfig.Settings = settings; // Write any settings that the user doesn't have in their settings file.
 
 		bool changeFadeTime = settings.FadeTime >= 0;
-		
+
 		FreeplayDevice.MAX_SECONDS_TO_SOLVE = float.MaxValue;
 		FreeplayDevice.MIN_MODULE_COUNT = 1;
 
@@ -49,9 +49,11 @@ class Tweaks : MonoBehaviour
 		infoObject.transform.parent = gameObject.transform;
 
 		// Watch the TweakSettings file for Time Mode state being changed in the office.
-		FileSystemWatcher watcher = new FileSystemWatcher(Path.Combine(Application.persistentDataPath, "Modsettings"), "TweakSettings.json");
-		watcher.NotifyFilter = NotifyFilters.LastWrite;
-		watcher.Changed += delegate (object source, FileSystemEventArgs e)
+		FileSystemWatcher watcher = new FileSystemWatcher(Path.Combine(Application.persistentDataPath, "Modsettings"), "TweakSettings.json")
+		{
+			NotifyFilter = NotifyFilters.LastWrite
+		};
+		watcher.Changed += (object source, FileSystemEventArgs e) =>
 		{
 			if (settings.Equals(modConfig.Settings)) return;
 
@@ -60,13 +62,13 @@ class Tweaks : MonoBehaviour
 			StartCoroutine(ModifyFreeplayDevice(false));
 		};
 
-		UnityEngine.SceneManagement.SceneManager.sceneLoaded += delegate (Scene scene, LoadSceneMode _)
+		UnityEngine.SceneManagement.SceneManager.sceneLoaded += (Scene scene, LoadSceneMode _) =>
 		{
 			UpdateSettings();
 
 			Modes.settings = Modes.modConfig.Settings;
 			Modes.modConfig.Settings = Modes.settings;
-			
+
 			if ((scene.name == "mainScene" || scene.name == "gameplayScene") && changeFadeTime) SceneManager.Instance.RapidFadeInTime = settings.FadeTime;
 
 			switch (scene.name)
@@ -91,8 +93,7 @@ class Tweaks : MonoBehaviour
 
 					ReflectedTypes.UpdateTypes();
 
-					if (ReflectedTypes.CurrencyAPIEndpointField != null)
-						ReflectedTypes.CurrencyAPIEndpointField.SetValue(null, settings.FixFER ? "http://api.exchangeratesapi.io" : "http://api.fixer.io");
+					ReflectedTypes.CurrencyAPIEndpointField?.SetValue(null, settings.FixFER ? "http://api.exchangeratesapi.io" : "http://api.fixer.io");
 
 					break;
 				case "gameplayScene":
@@ -105,8 +106,8 @@ class Tweaks : MonoBehaviour
 					break;
 			}
 		};
-		
-		GameInfo.OnStateChange += delegate (KMGameInfo.State state)
+
+		GameInfo.OnStateChange += (KMGameInfo.State state) =>
 		{
 			CurrentState = state;
 			watcher.EnableRaisingEvents = state == KMGameInfo.State.Setup;
@@ -119,7 +120,7 @@ class Tweaks : MonoBehaviour
 				Assets.Scripts.Records.RecordManager.Instance.DisableBestRecords = disableRecords;
 
 				if (settings.BetterCasePicker) BetterCasePicker.PickCase();
-				
+
 				BombStatus.Instance.HUD.SetActive(settings.BombHUD);
 				BombStatus.Instance.Edgework.SetActive(settings.ShowEdgework);
 				BombStatus.Instance.ConfidencePrefab.gameObject.SetActive(CurrentMode != Mode.Zen);
@@ -157,7 +158,7 @@ class Tweaks : MonoBehaviour
 				modified |= (newToCs.Count() != ModMissionToCs.Count || !newToCs.All(ModMissionToCs.Contains));
 				ModMissionToCs.Clear();
 				ModMissionToCs.AddRange(newToCs);
-				
+
 				if (modified)
 				{
 					SetupState.LastBombBinderTOCIndex = 0;
@@ -171,7 +172,7 @@ class Tweaks : MonoBehaviour
 
 	public IEnumerator CheckForBombs()
 	{
-		yield return new WaitUntil(() => (SceneManager.Instance.GameplayState.Bombs != null && SceneManager.Instance.GameplayState.Bombs.Count > 0));
+		yield return new WaitUntil(() => (SceneManager.Instance.GameplayState.Bombs?.Count > 0));
 		List<Bomb> bombs = SceneManager.Instance.GameplayState.Bombs;
 
 		void wrapInitialBombs()
@@ -183,7 +184,7 @@ class Tweaks : MonoBehaviour
 				Bomb bomb = bombs[i];
 				BombWrapper bombWrapper = new BombWrapper(bomb);
 				bombWrappers[i] = bombWrapper;
-				bombWrapper.holdable.OnLetGo += delegate () { BombStatus.Instance.currentBomb = null; };
+				bombWrapper.holdable.OnLetGo += () => BombStatus.Instance.currentBomb = null;
 
 				if (CurrentMode == Mode.Time) bombWrapper.CurrentTimer = Modes.settings.TimeModeStartingTime * 60;
 				else if (CurrentMode == Mode.Zen) bombWrapper.CurrentTimer = 0.001f;
@@ -217,7 +218,7 @@ class Tweaks : MonoBehaviour
 					IEnumerable<object> adaptations = ((IEnumerable) ReflectedTypes.AdaptationsProperty.GetValue(gameMode, null)).Cast<object>();
 					bool globalTimerDisabled = !adaptations.Any(adaptation => ReflectedTypes.GlobalTimerAdaptationType.IsAssignableFrom(adaptation.GetType()));
 
-					Func<Component> getBomb = () => (Component) ReflectedTypes._CurrentBombField.GetValue(gameMode);
+					Component getBomb() => (Component) ReflectedTypes._CurrentBombField.GetValue(gameMode);
 
 					yield return new WaitUntil(() => getBomb() != null || factoryRoom == null);
 					Component currentBomb = getBomb();
@@ -228,7 +229,7 @@ class Tweaks : MonoBehaviour
 					{
 						BombWrapper bombWrapper = new BombWrapper(currentBomb.GetComponent<Bomb>());
 						bombWrappers[0] = bombWrapper;
-						bombWrapper.holdable.OnLetGo += delegate () { BombStatus.Instance.currentBomb = null; };
+						bombWrapper.holdable.OnLetGo += () => BombStatus.Instance.currentBomb = null;
 
 						if (globalTimerDisabled)
 						{
@@ -300,7 +301,7 @@ class Tweaks : MonoBehaviour
 			yield return null;
 		}
 	}
-    
+
 	static float originalTime = 300;
 	public static IEnumerator ModifyFreeplayDevice(bool firstTime)
 	{
@@ -314,14 +315,14 @@ class Tweaks : MonoBehaviour
 				if (gameObj.name == "FreeplayLabel" || gameObj.name == "Free Play Label")
 					gameObj.GetComponent<TMPro.TextMeshPro>().text = CurrentMode == Mode.Normal ? "free play" : $"{CurrentMode.ToString()} mode";
 			});
-			
+
 			freeplayDevice.CurrentSettings.Time = CurrentMode == Mode.Time ? Modes.settings.TimeModeStartingTime * 60 : originalTime;
 			TimeSpan timeSpan = TimeSpan.FromSeconds(freeplayDevice.CurrentSettings.Time);
 			freeplayDevice.TimeText.text = string.Format("{0}:{1:00}", (int) timeSpan.TotalMinutes, timeSpan.Seconds);
 
 			if (!firstTime) yield break;
 			if (CurrentMode == Mode.Normal) originalTime = freeplayDevice.CurrentSettings.Time;
-			
+
 			freeplayDevice.TimeIncrement.OnPush += delegate { ReflectedTypes.IsInteractingField.SetValue(freeplayDevice.TimeIncrement, true); };
 			freeplayDevice.TimeIncrement.OnInteractEnded += delegate
 			{
@@ -392,8 +393,7 @@ class TweakSettings
 
     public override bool Equals(object obj)
 	{
-		var settings = obj as TweakSettings;
-		return settings != null &&
+		return obj is TweakSettings settings &&
 			   FadeTime == settings.FadeTime &&
 			   InstantSkip == settings.InstantSkip &&
 			   BetterCasePicker == settings.BetterCasePicker &&
@@ -414,7 +414,6 @@ class TweakSettings
 		hashCode = hashCode * -1521134295 + BombHUD.GetHashCode();
 		hashCode = hashCode * -1521134295 + ShowEdgework.GetHashCode();
 		hashCode = hashCode * -1521134295 + HideTOC.GetHashCode();
-		hashCode = hashCode * -1521134295 + Mode.GetHashCode();
-		return hashCode;
+		return hashCode * -1521134295 + Mode.GetHashCode();
 	}
 }

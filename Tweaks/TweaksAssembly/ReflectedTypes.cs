@@ -32,7 +32,7 @@ static class ReflectedTypes
 	public static FieldInfo TocsField;
 
 	public static FieldInfo IsInteractingField;
-	static Dictionary<MonoBehaviour, ModuleFields> CachedFields = new Dictionary<MonoBehaviour, ModuleFields>();
+	static readonly Dictionary<MonoBehaviour, ModuleFields> CachedFields = new Dictionary<MonoBehaviour, ModuleFields>();
 
 	class ModuleFields
 	{
@@ -56,7 +56,7 @@ static class ReflectedTypes
 				Type componentType = component.GetType();
 				if (fields.ZenModeBool == null) fields.ZenModeBool = componentType.GetField("TwitchZenMode", modeFieldFlags) ?? componentType.GetField("ZenModeActive", modeFieldFlags);
 				if (fields.TimeModeBool == null) fields.TimeModeBool = componentType.GetField("TwitchTimeMode", modeFieldFlags) ?? componentType.GetField("TimeModeActive", modeFieldFlags);
-				
+
 				if (fields.ZenModeBool != null && fields.TimeModeBool != null) break;
 			}
 		}

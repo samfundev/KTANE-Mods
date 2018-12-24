@@ -36,7 +36,7 @@ class BombStatus : MonoBehaviour
 	{
 		if (currentBomb == null)
 		{
-			currentBomb = Tweaks.bombWrappers.FirstOrDefault(x => x.holdable.HoldState == FloatingHoldable.HoldStateEnum.Held);
+			currentBomb = Array.Find(Tweaks.bombWrappers, x => x.holdable.HoldState == FloatingHoldable.HoldStateEnum.Held);
 			if (currentBomb != null)
 			{
 				UpdateSolves();
@@ -82,7 +82,6 @@ class BombStatus : MonoBehaviour
 		SolvesPrefab.text = $"{solves}<size=25>/{currentTotalModules}</size>";
 	}
 
-	Color yellow = new Color(1, 1, 0);
 	public void UpdateConfidence()
 	{
 		if (Tweaks.CurrentMode == Mode.Time)
@@ -95,7 +94,7 @@ class BombStatus : MonoBehaviour
 		{
 			StrikesPrefab.color = Color.red;
 		}
-		
+
 		float success = PlayerPaceRating;
 		ConfidencePrefab.text = Mathf.Round(success * 100).ToString() + "%";
 		ConfidencePrefab.color = success < 0 ? Color.Lerp(Color.gray, Color.red, Mathf.Sqrt(-success)) : Color.Lerp(Color.grey, Color.green, Mathf.Sqrt(success));
@@ -135,7 +134,7 @@ class BombStatus : MonoBehaviour
 
 			edgework.Add(QueryWidgets<string>(KMBombInfo.QUERYKEY_GET_INDICATOR).OrderBy(x => x["label"]).Select(x => (x["on"] == "True" ? "*" : "") + x["label"]).Join());
 
-			edgework.Add(QueryWidgets<List<string>>(KMBombInfo.QUERYKEY_GET_PORTS).Select(x => x["presentPorts"].Select(port => portNames.ContainsKey(port) ? portNames[port] : port).OrderBy(y => y).Join(", ")).Select(x => x == "" ? "Empty" : x).Select(x => "[" + x + "]").Join(" "));
+			edgework.Add(QueryWidgets<List<string>>(KMBombInfo.QUERYKEY_GET_PORTS).Select(x => x["presentPorts"].Select(port => portNames.ContainsKey(port) ? portNames[port] : port).OrderBy(y => y).Join(", ")).Select(x => x?.Length == 0 ? "Empty" : x).Select(x => "[" + x + "]").Join(" "));
 
 			edgework.Add(QueryWidgets<string>(KMBombInfo.QUERYKEY_GET_SERIAL_NUMBER).First()["serial"]);
 
