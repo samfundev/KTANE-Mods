@@ -15,70 +15,24 @@ MonoBehaviour:
   title: Tweaks
   description: "[h1]About[/h1]\r\n\r\nThis mods adds small tweaks to the KTANE to
     make the game just a bit better.\r\n\r\n[h1]Tweaks[/h1]\r\n[list]\r\n[*] Picks
-    the smallest case that fits the number of modules on the bomb.\r\n[*] Adds a new
-    modes to solve bombs: Time Mode and Zen Mode. See the \u201CModes\u201D section
-    below.\r\n[*] Adds two separate HUDs, one showing the bomb status and the other
-    showing edgework.\r\n[*] Fixes the URL that the module Foreign Exchange Rates
-    uses since the old one no longer works.\r\n[*] Instantly skips the gameplay loading
-    screen as soon as possible.\r\n[*] Sets the fade time to be the same between scenes.\r\n[*]
-    Centers the status lights on modules.\r\n[*] Turn the Mods Only key on by default.\r\n[*]
-    Removes the maximum time limit in the freeplay briefcase.\r\n[*] Makes the minimum
-    number of modules in the freeplay briefcase to 1.\r\n[/list]\r\n\r\n[h1]Future
+    the smallest case that fits the number of modules on the bomb.\r\n[*] Adds two
+    new ways to solve bombs: Time Mode and Zen Mode. Take a look at the \u201C[url=https://github.com/samfun123/KTANE-Mods/wiki/Tweaks-Documentation#modes]Modes[/url]\u201D
+    section in the documentation for more information.\r\n[*] Adds two separate HUDs,
+    one showing the bomb status and the other showing edgework.\r\n[*] Allows the
+    player to hide table of contents entries in the mission binder. [url=https://i.imgur.com/pN0WfJw.gif](See
+    example.)[/url]\r\n[*] Adds the ability to turn the Turn the Mods Only key on
+    by default.\r\n[*] Fixes the URL that the module Foreign Exchange Rates uses since
+    the old one no longer works.\r\n[*] Instantly skips the gameplay loading screen
+    as soon as possible.\r\n[*] Sets the fade time to be the same between scenes.\r\n[*]
+    [url=https://github.com/samfun123/KTANE-Mods/wiki/Tweaks-Documentation#features]\u2026
+    and more![/url]\r\n[/list]\r\n\r\nCheck out the [url=https://github.com/samfun123/KTANE-Mods/wiki/Tweaks-Documentation]documentation[/url]
+    for more information about settings, modes and other things Tweaks can do.\r\nGo
+    here for a complete list of features and settings and documentation and stuff.\r\n\r\n[h1]Future
     Tweaks[/h1]\r\n[list]\r\n[*] Add logging to modules that don't already have it.
-    (Probing, Orientation Cube, etc)\r\n[*] Save numbered copies of the logfile.\r\n[*]
-    Fix timer for longer bombs.\r\n[*] ??? (I'd love to hear your ideas!)\r\n[/list]\r\n\r\n[h1]Settings[/h1]\r\nThe
-    settings can be found in a file called \"TweakSettings\" in your \"Modsettings\"
-    folder.\r\n[list]\r\n[*] [b]FadeTime[/b] (Default: 1) - The number seconds should
-    it take to fade in and out of scenes. If the is negative then the game default's
-    will not be changed.\r\n[*] [b]InstantSkip[/b] (Default: true) - If the gameplay
-    loading screen be skipped as soon as possible.\r\n[*] [b]BetterCasePicker[/b]
-    (Default: true) - If the smallest case that fits should be picked instead of a
-    random one.\r\n[*] [b]EnableModsOnlyKey[/b] (Default: false) - Turns the Mods
-    Only key to be on by default.\r\n[*] [b]FixFER[/b] (Default: false) - Changes
-    the URL that is queried by Foreign Exchange Rates since the old one is no longer
-    operational. See the module\u2019s [url=https://ktane.timwi.de/HTML/Foreign%20Exchange%20Rates.html]manual[/url]
-    for the new URL.\r\n[*] [b]BombHUD[/b] (Default: false) - Adds a HUD in the top
-    right corner showing information about the currently selected bomb.\r\n[*] [b]ShowEdgework[/b]
-    (Default: false) - Adds a HUD to the top of the screen showing the edgework for
-    the currently selected bomb.\r\n[*] [b]Mode[/b] (Default: \u201CNormal\u201D)
-    - Sets the mode for the next bomb. Acceptable values are \u201CNormal\u201D, \u201CTime\u201D
-    and \u201CZen\u201D. See the \"Modes\" section below.\r\n[/list]\r\n\r\n[b]NOTE:[/b]
-    If you enable BombHUD, ShowEdgework or use a Mode other than Normal you won't
-    be able to set records on leaderboards or change your stats.\r\n\r\n[h1]Modes[/h1]\r\n[list]\r\n[*]
-    [b]Time Mode[/b] is a different way to solve bombs that gives you time as you
-    solve modules. When you solve a module it's point value is multiplied by the multiplier
-    and then that number of seconds is added to your timer. As you solve modules your
-    multiplier goes up with each solve, but if you get a strike your multiplier is
-    reduced and you lose a percentage of your time.\r\n[*] [b]Zen Mode[/b] is another
-    way to solves bombs in which strikes never explode the bomb and the timer counts
-    up instead. You can configure it so that if you get a strike the timer speeds
-    up and/or it gives a time penalty. You can use this mode to practice or to race
-    against someone else to see who can solve a bomb faster.\r\n[/list]\r\n\r\n[h1]Mode
-    Settings[/h1]\r\nThe settings for all the modes are found in a file called \"ModeSettings\"
-    in your \"Modsettings\" folder.\r\nAn [url=https://ktane.timwi.de/More/Mode%20Settings%20Editor.html]editor[/url]
-    has been created so you can modify this file easily. It contains the following
-    settings:\r\n[list]\r\n[*] [b]TimeModeStartingTime[/b] (Default: 5) - The number
-    of minutes on the timer when you start a bomb.\r\n[*] [b]TimeModeStartingMultiplier[/b]
-    (Default: 9) - The initial multiplier.\r\n[*] [b]TimeModeMaxMultiplier[/b] (Default:
-    10) - The highest the multiplier can go.\r\n[*] [b]TimeModeMinMultiplier[/b] (Default:
-    1) - The lowest the multiplier can go.\r\n[*] [b]TimeModeSolveBonus[/b] (Default:
-    0.1) - The amount added to the multiplier when you solve a module.\r\n[*] [b]TimeModeMultiplierStrikePenalty[/b]
-    (Default: 1.5) - The amount subtracted from the multiplier when you get a strike.\r\n[*]
-    [b]TimeModeTimerStrikePenalty[/b] (Default: 0.25) - Percent of the time subtracted
-    when you get a strike.\r\n[*] [b]TimeModeMinimumTimeLost[/b] (Default: 15) - Lowest
-    amount of time that you can lose when you get a strike.\r\n[*] [b]TimeModeMinimumTimeGained[/b]
-    (Default: 20) - Lowest amount of time you can gain when you solve a module.\r\n[*]
-    [b]ZenModeTimePenalty[/b] (Default: 0) - The base amount of minutes to be penalized
-    for getting a strike.\r\n[*] [b]ZenModeTimePenaltyIncrease[/b] (Default: 0) -
-    The number of minutes to add to the penalty each time you get a strike after the
-    first.\r\n[*] [b]ZenModeTimerSpeedUp[/b] (Default: 0.25) - The rate the timer
-    speeds up when you get a strike. For example, if this value is 0.25 then the timer
-    speeds up to 1.25x for the first strike, 1.5x for the second, etc.\r\n[*] [b]ZenModeTimerMaxSpeed[/b]
-    (Default: 2) - The maximum rate the timer can be set to. For example, 2 is twice
-    as fast as the normal timer.\r\n[*] [b]ComponentValues[/b] - The point value for
-    each module specified by its module ID.\r\n[/list]\r\n\r\n[h1]Deprecated Mods[/h1]\r\nThe
-    following mods have been deprecated as their function has been implemented in
-    this mod. It is recommended that you unsubscribe from them if you subscribe to
+    (Orientation Cube, etc)\r\n[*] Save numbered copies of the logfile.\r\n[*] Fix
+    timer for longer bombs.\r\n[*] ??? (I'd love to hear your ideas!)\r\n[/list]\r\n\r\n[h1]Deprecated
+    Mods[/h1]\r\nThe following mods have been deprecated as their function has been
+    implemented in this mod. You should unsubscribe from them if you subscribe to
     this one.\r\n[list]\r\n[*] [url=https://steamcommunity.com/sharedfiles/filedetails/?id=1161968414]BetterCasePicker[/url]\r\n[*]
     [url=https://steamcommunity.com/sharedfiles/filedetails/?id=1130249244]BombTimeExtender[/url]\r\n[/list]\r"
   version: 
