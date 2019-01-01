@@ -27,22 +27,27 @@ class ModConfig<T>
 		return JsonConvert.SerializeObject(settings, Formatting.Indented, new StringEnumConverter());
 	}
 
-    public T Settings
+	static readonly object settingsFileLock = new object();
+
+	public T Settings
     {
         get
         {
             try
             {
-                if (!File.Exists(SettingsPath))
+				lock(settingsFileLock)
 				{
-                    File.WriteAllText(SettingsPath, SerializeSettings(Activator.CreateInstance<T>()));
-                }
+					if (!File.Exists(SettingsPath))
+					{
+						File.WriteAllText(SettingsPath, SerializeSettings(Activator.CreateInstance<T>()));
+					}
 
-                T deserialized = JsonConvert.DeserializeObject<T>(
-					File.ReadAllText(SettingsPath),
-					new JsonSerializerSettings { Error = (object sender, Newtonsoft.Json.Serialization.ErrorEventArgs args) => args.ErrorContext.Handled = true }
-				);
-				return deserialized != null ? deserialized : Activator.CreateInstance<T>();
+					T deserialized = JsonConvert.DeserializeObject<T>(
+						File.ReadAllText(SettingsPath),
+						new JsonSerializerSettings { Error = (object sender, Newtonsoft.Json.Serialization.ErrorEventArgs args) => args.ErrorContext.Handled = true }
+					);
+					return deserialized != null ? deserialized : Activator.CreateInstance<T>();
+				}
             }
             catch(Exception e)
             {
@@ -55,8 +60,11 @@ class ModConfig<T>
         {
             if (value.GetType() == typeof(T))
             {
-                File.WriteAllText(SettingsPath, SerializeSettings(value));
-            }
+				lock (settingsFileLock)
+				{
+					File.WriteAllText(SettingsPath, SerializeSettings(value));
+				}
+			}
         }
     }
 

@@ -17,6 +17,7 @@ class BombStatus : MonoBehaviour
 	public Text TimerShadowPrefab = null;
 	public Text StrikesPrefab = null;
 	public Text SolvesPrefab = null;
+	public Text NeediesPrefab = null;
 	public Text ConfidencePrefab = null;
 	public Text EdgeworkPrefab = null;
 
@@ -42,6 +43,10 @@ class BombStatus : MonoBehaviour
 				UpdateSolves();
 				UpdateStrikes();
 				EdgeworkPrefab.text = EdgeworkText;
+
+				int needies = currentBomb.Bomb.BombComponents.Count(bombComponent => bombComponent.GetComponent<NeedyComponent>() != null);
+				NeediesPrefab.enabled = needies > 0;
+				NeediesPrefab.text = needies.ToString();
 			}
 		}
 		GetComponent<Canvas>().enabled = currentBomb != null && !Tweaks.TwitchPlaysActive;
