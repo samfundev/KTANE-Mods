@@ -45,7 +45,7 @@ class BombStatus : MonoBehaviour
 				EdgeworkPrefab.text = EdgeworkText;
 
 				int needies = currentBomb.Bomb.BombComponents.Count(bombComponent => bombComponent.GetComponent<NeedyComponent>() != null);
-				NeediesPrefab.enabled = needies > 0;
+				NeediesPrefab.gameObject.SetActive(needies > 0);
 				NeediesPrefab.text = needies.ToString();
 			}
 		}
