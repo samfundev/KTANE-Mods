@@ -103,9 +103,11 @@ class BombWrapper
 			};
 		}
 
-		Dictionary<string, Func<BombComponent, ModuleTweak>> moduleTweaks = new Dictionary<string, Func<BombComponent, ModuleTweak>>()
+		var moduleTweaks = new Dictionary<string, Func<BombComponent, ModuleTweak>>()
 		{
+            { "Emoji Math", bombComponent => new EmojiMathLogging(bombComponent) },
 			{ "Probing", bombComponent => new ProbingLogging(bombComponent) },
+			{ "switchModule", bombComponent => new SwitchesLogging(bombComponent) },
 			{ "WordScrambleModule", bombComponent => new WordScramblePatch(bombComponent) }
 		};
 
