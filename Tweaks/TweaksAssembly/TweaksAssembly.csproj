@@ -60,6 +60,8 @@
     <Compile Include="BombStatus.cs" />
     <Compile Include="GeneralExtensions.cs" />
     <Compile Include="Modules\ProbingLogging.cs" />
+    <Compile Include="Modules\EmojiMathLogging.cs" />
+    <Compile Include="Modules\SwitchesLogging.cs" />
     <Compile Include="Modules\ModuleTweak.cs" />
     <Compile Include="ModSettings.cs" />
     <Compile Include="Modules\WordScramblePatch.cs" />
