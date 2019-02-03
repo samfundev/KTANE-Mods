@@ -649,12 +649,46 @@ public class SynchronizationModule : MonoBehaviour
 		return null;
 	}
 
+	enum TPActionType
+	{
+		Interact,
+		WaitForConditional
+	}
+
+	class TPAction
+	{
+		public TPActionType ActionType;
+		public float HoldTime;
+		public KMSelectable Selectable;
+		public Func<bool> Conditional;
+
+		public TPAction(KMSelectable selectable)
+		{
+			Selectable = selectable;
+			ActionType = TPActionType.Interact;
+		}
+
+		public TPAction(KMSelectable selectable, float holdTime)
+		{
+			Selectable = selectable;
+			HoldTime = holdTime;
+			ActionType = TPActionType.Interact;
+		}
+
+		public TPAction(Func<bool> conditional)
+		{
+			Conditional = conditional;
+			ActionType = TPActionType.WaitForConditional;
+		}
+	}
+
 	#pragma warning disable 414
-	private string TwitchHelpMessage = "To sync a pair of lights do !{0} topm on centerm +. To sync to the bomb timer use !{0} 5. To reset the module use !{0} reset. Commands are chainable.";
+	private string TwitchHelpMessage = "To sync a pair of lights do !{0} <position> <state> <position> <state>. States: off/- on/+. To sync to the bomb timer use !{0} 5. To reset the module use !{0} reset. Commands are chainable.";
 	#pragma warning restore 414
 
 	public IEnumerator ProcessTwitchCommand(string command)
 	{
+		List<TPAction> tpActions = new List<TPAction>();
 		foreach (string subcommand in command.ToLowerInvariant().Split(new char[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries))
 		{
 			string[] split = subcommand.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
@@ -666,48 +700,58 @@ public class SynchronizationModule : MonoBehaviour
 					int seconds;
 					if (int.TryParse(split[0], out seconds))
 					{
-						yield return null;
-						while (!((int) BombInfo.GetTime() % 60).ToString().Contains(split[0]))
-						{
-							yield return "trycancel";
-							yield return true;
-						}
-
-						SyncButton.OnInteract();
-						yield return new WaitForSeconds(0.1f);
+						tpActions.Add(new TPAction(() => ((int) BombInfo.GetTime() % 60).ToString().Contains(split[0])));
+						tpActions.Add(new TPAction(SyncButton));
+						continue;
 					}
 				}
 				else if (split[0] == "reset")
 				{
-					yield return null;
-
-					SyncButton.OnInteract();
-					yield return new WaitForSeconds(2.1f);
-					SyncButton.OnInteractEnded();
+					tpActions.Add(new TPAction(SyncButton, 2.1f));
+					continue;
 				}
 			}
 			else if (split.Length == 4 && EqualsAny(split[1], "on", "+", "true", "t", "off", "-", "false", "f") && EqualsAny(split[3], "on", "+", "true", "t", "off", "-", "false", "f"))
 			{
 				Light lightA = StringToLight(split[0]);
+				bool lightAState = EqualsAny(split[1], "on", "+", "true", "t");
+
 				Light lightB = StringToLight(split[2]);
-				if (lightA != null && lightB != null)
-				{
-					bool lightAState = EqualsAny(split[1], "on", "+", "true", "t");
-					bool lightBState = EqualsAny(split[3], "on", "+", "true", "t");
+				bool lightBState = EqualsAny(split[3], "on", "+", "true", "t");
 
-					if (lightA.speed == 0 || lightB.speed == 0 || lightA.speed == lightB.speed) yield break;
+				if (lightA == null || lightB == null) yield break;
+				if (lightA.speed == 0 || lightB.speed == 0 || lightA.speed == lightB.speed) yield break;
 
-					yield return null;
-					while (lightA.state != lightAState) yield return true;
+				tpActions.Add(new TPAction(() => lightA.state == lightAState));
+				tpActions.Add(new TPAction(lightA.gObject.GetComponent<KMSelectable>()));
 
-					lightA.gObject.GetComponent<KMSelectable>().OnInteract();
+				tpActions.Add(new TPAction(() => lightB.state == lightBState));
+				tpActions.Add(new TPAction(lightB.gObject.GetComponent<KMSelectable>()));
+				continue;
+			}
+
+			// Instead of placing a bunch of yield break's around the code,
+			// I decided to just place one here and use a continue statement
+			// whenever the subcommand is correct. Which I think looks better.
+			yield break;
+		}
+
+		foreach (TPAction tpAction in tpActions)
+		{
+			switch (tpAction.ActionType)
+			{
+				case TPActionType.Interact:
+					tpAction.Selectable.OnInteract();
+					if (tpAction.HoldTime != 0) yield return new WaitForSeconds(tpAction.HoldTime);
+
+					var action = tpAction.Selectable.OnInteractEnded;
+					if (action != null) action();
+
 					yield return new WaitForSeconds(0.1f);
-
-					while (lightB.state != lightBState) yield return true;
-
-					lightB.gObject.GetComponent<KMSelectable>().OnInteract();
-					yield return new WaitForSeconds(0.1f);
-				}
+					break;
+				case TPActionType.WaitForConditional:
+					while (!tpAction.Conditional()) yield return true;
+					break;
 			}
 		}
 	}
