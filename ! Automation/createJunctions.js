@@ -13,8 +13,14 @@ const KM_Assetless = [
 	"BombTimeExtender",
 	"MissionMaker",
 	"PacingExtender",
-	"SoundpackMaker"
+	"SoundpackMaker",
+	"Tweaks",
 ]
+
+// All the directories that don't need Shared_Assets
+const Shared_Assetsless = [
+	"Tweaks",
+];
 
 const junctions = [
 	"Assets\\Editor\\Scripts",
@@ -49,6 +55,11 @@ process.chdir("..");
 		for (let junc of junctions) {
 			let folder = join(file, junc);
 			if (KM_Assetless.includes(file) && junc == "Assets\\KM_Assets") {
+				fs.remove(folder);
+				continue;
+			}
+
+			if (Shared_Assetsless.includes(file) && junc == "Assets\\Shared_Assets") {
 				fs.remove(folder);
 				continue;
 			}
