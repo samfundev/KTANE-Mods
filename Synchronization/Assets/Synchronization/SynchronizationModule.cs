@@ -164,6 +164,14 @@ public class SynchronizationModule : MonoBehaviour
 		Module.OnActivate += Activate;
 	}
 
+	Coroutine SelectSFXCoroutine;
+	IEnumerator StopSelectSFX()
+	{
+		yield return new WaitForSeconds(0.3f);
+		SelectAudioRef.StopSound();
+	}
+
+	KMAudio.KMAudioRef SelectAudioRef;
 	KMSelectable.OnInteractHandler SetupInteraction(Light light)
 	{
 		return delegate ()
@@ -171,10 +179,19 @@ public class SynchronizationModule : MonoBehaviour
 			if (light.speed == 0 || Solved || syncPause) return false;
 			
 			light.gObject.GetComponent<KMSelectable>().AddInteractionPunch(0.5f);
-			Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
 
+			if (SelectAudioRef != null)
+			{
+				SelectAudioRef.StopSound();
+				SelectAudioRef = null;
+				StopCoroutine(SelectSFXCoroutine);
+			}
+			
 			if (SelectedLight == null)
 			{
+				SelectAudioRef = Audio.PlaySoundAtTransformWithRef("Select", transform);
+				SelectSFXCoroutine = StartCoroutine(StopSelectSFX());
+
 				ApplyToSpeed(light, l =>
 				{
 					l.selection.SetActive(true);
@@ -194,9 +211,12 @@ public class SynchronizationModule : MonoBehaviour
 					});
 
 					SelectedLight = null;
+					SelectAudioRef = Audio.PlaySoundAtTransformWithRef("Deselect", transform);
+					SelectSFXCoroutine = StartCoroutine(StopSelectSFX());
 				}
 				else
 				{
+					Audio.PlaySoundAtTransform("Syncing", transform);
 					StartCoroutine(SyncLights(light));
 				}
 			}
@@ -432,6 +452,7 @@ public class SynchronizationModule : MonoBehaviour
 						light.state = true;
 					}
 
+					Audio.PlaySoundAtTransform("Solve", transform);
 					StartCoroutine(PlayWinAnimation());
 				}
 				else
@@ -547,7 +568,7 @@ public class SynchronizationModule : MonoBehaviour
 		//"036,147,258", // L -> R
 		"0,1,2,5,8,7,6,3,4", // Spiral
 		"0,3,6,7,4,1,2,5,8", // Vertical back and forth
-		"0,1,2,5,4,3,6,7,8", // Horizontial back and forth
+		"0,1,2,5,4,3,6,7,8", // Horizontal back and forth
 		"1,042,375,68", // Triangle T -> B
 		"3,046,157,28", // Triangle L -> R
 		"08,1375,642", // Diagonal crush
@@ -572,9 +593,10 @@ public class SynchronizationModule : MonoBehaviour
 		
 		float startTime = Time.time;
 		float alphaStep = 1f / animation.Length;
-		while (Time.time - startTime <= 1)
+		float alpha = 0;
+		while (alpha < 1)
 		{
-			float alpha = (Time.time - startTime) / 1;
+			alpha = Math.Min((Time.time - startTime) / 1.98f, 1);
 
 			for (int i = 0; i < animation.Length; i++)
 			{
@@ -628,7 +650,7 @@ public class SynchronizationModule : MonoBehaviour
 			light = light.Replace(replacement.Key, replacement.Value);
 		}
 
-		light = new Regex("([lrm])([tbm]{1})").Replace(light, "$2$1");
+		light = new Regex("([lrm])([tbm])").Replace(light, "$2$1");
 
 		string[] buttonPositions = new[] { "tl", "tm", "tr", "ml", "mm", "mr", "bl", "bm", "br" };
 
