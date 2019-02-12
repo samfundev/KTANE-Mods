@@ -18,6 +18,11 @@
 			Tweaks.modConfig.Settings = Tweaks.settings;
 			StartCoroutine(Tweaks.ModifyFreeplayDevice(false));
 		}));
+		AddProperty("SteadyMode", new Property(() => Tweaks.settings.Mode.Equals(Mode.Steady), value => {
+			Tweaks.settings.Mode = (bool) value ? Mode.Steady : Mode.Normal;
+			Tweaks.modConfig.Settings = Tweaks.settings;
+			StartCoroutine(Tweaks.ModifyFreeplayDevice(false));
+		}));
 		AddProperty("TimeModeStartingTime", new Property(() => Modes.settings.TimeModeStartingTime, value =>
 		{
 			Modes.settings.TimeModeStartingTime = (float) value;

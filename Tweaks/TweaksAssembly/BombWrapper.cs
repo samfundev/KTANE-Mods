@@ -11,7 +11,8 @@ class BombWrapper
 	{
 		{ Mode.Normal, Color.red },
 		{ Mode.Zen, Color.cyan },
-		{ Mode.Time, new Color(1, 0.5f, 0) }
+		{ Mode.Time, new Color(1, 0.5f, 0) },
+		{ Mode.Steady, new Color(0, 0.8f, 0) }
 	};
 
 	public BombWrapper(Bomb bomb)
@@ -62,7 +63,8 @@ class BombWrapper
 				return false;
 			};
 
-			component.OnStrike += delegate
+			var OnStrike = component.OnStrike;
+			component.OnStrike = (BombComponent source) =>
 			{
                 //Ideally, catch this before the strikes are recorded
                 if (Tweaks.CurrentMode == Mode.Zen)
@@ -76,28 +78,31 @@ class BombWrapper
 					ZenModeTimePenalty += Mathf.Abs(Modes.settings.ZenModeTimePenaltyIncrease);
                 }
 
-				BombStatus.Instance.UpdateStrikes();
-
 				if (Tweaks.CurrentMode == Mode.Time)
 				{
 					Modes.Multiplier = Math.Max(Modes.Multiplier - Modes.settings.TimeModeMultiplierStrikePenalty, Modes.settings.TimeModeMinMultiplier);
-					if (CurrentTimer < (Modes.settings.TimeModeMinimumTimeLost / Modes.settings.TimeModeMultiplierStrikePenalty))
+					if (CurrentTimer < (Modes.settings.TimeModeMinimumTimeLost / Modes.settings.TimeModeTimerStrikePenalty))
 					{
 						CurrentTimer -= Modes.settings.TimeModeMinimumTimeLost;
 					}
 					else
 					{
-						float timeReducer = CurrentTimer * Modes.settings.TimeModeTimerStrikePenalty;
-						double easyText = Math.Round(timeReducer, 1);
-						CurrentTimer -= timeReducer;
+						CurrentTimer -= CurrentTimer * Modes.settings.TimeModeTimerStrikePenalty;
 					}
 
-					// Set strikes to 0
-					Bomb.NumStrikes = 0;
-                    //Moved everything here to a different method
-                    //in case Zen mode can reuse any of this code.
-                    StrikeRecorder();
+					// We can safely set the number of strikes to -1 since it's going to be increased by the game after us.
+					Bomb.NumStrikes = -1;
 				}
+
+				OnStrike(source);
+
+				if (Tweaks.CurrentMode == Mode.Steady)
+				{
+					timerComponent.SetRateModifier(1);
+					CurrentTimer -= Modes.settings.SteadyModeFixedPenalty * 60 - Modes.settings.SteadyModePercentPenalty * bombStartingTimer;
+				}
+
+				BombStatus.Instance.UpdateStrikes();
 
 				return false;
 			};
@@ -143,27 +148,6 @@ class BombWrapper
 			}
 		}
 	}
-
-    void StrikeRecorder()
-    {
-        int strikeLimit = StrikeLimit;
-        int strikeCount = Math.Min(StrikeCount, StrikeLimit);
-
-        RecordManager RecordManager = RecordManager.Instance;
-        GameRecord GameRecord = RecordManager.GetCurrentRecord();
-        StrikeSource[] Strikes = GameRecord.Strikes;
-        if (Strikes.Length != strikeLimit)
-        {
-            StrikeSource[] newStrikes = new StrikeSource[Math.Max(strikeLimit, 1)];
-            Array.Copy(Strikes, newStrikes, Math.Min(Strikes.Length, newStrikes.Length));
-            GameRecord.Strikes = newStrikes;
-        }
-
-        Debug.Log(string.Format("[Bomb] Strike from Tweaks! {0} / {1} strikes", StrikeCount, StrikeLimit));
-        ReflectedTypes.GameRecordCurrentStrikeIndexField.SetValue(GameRecord, strikeCount);
-        timerComponent.SetRateModifier(1);
-        Bomb.StrikeIndicator.StrikeCount = strikeCount;
-    }
 
 	void LogChildren(Transform goTransform, int depth = 0)
 	{

@@ -6,7 +6,8 @@ public enum Mode
     Normal,
     Time,
     //VS,
-    Zen
+    Zen,
+	Steady
 }
 
 static class Modes
@@ -58,6 +59,8 @@ class ModeSettings
 	public float ZenModeTimePenaltyIncrease = 0;
 	public float ZenModeTimerSpeedUp = 0.25f;
 	public float ZenModeTimerMaxSpeed = 2;
+	public float SteadyModeFixedPenalty = 2;
+	public float SteadyModePercentPenalty = 0;
 	public float TimeModeStartingTime = 5;
 	public float TimeModeStartingMultiplier = 9.0f;
 	public float TimeModeMaxMultiplier = 10.0f;
