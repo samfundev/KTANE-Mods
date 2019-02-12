@@ -27,16 +27,14 @@ public class SwitchesLogging : ModuleTweak
             return;
         }
 
-        bombComponent.GetComponent<KMBombModule>().OnActivate += () =>
-        {
-            LogSwitches("Initial state:");
+        LogSwitches("Initial state:");
 
-            var switches = (Array) mSwitches.GetValue(component);
-            var selectables = switches.Cast<MonoBehaviour>().Select(m => m.GetComponent<KMSelectable>()).ToArray();
-            for (int i = 0; i < selectables.Length; i++)
-                bindInteract(selectables[i], i);
-        };
-        bombComponent.GetComponent<KMBombModule>().OnPass += () =>
+        var switches = (Array) mSwitches.GetValue(component);
+        var selectables = switches.Cast<MonoBehaviour>().Select(m => m.GetComponent<KMSelectable>()).ToArray();
+        for (int i = 0; i < selectables.Length; i++)
+            bindInteract(selectables[i], i);
+
+		bombComponent.GetComponent<KMBombModule>().OnPass += () =>
         {
             Debug.Log($"[Switches #{moduleID}] Module solved.");
             return true;
