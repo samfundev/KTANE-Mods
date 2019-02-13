@@ -9,6 +9,8 @@ using Assets.Scripts.Progression;
 using Assets.Scripts.Settings;
 using Assets.Scripts.BombBinder;
 using Assets.Scripts.Mods.Mission;
+using Assets.Scripts.Leaderboards;
+using Assets.Scripts.Services.Steam;
 
 [RequireComponent(typeof(KMService))]
 [RequireComponent(typeof(KMGameInfo))]
@@ -61,6 +63,9 @@ class Tweaks : MonoBehaviour
 
 			StartCoroutine(ModifyFreeplayDevice(false));
 		};
+
+		// Setup our "service" to block the leaderboard submission requests
+		ReflectedTypes.InstanceField.SetValue(null, new SteamFilterService());
 
 		UnityEngine.SceneManagement.SceneManager.sceneLoaded += (Scene scene, LoadSceneMode _) =>
 		{
@@ -118,6 +123,7 @@ class Tweaks : MonoBehaviour
 
 				Assets.Scripts.Stats.StatsManager.Instance.DisableStatChanges =
 				Assets.Scripts.Records.RecordManager.Instance.DisableBestRecords = disableRecords;
+				if (disableRecords) SteamFilterService.TargetMissionID = GameplayState.MissionToLoad;
 
 				if (settings.BetterCasePicker) BetterCasePicker.PickCase();
 
@@ -377,6 +383,24 @@ class Tweaks : MonoBehaviour
 		{
 			LogChildren(child, depth + 1);
 		}
+	}
+}
+
+class SteamFilterService : ServicesSteam
+{
+	public static string TargetMissionID;
+
+	public override void ExecuteLeaderboardRequest(LeaderboardRequest request)
+	{
+		LeaderboardListRequest listRequest = request as LeaderboardListRequest;
+		if (listRequest?.SubmitScore == true && listRequest?.MissionID == TargetMissionID)
+		{
+			ReflectedTypes.SubmitFieldProperty.SetValue(listRequest, false, null);
+
+			TargetMissionID = null;
+		}
+
+		base.ExecuteLeaderboardRequest(request);
 	}
 }
 

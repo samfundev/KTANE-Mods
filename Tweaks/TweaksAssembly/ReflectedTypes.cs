@@ -1,4 +1,6 @@
-﻿using Assets.Scripts.Records;
+﻿using Assets.Scripts.Leaderboards;
+using Assets.Scripts.Records;
+using Assets.Scripts.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +10,8 @@ using UnityEngine;
 static class ReflectedTypes
 {
 	public static FieldInfo GameRecordCurrentStrikeIndexField = typeof(GameRecord).GetField("currentStrikeIndex", BindingFlags.NonPublic | BindingFlags.Instance);
+	public static PropertyInfo SubmitFieldProperty = typeof(LeaderboardListRequest).GetProperty("SubmitScore", BindingFlags.Public | BindingFlags.Instance);
+	public static FieldInfo InstanceField = typeof(AbstractServices).GetField("instance", BindingFlags.NonPublic | BindingFlags.Static);
 
 	public static Type FactoryRoomType;
 	public static Type FactoryGameModeType;
