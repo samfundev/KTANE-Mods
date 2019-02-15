@@ -66,18 +66,6 @@ class BombWrapper
 			var OnStrike = component.OnStrike;
 			component.OnStrike = (BombComponent source) =>
 			{
-                //Ideally, catch this before the strikes are recorded
-                if (Tweaks.CurrentMode == Mode.Zen)
-                {
-					bomb.NumStrikesToLose++;
-
-					ZenModeTimerRate = Mathf.Max(ZenModeTimerRate - Mathf.Abs(Modes.settings.ZenModeTimerSpeedUp), -Mathf.Abs(Modes.settings.ZenModeTimerMaxSpeed));
-                    timerComponent.SetRateModifier(ZenModeTimerRate);
-
-                    CurrentTimer += ZenModeTimePenalty * 60;
-					ZenModeTimePenalty += Mathf.Abs(Modes.settings.ZenModeTimePenaltyIncrease);
-                }
-
 				if (Tweaks.CurrentMode == Mode.Time)
 				{
 					Modes.Multiplier = Math.Max(Modes.Multiplier - Modes.settings.TimeModeMultiplierStrikePenalty, Modes.settings.TimeModeMinMultiplier);
@@ -95,6 +83,18 @@ class BombWrapper
 				}
 
 				OnStrike(source);
+
+				// These mode modifications need to happen after the game handles the strike since they change the timer rate.
+				if (Tweaks.CurrentMode == Mode.Zen)
+				{
+					bomb.NumStrikesToLose++;
+
+					ZenModeTimerRate = Mathf.Max(ZenModeTimerRate - Mathf.Abs(Modes.settings.ZenModeTimerSpeedUp), -Mathf.Abs(Modes.settings.ZenModeTimerMaxSpeed));
+					timerComponent.SetRateModifier(ZenModeTimerRate);
+
+					CurrentTimer += ZenModeTimePenalty * 60;
+					ZenModeTimePenalty += Mathf.Abs(Modes.settings.ZenModeTimePenaltyIncrease);
+				}
 
 				if (Tweaks.CurrentMode == Mode.Steady)
 				{
