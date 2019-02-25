@@ -229,6 +229,7 @@ class Tweaks : MonoBehaviour
 
 					yield return new WaitUntil(() => getBomb() != null || factoryRoom == null);
 					Component currentBomb = getBomb();
+					bool firstBomb = true;
 
 					Array.Resize(ref bombWrappers, 1);
 
@@ -238,8 +239,10 @@ class Tweaks : MonoBehaviour
 						bombWrappers[0] = bombWrapper;
 						bombWrapper.holdable.OnLetGo += () => BombStatus.Instance.currentBomb = null;
 
-						if (globalTimerDisabled)
+						if (globalTimerDisabled || firstBomb)
 						{
+							firstBomb = false;
+
 							if (CurrentMode == Mode.Time)
 								bombWrapper.CurrentTimer = Modes.settings.TimeModeStartingTime * 60;
 							else if (CurrentMode == Mode.Zen)

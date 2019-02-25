@@ -39,6 +39,8 @@ class BombStatus : MonoBehaviour
 	{
 		if (currentBomb == null)
 		{
+			WidgetResponses.Clear();
+
 			currentBomb = Array.Find(Tweaks.bombWrappers, x => x.holdable.HoldState == FloatingHoldable.HoldStateEnum.Held);
 			if (currentBomb != null)
 			{
