@@ -194,7 +194,7 @@ class Tweaks : MonoBehaviour
 								modified |= ModToCMetaData.Remove(metaData);
 					}
 
-				var newToCs = ModToCMetaData.Where(metaData => !settings.HideTOC.Any(pattern => metaData.DisplayName.Like(pattern)));
+				var newToCs = ModToCMetaData.Where(metaData => !settings.HideTOC.Any(pattern => Localization.GetLocalizedString(metaData.DisplayNameTerm).Like(pattern)));
 				modified |= (newToCs.Count() != ModMissionToCs.Count || !newToCs.All(ModMissionToCs.Contains));
 				ModMissionToCs.Clear();
 				ModMissionToCs.AddRange(newToCs);
