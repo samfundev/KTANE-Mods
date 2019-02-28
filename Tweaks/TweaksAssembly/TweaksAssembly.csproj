@@ -57,6 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BetterCasePicker.cs" />
+    <Compile Include="BombCaseGenerator.cs" />
     <Compile Include="BombStatus.cs" />
     <Compile Include="GeneralExtensions.cs" />
     <Compile Include="Modules\ProbingLogging.cs" />

@@ -5,8 +5,14 @@ using System.Linq;
 
 static class BetterCasePicker
 {
+	public static BombCaseGenerator BombCaseGenerator;
+	public static GameObject CaseParent;
+
 	public static void PickCase()
 	{
+		// The game sets the seed to 33 for some reason, so we have to set the seed so it doesn't pick the same values every time.
+		Random.InitState((int) System.DateTime.Now.Ticks);
+
 		BombGenerator bombGenerator = Object.FindObjectOfType<BombGenerator>();
 		if (bombGenerator.BombPrefabOverride == null) // No point in doing anything if they aren't even going to use the ObjectPool.
 		{
@@ -54,6 +60,36 @@ static class BetterCasePicker
 			});
 
 			bombcases.Add(prefabPool.Default, !frontFaceOnly ? 12 : 6);
+
+			// Generate a case using Case Generator
+			if (Tweaks.settings.CaseGenerator)
+			{
+				List<Vector2> caseSizes = new List<Vector2>();
+				for (int x = 1; x <= componentCount; x++)
+					for (int y = 1; y <= componentCount; y++)
+						if (x >= y)
+							caseSizes.Add(new Vector2(x, y));
+
+				var caseSize = caseSizes
+					.Where(size => size.y / size.x >= 0.5f && size.x * size.y * (frontFaceOnly ? 1 : 2) >= componentCount)
+					.OrderBy(size => System.Math.Abs(size.x * size.y * (frontFaceOnly ? 1 : 2) - componentCount))
+					.ThenByDescending(size => size.y / size.x)
+					.FirstOrDefault();
+
+				if (caseSize != default(Vector2))
+				{
+					if (CaseParent != null) Object.Destroy(CaseParent);
+
+					// We have to parent the case to a GameObject that isn't active so it doesn't appear in the scene but itself is still active.
+					CaseParent = new GameObject();
+					CaseParent.SetActive(false);
+
+					var caseGameObject = BombCaseGenerator.GenerateCase(caseSize);
+					caseGameObject.transform.parent = CaseParent.transform;
+
+					bombcases.Add(caseGameObject, (int) (caseSize.x * caseSize.y * (frontFaceOnly ? 1 : 2)));
+				}
+			}
 
 			if (bombcases.Count == 0)
 			{

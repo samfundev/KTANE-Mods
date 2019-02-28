@@ -31,10 +31,12 @@ class Tweaks : MonoBehaviour
 	void Awake()
 	{
 		GameInfo = GetComponent<KMGameInfo>();
+		BetterCasePicker.BombCaseGenerator = GetComponentInChildren<BombCaseGenerator>();
 
 		modConfig.Settings = settings; // Write any settings that the user doesn't have in their settings file.
 
 		bool changeFadeTime = settings.FadeTime >= 0;
+		bool firstLoad = true;
 
 		FreeplayDevice.MAX_SECONDS_TO_SOLVE = float.MaxValue;
 		FreeplayDevice.MIN_MODULE_COUNT = 1;
@@ -125,7 +127,7 @@ class Tweaks : MonoBehaviour
 				Assets.Scripts.Records.RecordManager.Instance.DisableBestRecords = disableRecords;
 				if (disableRecords) SteamFilterService.TargetMissionID = GameplayState.MissionToLoad;
 
-				if (settings.BetterCasePicker) BetterCasePicker.PickCase();
+				if (settings.BetterCasePicker || settings.CaseGenerator) BetterCasePicker.PickCase();
 
 				BombStatus.Instance.widgetsActivated = false;
 				BombStatus.Instance.HUD.SetActive(settings.BombHUD);
@@ -138,6 +140,36 @@ class Tweaks : MonoBehaviour
 			}
 			else if (state == KMGameInfo.State.Setup)
 			{
+				if (firstLoad)
+				{
+					firstLoad = false;
+
+					if (ReflectedTypes.LoadedModsField.GetValue(ModManager.Instance) is Dictionary<string, Mod> loadedMods)
+					{
+						Mod tweaksMod = loadedMods.Values.FirstOrDefault(mod => mod.ModID == "Tweaks");
+						if (tweaksMod != null)
+						{
+							var fakeBomb = new GameObject("TweaksCaseGenerator");
+							fakeBomb.transform.SetParent(transform);
+							var kmBomb = fakeBomb.AddComponent<KMBomb>();
+							kmBomb.IsHoldable = false;
+							kmBomb.WidgetAreas = new List<GameObject>();
+							kmBomb.visualTransform = transform;
+							kmBomb.Faces = new List<KMBombFace>();
+
+							fakeBomb.AddComponent<ModBomb>();
+
+							var kmBombFace = fakeBomb.AddComponent<KMBombFace>();
+							kmBombFace.Anchors = new List<Transform>();
+							kmBomb.Faces.Add(kmBombFace);
+
+							for (int i = 0; i <= 9001; i++) kmBombFace.Anchors.Add(transform);
+
+							tweaksMod.ModObjects.Add(fakeBomb);
+						}
+					}
+				}
+
 				StartCoroutine(ModifyFreeplayDevice(true));
 			}
 			else if (state == KMGameInfo.State.Transitioning)
@@ -417,9 +449,11 @@ class TweakSettings
 	public bool BombHUD = false;
 	public bool ShowEdgework = false;
 	public List<string> HideTOC = new List<string>();
-    public Mode Mode = Mode.Normal;
+	public Mode Mode = Mode.Normal;
+	public bool CaseGenerator = true;
+	public List<string> CaseColors = new List<string>();
 
-    public override bool Equals(object obj)
+	public override bool Equals(object obj)
 	{
 		return obj is TweakSettings settings &&
 			   FadeTime == settings.FadeTime &&
@@ -429,7 +463,9 @@ class TweakSettings
 			   BombHUD == settings.BombHUD &&
 			   ShowEdgework == settings.ShowEdgework &&
 			   HideTOC.SequenceEqual(settings.HideTOC) &&
-			   Mode == settings.Mode;
+			   Mode == settings.Mode &&
+			   CaseGenerator == settings.CaseGenerator &&
+			   CaseColors.SequenceEqual(settings.CaseColors);
 	}
 
 	public override int GetHashCode()
@@ -442,6 +478,9 @@ class TweakSettings
 		hashCode = hashCode * -1521134295 + BombHUD.GetHashCode();
 		hashCode = hashCode * -1521134295 + ShowEdgework.GetHashCode();
 		hashCode = hashCode * -1521134295 + HideTOC.GetHashCode();
-		return hashCode * -1521134295 + Mode.GetHashCode();
+		hashCode = hashCode * -1521134295 + Mode.GetHashCode();
+		hashCode = hashCode * -1521134295 + CaseGenerator.GetHashCode();
+		hashCode = hashCode * -1521134295 + CaseColors.GetHashCode();
+		return hashCode;
 	}
 }

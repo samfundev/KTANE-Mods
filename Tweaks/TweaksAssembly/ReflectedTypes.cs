@@ -9,6 +9,8 @@ using UnityEngine;
 
 static class ReflectedTypes
 {
+	public static FieldInfo _SizeField = typeof(List<Transform>).GetField("_size", BindingFlags.Instance | BindingFlags.NonPublic);
+
 	public static FieldInfo GameRecordCurrentStrikeIndexField = typeof(GameRecord).GetField("currentStrikeIndex", BindingFlags.NonPublic | BindingFlags.Instance);
 	public static PropertyInfo SubmitFieldProperty = typeof(LeaderboardListRequest).GetProperty("SubmitScore", BindingFlags.Public | BindingFlags.Instance);
 	public static FieldInfo InstanceField = typeof(AbstractServices).GetField("instance", BindingFlags.NonPublic | BindingFlags.Static);
@@ -32,6 +34,7 @@ static class ReflectedTypes
 	public static MethodInfo RedLightsMethod;
 	public static FieldInfo RoomLightField;
 
+	public static FieldInfo LoadedModsField;
 	public static FieldInfo UnloadedModsField;
 	public static FieldInfo TocsField;
 
@@ -95,6 +98,7 @@ static class ReflectedTypes
 		RedLightsMethod = PortalRoomType?.GetMethod("RedLight", BindingFlags.Instance | BindingFlags.Public);
 		RoomLightField = PortalRoomType?.GetField("RoomLight", BindingFlags.Instance | BindingFlags.Public);
 
+		LoadedModsField = typeof(ModManager).GetField("loadedMods", BindingFlags.Instance | BindingFlags.NonPublic);
 		UnloadedModsField = typeof(ModManager).GetField("unloadedMods", BindingFlags.Instance | BindingFlags.NonPublic);
 		TocsField = typeof(Mod).GetField("tocs", BindingFlags.Instance | BindingFlags.NonPublic);
 

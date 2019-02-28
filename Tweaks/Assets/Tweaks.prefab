@@ -182,6 +182,22 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!1 &1715555379116552
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 4296290070738298}
+  - component: {fileID: 114338577001027414}
+  m_Layer: 0
+  m_Name: BombCaseGenerator
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
 --- !u!1 &1753844279872294
 GameObject:
   m_ObjectHideFlags: 0
@@ -236,6 +252,19 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!4 &4296290070738298
+Transform:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1715555379116552}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4685014628005906}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4685014628005906
 Transform:
   m_ObjectHideFlags: 1
@@ -247,6 +276,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 224779323244688788}
+  - {fileID: 4296290070738298}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -464,6 +494,22 @@ MonoBehaviour:
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
+--- !u!114 &114338577001027414
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1715555379116552}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -531373175, guid: f9655ca10095c2c45b4f86c01198f02e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Bomb_Backing: {fileID: 1000014199501458, guid: 7b2c6891d5f8d6645a9e4930e80eeae0,
+    type: 2}
+  Empty_Bomb: {fileID: 1000013204175980, guid: 42e056c170cae9742b7bd7a680120e07, type: 2}
+  Cross_Bar: {fileID: 1000010116401942, guid: 566bd83d4f07b9848b402387a8924b69, type: 2}
+  offset: 0.22
 --- !u!114 &114378984282565630
 MonoBehaviour:
   m_ObjectHideFlags: 1
