@@ -3847,7 +3847,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   SettingsPage: {fileID: 114290243150687220}
-  ModSelectorIcon: {fileID: 2800000, guid: 128abbe56b58aad4fb574623770b33b8, type: 3}
+  ModSelectorIcon: {fileID: 2800000, guid: 70d54c69bb46cb74ca09f94191348db2, type: 3}
 --- !u!114 &114198057916123958
 MonoBehaviour:
   m_ObjectHideFlags: 1

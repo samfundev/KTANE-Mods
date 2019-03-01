@@ -139,6 +139,10 @@ class SettingsPage : MonoBehaviour
 		CurrentListings.Clear();
 		ShowMainMenu();
 
+		PinButton.gameObject.SetActive(true);
+		ForwardButton.gameObject.SetActive(true);
+		BackwardButton.gameObject.SetActive(true);
+
 		PinButton.OnInteract = () =>
 		{
 			PinningEnabled = !PinningEnabled;
@@ -210,6 +214,7 @@ class SettingsPage : MonoBehaviour
 			{
 				// Since we can only read JSON files, avoid reading .xml files.
 				if (!new[] { ".txt", ".json" }.Contains(Path.GetExtension(file))) continue;
+				if (Path.GetFileName(file) == "output_log.txt") continue;
 
 				string fileText = File.ReadAllText(file);
 				Dictionary<string, object> settings = null;
@@ -217,10 +222,10 @@ class SettingsPage : MonoBehaviour
 				{
 					settings = JsonConvert.DeserializeObject<Dictionary<string, object>>(fileText);
 				}
-				catch (Exception exception)
+				catch// (Exception exception)
 				{
-					Tweaks.Log($"An exception occurred trying to add \"{file}\":");
-					Debug.LogException(exception);
+					//Tweaks.Log($"An exception occurred trying to add \"{file}\":");
+					//Debug.LogException(exception);
 				}
 
 				if (settings == null) continue;
@@ -245,7 +250,7 @@ class SettingsPage : MonoBehaviour
 							type = ListingType.Checkbox;
 							break;
 						default:
-							Tweaks.Log("Unsupported type:", pair.Value?.GetType().ToString(), "in:", Path.GetFileName(file));
+							//Tweaks.Log("Unsupported type:", pair.Value?.GetType().ToString(), "in:", Path.GetFileName(file));
 							continue;
 					}
 
