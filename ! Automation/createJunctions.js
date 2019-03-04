@@ -14,7 +14,6 @@ const KM_Assetless = [
 	"MissionMaker",
 	"PacingExtender",
 	"SoundpackMaker",
-	"Tweaks",
 ]
 
 // All the directories that don't need Shared_Assets
@@ -26,6 +25,7 @@ const junctions = [
 	"Assets\\Editor\\Scripts",
 	"Assets\\Editor\\Steamworks.NET",
 	"Assets\\Plugins",
+	"Assets\\Scripts",
 	"Assets\\KM_Assets",
 	"Assets\\TestHarness",
 	"Assets\\Shared_Assets",
@@ -39,7 +39,8 @@ const junctions = [
 	"Manual\\img\\page-bg-noise-05.png",
 	"Manual\\img\\page-bg-noise-06.png",
 	"Manual\\img\\page-bg-noise-07.png",
-	"Manual\\img\\web-background.jpg"
+	"Manual\\img\\web-background.jpg",
+	".gitignore",
 ];
 
 process.chdir("..");
@@ -71,7 +72,7 @@ process.chdir("..");
 					else await fs.remove(folder);
 				}
 	
-				await fs.symlink(resolve(join("! Source Project", junc)), folder, extname(junc) == "" ? "junction" : "file")
+				await fs.symlink(resolve(join("! Source Project", junc)), folder, (await fs.lstat(join("! Source Project", junc))).isDirectory() ? "junction" : "file")
 					.catch(console.error)
 					.then(() => console.log(`Created junction for "${folder}"`));
 			}).catch(error => {

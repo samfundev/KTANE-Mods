@@ -97,7 +97,7 @@ public class AssetBundler
 
         bundler.assemblyName = ModConfig.ID;
         bundler.outputFolder = ModConfig.OutputFolder + "/" + bundler.assemblyName;
-        if (System.Environment.OSVersion.Platform == PlatformID.MacOSX) bundler.target = BuildTarget.StandaloneOSXUniversal;
+        if (Application.platform == RuntimePlatform.OSXEditor) bundler.target = BuildTarget.StandaloneOSX;
 
         bool success = false;
 
@@ -249,13 +249,13 @@ public class AssetBundler
 			.Select(path => "Assets/CustomAssemblies/" + Path.GetFileNameWithoutExtension(path)));
 
         string unityAssembliesLocation;
-        switch (System.Environment.OSVersion.Platform)
+        switch (Application.platform)
         {
-            case PlatformID.MacOSX:
+            case RuntimePlatform.OSXEditor:
                 unityAssembliesLocation = EditorApplication.applicationPath + "/Contents/Managed/";
                 break;
-            case PlatformID.Win32NT:
-            case PlatformID.Unix:
+            case RuntimePlatform.LinuxEditor:
+            case RuntimePlatform.WindowsEditor:
             default:
                 unityAssembliesLocation = Path.Combine(Path.GetDirectoryName(EditorApplication.applicationPath), @"Data/Managed/");
                 break;
@@ -652,7 +652,8 @@ public class AssetBundler
                                 str.Add(obj.gameObject.name);
                                 obj = obj.parent;
                             }
-                            Debug.LogErrorFormat("There is an unassigned material on the following object: {0}", string.Join(" > ", str.ToArray()));
+                            Debug.LogWarningFormat("There is an unassigned material on the following object: {0}", string.Join(" > ", str.ToArray()));
+                            continue;
                         }
                         materialInfo.ShaderNames.Add(material.shader.name);
 

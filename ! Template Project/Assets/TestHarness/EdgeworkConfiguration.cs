@@ -7,8 +7,9 @@ namespace EdgeworkConfigurator
     {
         public SerialNumberType SerialNumberType;
         public string CustomSerialNumber;
+	    [Range(30,999)] public int TwoFactorResetTime = 30;
 
-        public List<THWidget> Widgets;
+        public List<THWidget> Widgets = new List<THWidget>();
     }
 
     public enum SerialNumberType
