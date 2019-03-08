@@ -7,7 +7,7 @@ Material:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: 712_serif
-  m_Shader: {fileID: 4800000, guid: 9bff5267355460a49bf42c801a5ac761, type: 3}
+  m_Shader: {fileID: 4800000, guid: a476fc8290dd79847a16d1040aa478d2, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 5
   m_EnableInstancingVariants: 0

@@ -7,7 +7,7 @@ Material:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: Text
-  m_Shader: {fileID: 4800000, guid: 9bff5267355460a49bf42c801a5ac761, type: 3}
+  m_Shader: {fileID: 4800000, guid: a476fc8290dd79847a16d1040aa478d2, type: 3}
   m_ShaderKeywords: _ALPHAPREMULTIPLY_ON _EMISSION
   m_LightmapFlags: 1
   m_EnableInstancingVariants: 0
@@ -43,7 +43,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: 31159e1dc8315cb4dacd172c7c96b5f8, type: 3}
+        m_Texture: {fileID: 2800000, guid: 1ebe1d96973a920409b439b3a0e2bb63, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: -0}
     - _MetallicGlossMap:
