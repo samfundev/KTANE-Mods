@@ -768,7 +768,7 @@ public class MinesweeperModule : MonoBehaviour
 	{
 		sliderAlpha = Mathf.Lerp(sliderAlpha, targetAlpha, 0.1f);
 
-		Slider.transform.localPosition = new Vector3(0, 0.0001f, -2.5f + 5f * sliderAlpha);
+		Slider.transform.localPosition = new Vector3(0, 2, -2.5f + 5f * sliderAlpha);
 
 		if (GuidesEnabled && guideAlpha < 1)
 		{
