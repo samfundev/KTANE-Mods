@@ -7,20 +7,12 @@ using UnityEngine;
 [JsonConverter(typeof(StringEnumConverter))]
 class ModConfig<T>
 {
-    public ModConfig(string name)
+    public ModConfig(string filename)
     {
-        _filename = name;
+		SettingsPath = Path.Combine(Path.Combine(Application.persistentDataPath, "Modsettings"), filename + ".json");
     }
 
-	readonly string _filename = null;
-
-    string SettingsPath
-    {
-        get
-        {
-            return Path.Combine(Path.Combine(Application.persistentDataPath, "Modsettings"), _filename + ".json");
-		}
-    }
+	readonly string SettingsPath = null;
 
 	private string SerializeSettings(T settings)
 	{

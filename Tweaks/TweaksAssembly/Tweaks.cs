@@ -16,8 +16,8 @@ using Assets.Scripts.Services.Steam;
 [RequireComponent(typeof(KMGameInfo))]
 class Tweaks : MonoBehaviour
 {
-	public static ModConfig<TweakSettings> modConfig = new ModConfig<TweakSettings>("TweakSettings");
-	public static TweakSettings settings = modConfig.Settings;
+	public static ModConfig<TweakSettings> modConfig;
+	public static TweakSettings settings;
 	public static bool CaseGeneratorSettingCache; // The CaseGenerator setting is cached until the user returns to the setup room to fix bugs related to the largest case size being cached.
 
 	public static bool TwitchPlaysActive => GameObject.Find("TwitchPlays_Info") != null;
@@ -40,6 +40,8 @@ class Tweaks : MonoBehaviour
 		SettingWarning = transform.Find("UI").Find("SettingWarning").gameObject;
 		BetterCasePicker.BombCaseGenerator = GetComponentInChildren<BombCaseGenerator>();
 
+		modConfig = new ModConfig<TweakSettings>("TweakSettings");
+		settings = modConfig.Settings;
 		modConfig.Settings = settings; // Write any settings that the user doesn't have in their settings file.
 
 		bool changeFadeTime = settings.FadeTime >= 0;
