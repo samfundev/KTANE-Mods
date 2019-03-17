@@ -18,6 +18,7 @@ class Tweaks : MonoBehaviour
 {
 	public static ModConfig<TweakSettings> modConfig = new ModConfig<TweakSettings>("TweakSettings");
 	public static TweakSettings settings = modConfig.Settings;
+	public static bool CaseGeneratorSettingCache; // The CaseGenerator setting is cached until the user returns to the setup room to fix bugs related to the largest case size being cached.
 
 	public static bool TwitchPlaysActive => GameObject.Find("TwitchPlays_Info") != null;
 	public static Mode CurrentMode => TwitchPlaysActive ? Mode.Normal : settings.Mode;
@@ -28,15 +29,20 @@ class Tweaks : MonoBehaviour
 
 	private readonly HashSet<TableOfContentsMetaData> ModToCMetaData = new HashSet<TableOfContentsMetaData>();
 
+	static GameObject SettingWarning;
+	GameObject TweaksCaseGeneratorCase;
+
 	void Awake()
 	{
+		MainThreadQueue.Initialize();
+
 		GameInfo = GetComponent<KMGameInfo>();
+		SettingWarning = transform.Find("UI").Find("SettingWarning").gameObject;
 		BetterCasePicker.BombCaseGenerator = GetComponentInChildren<BombCaseGenerator>();
 
 		modConfig.Settings = settings; // Write any settings that the user doesn't have in their settings file.
 
 		bool changeFadeTime = settings.FadeTime >= 0;
-		bool firstLoad = true;
 
 		FreeplayDevice.MAX_SECONDS_TO_SOLVE = float.MaxValue;
 		FreeplayDevice.MIN_MODULE_COUNT = 1;
@@ -47,6 +53,8 @@ class Tweaks : MonoBehaviour
 			lastFreeplaySettings.OnlyMods = true;
 			ProgressionManager.Instance.RecordLastFreeplaySettings(lastFreeplaySettings);
 		}
+
+		UpdateSettingWarning();
 
 		// Setup API/properties other mods to interact with
 		GameObject infoObject = new GameObject("Tweaks_Info", typeof(TweaksProperties));
@@ -62,6 +70,7 @@ class Tweaks : MonoBehaviour
 			if (settings.Equals(modConfig.Settings)) return;
 
 			UpdateSettings();
+			UpdateSettingWarning();
 
 			StartCoroutine(ModifyFreeplayDevice(false));
 		};
@@ -69,9 +78,27 @@ class Tweaks : MonoBehaviour
 		// Setup our "service" to block the leaderboard submission requests
 		ReflectedTypes.InstanceField.SetValue(null, new SteamFilterService());
 
+		// Create a fake case with a bunch of anchors to trick the game when using CaseGenerator.
+		TweaksCaseGeneratorCase = new GameObject("TweaksCaseGenerator");
+		TweaksCaseGeneratorCase.transform.SetParent(transform);
+		var kmBomb = TweaksCaseGeneratorCase.AddComponent<KMBomb>();
+		kmBomb.IsHoldable = false;
+		kmBomb.WidgetAreas = new List<GameObject>();
+		kmBomb.visualTransform = transform;
+		kmBomb.Faces = new List<KMBombFace>();
+
+		TweaksCaseGeneratorCase.AddComponent<ModBomb>();
+
+		var kmBombFace = TweaksCaseGeneratorCase.AddComponent<KMBombFace>();
+		kmBombFace.Anchors = new List<Transform>();
+		kmBomb.Faces.Add(kmBombFace);
+
+		for (int i = 0; i <= 9001; i++) kmBombFace.Anchors.Add(transform);
+
 		UnityEngine.SceneManagement.SceneManager.sceneLoaded += (Scene scene, LoadSceneMode _) =>
 		{
 			UpdateSettings();
+			UpdateSettingWarning();
 
 			Modes.settings = Modes.modConfig.Settings;
 			Modes.modConfig.Settings = Modes.settings;
@@ -127,7 +154,7 @@ class Tweaks : MonoBehaviour
 				Assets.Scripts.Records.RecordManager.Instance.DisableBestRecords = disableRecords;
 				if (disableRecords) SteamFilterService.TargetMissionID = GameplayState.MissionToLoad;
 
-				if (settings.BetterCasePicker || settings.CaseGenerator) BetterCasePicker.PickCase();
+				BetterCasePicker.HandleCaseGeneration();
 
 				BombStatus.Instance.widgetsActivated = false;
 				BombStatus.Instance.HUD.SetActive(settings.BombHUD);
@@ -140,32 +167,20 @@ class Tweaks : MonoBehaviour
 			}
 			else if (state == KMGameInfo.State.Setup)
 			{
-				if (firstLoad)
+				if (ReflectedTypes.LoadedModsField.GetValue(ModManager.Instance) is Dictionary<string, Mod> loadedMods)
 				{
-					firstLoad = false;
-
-					if (ReflectedTypes.LoadedModsField.GetValue(ModManager.Instance) is Dictionary<string, Mod> loadedMods)
+					Mod tweaksMod = loadedMods.Values.FirstOrDefault(mod => mod.ModID == "Tweaks");
+					if (tweaksMod != null)
 					{
-						Mod tweaksMod = loadedMods.Values.FirstOrDefault(mod => mod.ModID == "Tweaks");
-						if (tweaksMod != null)
+						if (CaseGeneratorSettingCache != settings.CaseGenerator)
 						{
-							var fakeBomb = new GameObject("TweaksCaseGenerator");
-							fakeBomb.transform.SetParent(transform);
-							var kmBomb = fakeBomb.AddComponent<KMBomb>();
-							kmBomb.IsHoldable = false;
-							kmBomb.WidgetAreas = new List<GameObject>();
-							kmBomb.visualTransform = transform;
-							kmBomb.Faces = new List<KMBombFace>();
+							if (settings.CaseGenerator)
+								tweaksMod.ModObjects.Add(TweaksCaseGeneratorCase);
+							else
+								tweaksMod.ModObjects.Remove(TweaksCaseGeneratorCase);
 
-							fakeBomb.AddComponent<ModBomb>();
-
-							var kmBombFace = fakeBomb.AddComponent<KMBombFace>();
-							kmBombFace.Anchors = new List<Transform>();
-							kmBomb.Faces.Add(kmBombFace);
-
-							for (int i = 0; i <= 9001; i++) kmBombFace.Anchors.Add(transform);
-
-							tweaksMod.ModObjects.Add(fakeBomb);
+							CaseGeneratorSettingCache = settings.CaseGenerator;
+							UpdateSettingWarning();
 						}
 					}
 				}
@@ -464,6 +479,10 @@ class Tweaks : MonoBehaviour
 		settings = modConfig.Settings;
 		modConfig.Settings = settings; // Write any settings that the user doesn't have in their settings file.
 	}
+
+	void Update() => MainThreadQueue.ProcessQueue();
+
+	void UpdateSettingWarning() => MainThreadQueue.Enqueue(() => SettingWarning.SetActive(CurrentState == KMGameInfo.State.Setup && CaseGeneratorSettingCache != settings.CaseGenerator));
 
 	void OnApplicationQuit()
 	{

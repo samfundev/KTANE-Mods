@@ -86,6 +86,7 @@
     <Compile Include="BombCaseGenerator.cs" />
     <Compile Include="BombStatus.cs" />
     <Compile Include="GeneralExtensions.cs" />
+    <Compile Include="MainThreadQueue.cs" />
     <Compile Include="Modules\ProbingLogging.cs" />
     <Compile Include="Modules\EmojiMathLogging.cs" />
     <Compile Include="Modules\SwitchesLogging.cs" />

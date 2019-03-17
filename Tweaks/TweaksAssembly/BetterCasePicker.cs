@@ -8,7 +8,7 @@ static class BetterCasePicker
 	public static BombCaseGenerator BombCaseGenerator;
 	public static GameObject CaseParent;
 
-	public static void PickCase()
+	public static void HandleCaseGeneration()
 	{
 		// The game sets the seed to 33 for some reason, so we have to set the seed so it doesn't pick the same values every time.
 		Random.InitState((int) System.DateTime.Now.Ticks);
@@ -16,7 +16,17 @@ static class BetterCasePicker
 		BombGenerator bombGenerator = Object.FindObjectOfType<BombGenerator>();
 		if (bombGenerator.BombPrefabOverride == null) // No point in doing anything if they aren't even going to use the ObjectPool.
 		{
-			GameplayState gameplayState = SceneManager.Instance.GameplayState;
+			ObjectPool prefabPool = bombGenerator.BombPrefabPool;
+			
+			// This must happen regardless of even BetterCasePicker is enabled so that the game can't try to spawn the fake case. 
+			prefabPool.Objects = prefabPool.Objects.Where(gameobject => gameobject.name != "TweaksCaseGenerator").ToList();
+
+			if (!Tweaks.settings.BetterCasePicker && !Tweaks.CaseGeneratorSettingCache)
+			{
+				return;
+			}
+
+			// Try to figure out what mission we are going into
 			Mission mission = null;
 			if (!string.IsNullOrEmpty(GameplayState.MissionToLoad))
 			{
@@ -43,8 +53,6 @@ static class BetterCasePicker
 			bool frontFaceOnly = mission.GeneratorSetting.FrontFaceOnly;
 			int componentCount = mission.GeneratorSetting.ComponentPools.Where(pool => pool.ModTypes == null || pool.ModTypes.Count == 0 || !(pool.ModTypes.Contains("Factory Mode") || pool.ModTypes[0].StartsWith("Multiple Bombs"))).Sum(pool => pool.Count) + 1;
 
-			ObjectPool prefabPool = bombGenerator.BombPrefabPool;
-
 			Dictionary<GameObject, int> bombcases = prefabPool.Objects
 			.Where(gameobject => gameobject.GetComponent<KMBomb>() != null)
 			.ToDictionary(gameobject => gameobject, gameobject =>
@@ -62,7 +70,7 @@ static class BetterCasePicker
 			bombcases.Add(prefabPool.Default, !frontFaceOnly ? 12 : 6);
 
 			// Generate a case using Case Generator
-			if (Tweaks.settings.CaseGenerator)
+			if (Tweaks.CaseGeneratorSettingCache)
 			{
 				List<Vector2> caseSizes = new List<Vector2>();
 				for (int x = 1; x <= componentCount; x++)

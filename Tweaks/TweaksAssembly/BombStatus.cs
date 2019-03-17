@@ -52,8 +52,10 @@ class BombStatus : MonoBehaviour
 				NeediesPrefab.text = needies.ToString();
 			}
 		}
-		GetComponent<Canvas>().enabled = currentBomb != null && !Tweaks.TwitchPlaysActive;
-		if (currentBomb == null) return;
+
+		bool enabled = currentBomb != null && !Tweaks.TwitchPlaysActive;
+		gameObject.SetActive(enabled);
+		if (!enabled) return;
 
 		string formattedTime = currentBomb.GetFullFormattedTime;
 		TimerPrefab.text = formattedTime;
