@@ -162,8 +162,10 @@ class Tweaks : MonoBehaviour
 				BombStatus.Instance.HUD.SetActive(settings.BombHUD);
 				BombStatus.Instance.Edgework.SetActive(settings.ShowEdgework);
 				BombStatus.Instance.ConfidencePrefab.gameObject.SetActive(CurrentMode != Mode.Zen);
+				BombStatus.Instance.StrikesPrefab.color = CurrentMode == Mode.Time ? Color.yellow : Color.red;
 
 				Modes.Multiplier = Modes.settings.TimeModeStartingMultiplier;
+				BombStatus.Instance.UpdateMultiplier();
 				bombWrappers = new BombWrapper[] { };
 				StartCoroutine(CheckForBombs());
 			}

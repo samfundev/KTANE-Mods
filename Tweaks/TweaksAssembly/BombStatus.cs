@@ -66,7 +66,7 @@ class BombStatus : MonoBehaviour
 		TimerPrefab.text = formattedTime;
 		TimerShadowPrefab.text = Regex.Replace(formattedTime, @"\d", "8");
 		UpdateConfidence();
-		UpdateWidgets();
+		if (Tweaks.settings.ShowEdgework) UpdateWidgets();
 	}
 
 	private IEnumerator UpdateStrikesCoroutine(bool delay)
@@ -77,7 +77,7 @@ class BombStatus : MonoBehaviour
 			// Necessary since the bomb doesn't update its internal counter until all its OnStrike handlers are finished
 			yield return 0;
 		}
-		if (currentBomb == null) yield break;
+		if (currentBomb == null || Tweaks.CurrentMode == Mode.Time) yield break;
 		currentStrikes = currentBomb.StrikeCount;
 		currentTotalStrikes = currentBomb.StrikeLimit;
 		string strikesText = currentStrikes.ToString().PadLeft(currentTotalStrikes.ToString().Length, '0');
@@ -98,19 +98,17 @@ class BombStatus : MonoBehaviour
 		SolvesPrefab.text = $"{solves}<size=25>/{currentTotalModules}</size>";
 	}
 
-	public void UpdateConfidence()
+	public void UpdateMultiplier()
 	{
 		if (Tweaks.CurrentMode == Mode.Time)
 		{
-			string conf = "<size=36>x</size>" + String.Format("{0:0.0}", Math.Min(Modes.Multiplier, Modes.settings.TimeModeMaxMultiplier));
-			StrikesPrefab.color = Color.yellow;
+			string conf = "<size=36>x</size>" + string.Format("{0:0.0}", Math.Min(Modes.Multiplier, Modes.settings.TimeModeMaxMultiplier));
 			StrikesPrefab.text = conf;
 		}
-		else
-		{
-			StrikesPrefab.color = Color.red;
-		}
+	}
 
+	public void UpdateConfidence()
+	{
 		float success = PlayerPaceRating;
 		ConfidencePrefab.text = Mathf.Round(success * 100).ToString() + "%";
 		ConfidencePrefab.color = success < 0 ? Color.Lerp(Color.gray, Color.red, Mathf.Sqrt(-success)) : Color.Lerp(Color.grey, Color.green, Mathf.Sqrt(success));

@@ -58,6 +58,7 @@ class BombWrapper
 					CurrentTimer += Math.Max(Modes.settings.TimeModeMinimumTimeGained, time);
 
 					Modes.Multiplier += Modes.settings.TimeModeSolveBonus;
+					BombStatus.Instance.UpdateMultiplier();
 				}
 
 				return false;
@@ -69,6 +70,7 @@ class BombWrapper
 				if (Tweaks.CurrentMode == Mode.Time)
 				{
 					Modes.Multiplier = Math.Max(Modes.Multiplier - Modes.settings.TimeModeMultiplierStrikePenalty, Modes.settings.TimeModeMinMultiplier);
+					BombStatus.Instance.UpdateMultiplier();
 					if (CurrentTimer < (Modes.settings.TimeModeMinimumTimeLost / Modes.settings.TimeModeTimerStrikePenalty))
 					{
 						CurrentTimer -= Modes.settings.TimeModeMinimumTimeLost;
