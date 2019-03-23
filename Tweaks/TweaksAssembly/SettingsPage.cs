@@ -35,24 +35,27 @@ class SettingsPage : MonoBehaviour
 		iconTransform.gameObject.SetActive(iconTexture != null);
 	}
 
-	public List<ModSettingsInfo> SettingsInfo = new List<ModSettingsInfo>() // TODO: Manually define some it would merge two
+	public List<ModSettingsInfo> SettingsInfo = new List<ModSettingsInfo>();
+
+	public List<ModSettingsInfo> PredefinedSettingsInfo = new List<ModSettingsInfo>()
 	{
-		/*new ModSettingsInfo
+		new ModSettingsInfo
 		{
-			Path = "Modsettings/TweakSettings.json",
+			Path = Path.Combine("Modsettings", "TweakSettings.json"),
 			Name = "Tweaks",
 			Listings = new List<Listing>()
 			{
-				new Listing(ListingType.Number, "Fade Time") { Key = "FadeTime" },
-				new Listing(ListingType.Checkbox, "Instant Skip") { Key = "InstantSkip" },
-				new Listing(ListingType.Checkbox, "Better Case Picker") { Key = "BetterCasePicker" },
-				new Listing(ListingType.Checkbox, "Enable Mods Only Key") { Key = "EnableModsOnlyKey" },
-				new Listing(ListingType.Checkbox, "Fix Foreign Exchange Rates") { Key = "FixFER" },
-				new Listing(ListingType.Checkbox, "Bomb HUD") { Key = "BombHUD" },
-				new Listing(ListingType.Checkbox, "Show Edgework") { Key = "ShowEdgework" },
-				new Listing(ListingType.Dropdown, "Mode") { Key = "Mode", DropdownItems = new List<object>() { "Normal", "Time", "Zen" } },
+				new Listing(ListingType.Dropdown, "Mode") { Key = "Mode", DropdownItems = new List<object>() { "Normal", "Time", "Zen", "Steady" }, Description = "Sets the mode for the next bomb." },
+				new Listing("Fade Time", "FadeTime", "The number seconds should it take to fade in and out of scenes."),
+				new Listing("Instant Skip", "InstantSkip", "Skips the gameplay loading screen as soon as possible."),
+				new Listing("Better Case Picker", "BetterCasePicker", "Chooses the smallest case that fits instead of a random one."),
+				new Listing("Enable Mods Only Key", "EnableModsOnlyKey", "Turns the Mods Only key to be on by default."),
+				new Listing("Fix Foreign Exchange Rates", "FixFER", "Changes the URL that is queried since the old one is no longer operational."),
+				new Listing("Bomb HUD", "BombHUD", "Adds a HUD in the top right corner showing information about the currently selected bomb."),
+				new Listing("Show Edgework", "ShowEdgework", "Adds a HUD to the top of the screen showing the edgework for the currently selected bomb."),
+				new Listing("Case Generator", "CaseGenerator", "Generates a case to best fit the bomb which can be one of the colors defined by CaseColors."),
 			}
-		}*/
+		}
 	};
 
 	bool PinningEnabled = false;
@@ -81,13 +84,13 @@ class SettingsPage : MonoBehaviour
 		int currentPage = CurrentScreen.Page;
 
 		int maxPage = CurrentListings.Count - ListingsPerPage;
-		SetIcon(BackwardButton, $"plain-arrow-left{(currentPage > 0 ? "" : "_grey")}");//BackwardButton.gameObject.SetActive(currentPage > 0);
+		SetIcon(BackwardButton, $"plain-arrow-left{(currentPage > 0 ? "" : "_grey")}");
 		BackwardButton.enabled = currentPage > 0;
 
-		SetIcon(ForwardButton, $"plain-arrow-right{(currentPage < maxPage ? "" : "_grey")}");//ForwardButton.gameObject.SetActive(currentPage < maxPage);
+		SetIcon(ForwardButton, $"plain-arrow-right{(currentPage < maxPage ? "" : "_grey")}");
 		ForwardButton.enabled = currentPage < maxPage;
 
-		SetIcon(PinButton, $"pin{(CurrentScreen.Pinnable ? (PinningEnabled ? "ned" : "") : "_grey")}");//PinButton.gameObject.SetActive(CurrentScreen.Pinnable);
+		SetIcon(PinButton, $"pin{(CurrentScreen.Pinnable ? (PinningEnabled ? "ned" : "") : "_grey")}");
 		PinButton.enabled = CurrentScreen.Pinnable;
 
 		PinningEnabled &= CurrentScreen.Pinnable; // If the current screen isn't pinnable but it was enabled, this should disable it.
@@ -216,10 +219,10 @@ class SettingsPage : MonoBehaviour
 				if (!new[] { ".txt", ".json" }.Contains(Path.GetExtension(file))) continue;
 				if (Path.GetFileName(file) == "output_log.txt") continue;
 
-				string fileText = File.ReadAllText(file);
 				Dictionary<string, object> settings = null;
 				try // TODO: Handle things that aren't dictionaries, like single values.
 				{
+					string fileText = File.ReadAllText(file);
 					settings = JsonConvert.DeserializeObject<Dictionary<string, object>>(fileText);
 				}
 				catch// (Exception exception)
@@ -259,14 +262,42 @@ class SettingsPage : MonoBehaviour
 
 				if (listings.Count == 0) continue;
 
-				SettingsInfo.Add(new ModSettingsInfo()
+				ModSettingsInfo generatedInfo = new ModSettingsInfo()
 				{
 					Path = file,
 					Name = CleanupSettingsFileName(Path.GetFileNameWithoutExtension(file)),
 					Listings = listings
-				});
+				};
+
+				// If we can find a some predefined information, merge the generated info into that.
+				ModSettingsInfo baseInfo = PredefinedSettingsInfo.FirstOrDefault(modSettings => Path.Combine(Application.persistentDataPath, modSettings.Path) == file);
+				SettingsInfo.Add(baseInfo != null ? MergeModSettings(baseInfo, generatedInfo) : generatedInfo);
 			}
 		}
+	}
+
+	// Anything that already exists in predefined won't be overridden by it's conterpart in generated, except for the path.
+	// Listings are compared by their .Key and the only other field that's merged is .Name
+	ModSettingsInfo MergeModSettings(ModSettingsInfo predefined, ModSettingsInfo generated)
+	{
+		if (predefined.Name == null) predefined.Name = generated.Name;
+		predefined.Path = generated.Path;
+		
+		foreach (Listing mergeListing in generated.Listings)
+		{
+			Listing predefinedListing = predefined.Listings.FirstOrDefault(baseListing => baseListing.Key == mergeListing.Key);
+			if (predefinedListing != null)
+			{
+				if (predefinedListing.Text == null) predefinedListing.Text = mergeListing.Text;
+				if (predefinedListing.Type == null) predefinedListing.Type = mergeListing.Type;
+
+				continue;
+			}
+
+			predefined.Listings.Add(mergeListing);
+		}
+
+		return predefined;
 	}
 
 	void ShowMainMenu()
@@ -314,7 +345,7 @@ class SettingsPage : MonoBehaviour
 
 		foreach (Listing listing in info.Listings)
 		{
-			var path = info.Path; // TODO: consider how to handle this better //Path.Combine(Application.persistentDataPath, info.Path);
+			var path = info.Path;
 			var dictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(File.ReadAllText(path));
 			listing.DefaultValue = dictionary[listing.Key];
 			listing.Action = obj =>
@@ -480,7 +511,17 @@ class SettingsPage : MonoBehaviour
 	GameObject MakeListingObject(Listing listing)
 	{
 		var ListingObject = Instantiate(ListingTemplate, ListingTemplate.transform.parent);
-		ListingObject.transform.Find("Text").GetComponent<TextMesh>().text = listing.Text;
+		Transform Text = ListingObject.transform.Find("Text");
+		Text.GetComponent<TextMesh>().text = listing.Text;
+		if (listing.Description != null)
+		{
+			Transform Description = ListingObject.transform.Find("Description");
+			Description.GetComponent<TextMesh>().text = listing.Description;
+			Description.gameObject.SetActive(true);
+			Bounds bounds = Text.GetComponent<Renderer>().bounds;
+			Description.position = bounds.center + new Vector3(bounds.extents.x, 0, 0);
+			Description.localPosition = Description.localPosition + new Vector3(0.01f, 0, 0);
+		}
 
 		string TypeString = listing.Type.ToString();
 		if (TypeString == "Dropdown") TypeString = "String";
@@ -568,7 +609,7 @@ class SettingsPage : MonoBehaviour
 	};
 
 	static bool capsLockEnabled = false;
-	bool CapsLock => System.Windows.Forms.Control.IsKeyLocked(System.Windows.Forms.Keys.CapsLock) || capsLockEnabled;
+	bool CapsLock => /*System.Windows.Forms.Control.IsKeyLocked(System.Windows.Forms.Keys.CapsLock) || */capsLockEnabled;
 
 	static bool shiftEnabled = false;
 	const string shiftKeys = "`~1!2@3#4$5%6^7&8*9(0)-_=+[{]}\\|;:'\",<.>/?";
@@ -678,6 +719,11 @@ class SettingsPage : MonoBehaviour
 			if (CurrentPage < CurrentListings.Count - 1) CurrentPage++;
 		}
 
+		if (Input.GetKeyDown(KeyCode.CapsLock))
+		{
+			capsLockEnabled = !capsLockEnabled;
+		}
+
 		// Don't read keyboard input while the keyboard is closed
 		if (!Keyboard.activeSelf) return;
 
@@ -773,7 +819,8 @@ enum ListingType
 class Listing
 {
 	public string Text;
-	public ListingType Type;
+	public string Description;
+	public ListingType? Type;
 	public string Key;
 	public object DefaultValue = null;
 	public Action<object> Action;
@@ -786,6 +833,13 @@ class Listing
 	{
 		this.Type = Type;
 		this.Text = Text;
+	}
+
+	public Listing(string Text, string Key, string Description)
+	{
+		this.Text = Text;
+		this.Key = Key;
+		this.Description = Description;
 	}
 }
 
