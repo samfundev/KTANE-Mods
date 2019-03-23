@@ -74,7 +74,7 @@ class Tweaks : MonoBehaviour
 			UpdateSettings();
 			UpdateSettingWarning();
 
-			StartCoroutine(ModifyFreeplayDevice(false));
+			MainThreadQueue.Enqueue(() => StartCoroutine(ModifyFreeplayDevice(false)));
 		};
 
 		// Setup our "service" to block the leaderboard submission requests
@@ -97,6 +97,7 @@ class Tweaks : MonoBehaviour
 
 		for (int i = 0; i <= 9001; i++) kmBombFace.Anchors.Add(transform);
 
+		// Handle scene changes
 		UnityEngine.SceneManagement.SceneManager.sceneLoaded += (Scene scene, LoadSceneMode _) =>
 		{
 			UpdateSettings();
@@ -143,6 +144,7 @@ class Tweaks : MonoBehaviour
 			}
 		};
 
+		// Handle state changes
 		GameInfo.OnStateChange += (KMGameInfo.State state) =>
 		{
 			CurrentState = state;
