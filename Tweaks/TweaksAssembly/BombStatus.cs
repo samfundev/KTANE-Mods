@@ -23,6 +23,8 @@ class BombStatus : MonoBehaviour
 
 	public BombWrapper currentBomb = null;
 
+	private CanvasGroup CanvasGroup;
+
 	private int currentSolves;
 	private int currentStrikes;
 	private int currentTotalModules;
@@ -33,6 +35,9 @@ class BombStatus : MonoBehaviour
 	{
 		Instance = this;
 		GameplayState.OnLightsOnEvent += delegate { widgetsActivated = true; };
+
+		CanvasGroup = GetComponent<CanvasGroup>();
+		CanvasGroup.alpha = 0;
 	}
 
 	void LateUpdate()
@@ -54,7 +59,7 @@ class BombStatus : MonoBehaviour
 		}
 
 		bool enabled = currentBomb != null && !Tweaks.TwitchPlaysActive;
-		gameObject.SetActive(enabled);
+		CanvasGroup.alpha = Math.Min(Math.Max(CanvasGroup.alpha + (enabled ? 1 : -1) * 0.1f, 0), 1);
 		if (!enabled) return;
 
 		string formattedTime = currentBomb.GetFullFormattedTime;

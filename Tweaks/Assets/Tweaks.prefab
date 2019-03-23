@@ -1137,6 +1137,7 @@ GameObject:
   m_Component:
   - component: {fileID: 224779323244688788}
   - component: {fileID: 114002429598702424}
+  - component: {fileID: 225446989660324300}
   m_Layer: 0
   m_Name: BombStatus
   m_TagString: Untagged
@@ -5280,3 +5281,14 @@ RectTransform:
   m_AnchoredPosition: {x: -0.64001465, y: -12}
   m_SizeDelta: {x: -691.2799, y: 72}
   m_Pivot: {x: 0.5, y: 1}
+--- !u!225 &225446989660324300
+CanvasGroup:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1937715181069766}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
