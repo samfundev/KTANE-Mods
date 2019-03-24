@@ -1,9 +1,7 @@
 fileFormatVersion: 2
-guid: 6b65e7f3749185d42bad827d390c4931
-timeCreated: 1550471056
-licenseType: Free
+guid: 22bcc328ce69f32418c4621b522190b7
 ModelImporter:
-  serializedVersion: 21
+  serializedVersion: 22
   fileIDToRecycleName:
     100000: //RootNode
     100002: Foam_B1
@@ -11,16 +9,24 @@ ModelImporter:
     400000: //RootNode
     400002: Foam_B1
     400004: Foam_B1_hole
+    2100000: Bomb_casing
     2300000: Foam_B1
     2300002: Foam_B1_hole
     3300000: Foam_B1
     3300002: Foam_B1_hole
-    4300000: Foam_B1_hole
-    4300002: Foam_B1
+    4300000: Foam_B1
+    4300002: Foam_B1_hole
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Bomb_casing
+    second: {fileID: 2100000, guid: 7aaa03f530901d44284475356179f55c, type: 2}
   materials:
-    importMaterials: 0
+    importMaterials: 1
     materialName: 0
     materialSearch: 1
+    materialLocation: 1
   animations:
     legacyGenerateAnimations: 4
     bakeSimulation: 0
@@ -33,6 +39,7 @@ ModelImporter:
     animationImportWarnings: 
     animationRetargetingWarnings: 
     animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
     animationCompression: 1
     animationRotationError: 0.5
     animationPositionError: 0.5
@@ -44,19 +51,21 @@ ModelImporter:
     isReadable: 1
   meshes:
     lODScreenPercentages: []
-    globalScale: 0.001
+    globalScale: 0.1
     meshCompression: 0
     addColliders: 0
     importVisibility: 1
     importBlendShapes: 1
-    importCameras: 0
-    importLights: 0
+    importCameras: 1
+    importLights: 1
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
     optimizeMeshForGPU: 1
     keepQuads: 0
     weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
     secondaryUVAngleDistortion: 8
     secondaryUVAreaDistortion: 15.000001
     secondaryUVHardAngle: 88
