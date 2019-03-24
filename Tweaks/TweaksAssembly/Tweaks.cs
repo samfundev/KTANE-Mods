@@ -516,6 +516,63 @@ class Tweaks : MonoBehaviour
 			LogChildren(child, depth + 1);
 		}
 	}
+
+	static Dictionary<string, object>[] TweaksEditorSettings = new Dictionary<string, object>[]
+	{
+		new Dictionary<string, object>
+		{
+			{ "Filename", "TweakSettings.json" },
+			{ "Name", "Tweaks" },
+			{ "Listings", new List<Dictionary<string, object>>
+				{
+					new Dictionary<string, object>
+					{
+						{ "Key", "Mode" },
+						{ "Description", "Sets the mode for the next round." },
+						{ "Type", "Dropdown" },
+						{ "DropdownItems", new List<object> { "Normal", "Time", "Zen", "Steady" } }
+					},
+					new Dictionary<string, object> { { "Key", "FadeTime" }, { "Text", "Fade Time" }, { "Description", "The number seconds should it take to fade in and out of scenes." } },
+					new Dictionary<string, object> { { "Key", "InstantSkip" }, { "Text", "Instant Skip" }, { "Description", "Skips the gameplay loading screen as soon as possible." } },
+					new Dictionary<string, object> { { "Key", "BetterCasePicker" }, { "Text", "Better Case Picker" }, { "Description", "Chooses the smallest case that fits instead of a random one." } },
+					new Dictionary<string, object> { { "Key", "EnableModsOnlyKey" }, { "Text", "Enable Mods Only Key" }, { "Description", "Turns the Mods Only key to be on by default." } },
+					new Dictionary<string, object> { { "Key", "FixFER" }, { "Text", "Fix Foreign Exchange Rates" }, { "Description", "Changes the URL that is queried since the old one is no longer operational." } },
+					new Dictionary<string, object> { { "Key", "BombHUD" }, { "Text", "Bomb HUD" }, { "Description", "Adds a HUD in the top right corner showing information about the currently selected bomb." } },
+					new Dictionary<string, object> { { "Key", "ShowEdgework" }, { "Text", "Show Edgework" }, { "Description", "Adds a HUD to the top of the screen showing the edgework for the currently selected bomb." } },
+					new Dictionary<string, object> { { "Key", "CaseGenerator" }, { "Text", "Case Generator" }, { "Description", "Generates a case to best fit the bomb which can be one of the colors defined by CaseColors." } },
+				}
+			}
+		},
+		new Dictionary<string, object>
+		{
+			{ "Filename", "ModeSettings.json" },
+			{ "Name", "Mode Settings" },
+			{ "Listings", new List<Dictionary<string, object>>
+				{
+					new Dictionary<string, object> { { "Text", "Zen Mode" }, { "Type", "Section" } },
+					new Dictionary<string, object> { { "Key", "ZenModeTimePenalty" }, { "Text", "Time Penalty" }, { "Description", "The base amount of minutes to be penalized for getting a strike." } },
+					new Dictionary<string, object> { { "Key", "ZenModeTimePenaltyIncrease" }, { "Text", "Time Penalty Increase" }, { "Description", "The number of minutes to add to the penalty each time you get\na strike after the first." } },
+					new Dictionary<string, object> { { "Key", "ZenModeTimerSpeedUp" }, { "Text", "Timer Speed Up" }, { "Description", "The rate the timer speeds up when you get a strike." } },
+					new Dictionary<string, object> { { "Key", "ZenModeTimerMaxSpeed" }, { "Text", "Timer Max Speed" }, { "Description", "The maximum rate the timer can be set to.\nFor example, 2 is twice as fast as the normal timer." } },
+
+					new Dictionary<string, object> { { "Text", "Steady Mode" }, { "Type", "Section" } },
+					new Dictionary<string, object> { { "Key", "SteadyModeFixedPenalty" }, { "Text", "Fixed Penalty" }, { "Description", "The number of minutes subtracted from the time when you get a strike." } },
+					new Dictionary<string, object> { { "Key", "SteadyModePercentPenalty" }, { "Text", "Percent Penalty" }, { "Description", "The factor of the starting time the remaining time is reduced by." } },
+
+					new Dictionary<string, object> { { "Text", "Time Mode" }, { "Type", "Section" } },
+					new Dictionary<string, object> { { "Key", "TimeModeStartingTime" }, { "Text", "Starting Time" }, { "Description", "The number of minutes on the timer when you start a bomb." } },
+					new Dictionary<string, object> { { "Key", "TimeModeStartingMultiplier" }, { "Text", "Starting Multiplier" }, { "Description", "The initial multiplier." } },
+					new Dictionary<string, object> { { "Key", "TimeModeMaxMultiplier" }, { "Text", "Max Multiplier" }, { "Description", "The highest the multiplier can go." } },
+					new Dictionary<string, object> { { "Key", "TimeModeMinMultiplier" }, { "Text", "Min Multiplier" }, { "Description", "The lowest the multiplier can go." } },
+					new Dictionary<string, object> { { "Key", "TimeModeSolveBonus" }, { "Text", "Solve Bonus" }, { "Description", "The amount added to the multiplier when you solve a module." } },
+					new Dictionary<string, object> { { "Key", "TimeModeMultiplierStrikePenalty" }, { "Text", "Multiplier Strike Penalty" }, { "Description", "The amount subtracted from the multiplier when you get a\nstrike." } },
+					new Dictionary<string, object> { { "Key", "TimeModeTimerStrikePenalty" }, { "Text", "Timer Strike Penalty" }, { "Description", "The factor the time is reduced by when getting a strike." } },
+					new Dictionary<string, object> { { "Key", "TimeModeMinimumTimeLost" }, { "Text", "Min Time Lost" }, { "Description", "Lowest amount of time that you can lose when you get a strike." } },
+					new Dictionary<string, object> { { "Key", "TimeModeMinimumTimeGained" }, { "Text", "Min Time Gained" }, { "Description", "Lowest amount of time you can gain when you solve a module." } },
+				}
+			}
+		}
+	};
 }
 
 class SteamFilterService : ServicesSteam

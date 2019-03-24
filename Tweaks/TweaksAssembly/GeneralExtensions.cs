@@ -50,6 +50,15 @@ public static class GeneralExtensions
         return source.OrderBy(_ => UnityEngine.Random.value);
     }
 
+	public static T GetKeySafe<T>(this Dictionary<string, object> dictionary, string key) {
+		if (dictionary.ContainsKey(key))
+		{
+			return (T) dictionary[key];
+		}
+
+		return default(T);
+	}
+
 	/// <summary>
 	/// Compares the string against a given pattern.
 	/// </summary>

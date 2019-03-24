@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEngine;
 using Newtonsoft.Json;
 using System.Text.RegularExpressions;
+using System.Reflection;
 
 // TODO: Can we do something about the lag spike when reading settings for the first time?
 // TODO: Consider wrapping the longer settings and making the listings twice as tall
@@ -37,26 +38,7 @@ class SettingsPage : MonoBehaviour
 
 	public List<ModSettingsInfo> SettingsInfo = new List<ModSettingsInfo>();
 
-	public List<ModSettingsInfo> PredefinedSettingsInfo = new List<ModSettingsInfo>()
-	{
-		new ModSettingsInfo
-		{
-			Path = Path.Combine("Modsettings", "TweakSettings.json"),
-			Name = "Tweaks",
-			Listings = new List<Listing>()
-			{
-				new Listing(ListingType.Dropdown, "Mode") { Key = "Mode", DropdownItems = new List<object>() { "Normal", "Time", "Zen", "Steady" }, Description = "Sets the mode for the next bomb." },
-				new Listing("Fade Time", "FadeTime", "The number seconds should it take to fade in and out of scenes."),
-				new Listing("Instant Skip", "InstantSkip", "Skips the gameplay loading screen as soon as possible."),
-				new Listing("Better Case Picker", "BetterCasePicker", "Chooses the smallest case that fits instead of a random one."),
-				new Listing("Enable Mods Only Key", "EnableModsOnlyKey", "Turns the Mods Only key to be on by default."),
-				new Listing("Fix Foreign Exchange Rates", "FixFER", "Changes the URL that is queried since the old one is no longer operational."),
-				new Listing("Bomb HUD", "BombHUD", "Adds a HUD in the top right corner showing information about the currently selected bomb."),
-				new Listing("Show Edgework", "ShowEdgework", "Adds a HUD to the top of the screen showing the edgework for the currently selected bomb."),
-				new Listing("Case Generator", "CaseGenerator", "Generates a case to best fit the bomb which can be one of the colors defined by CaseColors."),
-			}
-		}
-	};
+	public List<ModSettingsInfo> PredefinedSettingsInfo = new List<ModSettingsInfo>();
 
 	bool PinningEnabled = false;
 
@@ -71,6 +53,7 @@ class SettingsPage : MonoBehaviour
 		public string TitleText = "Mod Settings";
 		public int Page = 0;
 		public bool Pinnable = false;
+		public bool Sorted = false;
 	}
 
 	public Screen CurrentScreen => ScreenStack.Peek();
@@ -97,7 +80,7 @@ class SettingsPage : MonoBehaviour
 
 		var sortedListings = CurrentListings
 			.OrderByDescending(listing => listing.Pinned)
-			.ThenBy(listing => listing.Text)
+			.ThenBy(listing => CurrentScreen.Sorted ? listing.Text : "")
 			.ToArray();
 
 		for (int i = 0; i < CurrentListings.Count; i++)
@@ -105,7 +88,7 @@ class SettingsPage : MonoBehaviour
 			GameObject Object = sortedListings[i].Object;
 			Object.SetActive(i >= currentPage && i <= currentPage + (ListingsPerPage - 1));
 			Object.transform.localPosition = new Vector3(-0.5f, 0.33125f - 0.0875f * (i - currentPage), -0.0001f);
-			Object.transform.Find("Background").GetComponent<Renderer>().material.color = Color.HSVToRGB(0, 0, i % 2 == 0 ? 0.85f : 0.768f);
+			Object.transform.Find("Background").GetComponent<Renderer>().material.color = Color.HSVToRGB(0, 0, sortedListings[i].Type == ListingType.Section ? 0.65f : i % 2 == 0 ? 0.85f : 0.768f);
 			Object.transform.Find("FakeHighlight").Find("Highlight").GetComponent<Renderer>().material.color = Color.HSVToRGB(0.5f, 0.458f, i % 2 == 0 ? 1 : 0.918f);
 			SetIcon(Object.transform, sortedListings[i].Pinned ? "pinned" : "");
 		}
@@ -210,6 +193,65 @@ class SettingsPage : MonoBehaviour
 	void ReadSettings()
 	{
 		SettingsInfo.Clear();
+		PredefinedSettingsInfo.Clear();
+
+		IEnumerable<FieldInfo> SettingFields =
+			AppDomain.CurrentDomain
+				.GetAssemblies()
+				.SelectMany(a => a.GetSafeTypes())
+				.SelectMany(a => a.GetFields(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public))
+				.Where(a => a.Name == "TweaksEditorSettings" && typeof(IEnumerable<Dictionary<string, object>>).IsAssignableFrom(a.FieldType));
+
+		foreach (FieldInfo fieldInfo in SettingFields)
+		{
+			foreach (Dictionary<string, object> test in (IEnumerable<Dictionary<string, object>>) fieldInfo.GetValue(null))
+			{
+				try
+				{
+					ModSettingsInfo modSettingsInfo = new ModSettingsInfo()
+					{
+						Path = test.GetKeySafe<string>("Filename"),
+						Name = test.GetKeySafe<string>("Name"),
+					};
+
+					var modListings = test.GetKeySafe<List<Dictionary<string, object>>>("Listings");
+					if (modListings != null)
+					{
+						modSettingsInfo.Listings = modListings.Select(modListing =>
+							{
+								Listing listing = new Listing(modListing.GetKeySafe<string>("Text"), modListing.GetKeySafe<string>("Key"), modListing.GetKeySafe<string>("Description"));
+
+								try
+								{
+									string listingType = modListing.GetKeySafe<string>("Type");
+									if (listingType != null) listing.Type = (ListingType) Enum.Parse(typeof(ListingType), listingType, true);
+									listing.DropdownItems = modListing.GetKeySafe<List<object>>("DropdownItems");
+
+									if (listing.Type == ListingType.Dropdown && listing.DropdownItems == null) throw new Exception("Missing DropdownItems field for Listing type \"Dropdown\".");
+									if (listing.Key == null && listing.Type != ListingType.Section) throw new Exception("Missing Key field for Listing.");
+
+									return listing;
+								}
+								catch (Exception exeception)
+								{
+									Tweaks.Log($"An exception occurred while loading the listing \"{listing.Key}\" (Text: {listing.Text}) (Desc: {listing.Description}):");
+									Debug.LogException(exeception);
+									return null;
+								}
+							})
+							.Where(listing => listing != null)
+							.ToList();
+					}
+
+					PredefinedSettingsInfo.Add(modSettingsInfo);
+				}
+				catch (Exception exception)
+				{
+					Tweaks.Log($"An exception occurred while loading predefined settings for \"{fieldInfo.DeclaringType}\":");
+					Debug.LogException(exception);
+				}
+			}
+		}
 
 		foreach (string directory in new[] { Application.persistentDataPath, Path.Combine(Application.persistentDataPath, "Modsettings") })
 		{
@@ -270,7 +312,7 @@ class SettingsPage : MonoBehaviour
 				};
 
 				// If we can find a some predefined information, merge the generated info into that.
-				ModSettingsInfo baseInfo = PredefinedSettingsInfo.FirstOrDefault(modSettings => Path.Combine(Application.persistentDataPath, modSettings.Path) == file);
+				ModSettingsInfo baseInfo = PredefinedSettingsInfo.FirstOrDefault(modSettings => modSettings.Path == Path.GetFileName(file));
 				SettingsInfo.Add(baseInfo != null ? MergeModSettings(baseInfo, generatedInfo) : generatedInfo);
 			}
 		}
@@ -303,6 +345,7 @@ class SettingsPage : MonoBehaviour
 	void ShowMainMenu()
 	{
 		CurrentScreen.Pinnable = true;
+		CurrentScreen.Sorted = true;
 
 		foreach (ModSettingsInfo info in SettingsInfo)
 		{
@@ -345,15 +388,18 @@ class SettingsPage : MonoBehaviour
 
 		foreach (Listing listing in info.Listings)
 		{
-			var path = info.Path;
-			var dictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(File.ReadAllText(path));
-			listing.DefaultValue = dictionary[listing.Key];
-			listing.Action = obj =>
+			if (listing.Type != ListingType.Section)
 			{
-				dictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(File.ReadAllText(path));
-				dictionary[listing.Key] = obj;
-				File.WriteAllText(path, JsonConvert.SerializeObject(dictionary, Formatting.Indented));
-			};
+				var path = info.Path;
+				var dictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(File.ReadAllText(path));
+				listing.DefaultValue = dictionary[listing.Key];
+				listing.Action = obj =>
+				{
+					dictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(File.ReadAllText(path));
+					dictionary[listing.Key] = obj;
+					File.WriteAllText(path, JsonConvert.SerializeObject(dictionary, Formatting.Indented));
+				};
+			}
 
 			CurrentListings.Add(listing);
 		}
@@ -512,7 +558,8 @@ class SettingsPage : MonoBehaviour
 	{
 		var ListingObject = Instantiate(ListingTemplate, ListingTemplate.transform.parent);
 		Transform Text = ListingObject.transform.Find("Text");
-		Text.GetComponent<TextMesh>().text = listing.Text;
+		Text.GetComponent<TextMesh>().text = (listing.Type == ListingType.Section ? "   " : "") + listing.Text;
+
 		if (listing.Description != null)
 		{
 			Transform Description = ListingObject.transform.Find("Description");
@@ -553,6 +600,9 @@ class SettingsPage : MonoBehaviour
 				break;
 			case ListingType.Dropdown:
 				new DropdownInput(listing);
+				break;
+			case ListingType.Section:
+				ListingObject.transform.Find("FakeHighlight").gameObject.SetActive(false);
 				break;
 		}
 
@@ -813,7 +863,8 @@ enum ListingType
 	Checkbox,
 	String,
 	Number,
-	Dropdown
+	Dropdown,
+	Section
 }
 
 class Listing
