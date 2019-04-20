@@ -2,10 +2,10 @@
 using UnityEngine.UI;
 using System;
 using System.Linq;
-using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
-using BetterModSettings;
+using Assets.Scripts.Pacing;
+using Assets.Scripts.Missions;
 
 public class EventSettings
 {
@@ -27,9 +27,6 @@ public class PacingSettings
 [RequireComponent(typeof(KMGameInfo))]
 public class PacingExtender : MonoBehaviour
 {
-    static BindingFlags NonPublic = BindingFlags.Instance | BindingFlags.NonPublic;
-    static BindingFlags Public = BindingFlags.Instance | BindingFlags.Public;
-
     public GameObject UI;
     public GameObject ActiveInd;
     public GameObject SuccessInd;
@@ -37,7 +34,7 @@ public class PacingExtender : MonoBehaviour
 
     List<PacingEvent> Events = new List<PacingEvent>();
 
-    ModSettings BetterSettings = new ModSettings("PacingExtender", typeof(PacingSettings));
+    ModConfig<PacingSettings> PacingSettings = new ModConfig<PacingSettings>("PacingExtender");
     PacingSettings Settings;
 
 	static void Log(object format, params object[] formatting)
@@ -45,15 +42,15 @@ public class PacingExtender : MonoBehaviour
 		Debug.LogFormat("[PacingExtender] " + format, formatting);
 	}
 
-    List<object> GetIdleEvents(IList actions)
+    List<PacingAction> GetIdleEvents(List<PacingAction> actions)
     {
-        List<object> events = new List<object>(); ;
-        foreach (object pacingEvent in actions)
+        List<PacingAction> events = new List<PacingAction>();
+        foreach (PacingAction pacingAction in actions)
         {
-            object value = pacingEvent.GetType().GetProperty("EventType", Public).GetValue(pacingEvent, null);
-            if (value.ToString() == "Idle_DoingWell")
+            PaceEvent value = pacingAction.EventType;
+            if (value == PaceEvent.Idle_DoingWell)
             {
-                events.Add(pacingEvent);
+                events.Add(pacingAction);
             }
         }
 
@@ -63,26 +60,6 @@ public class PacingExtender : MonoBehaviour
     float timeLeft = 0;
     int minTime = 20;
     int maxTime = 60;
-
-    public static Type FindType(string qualifiedTypeName)
-    {
-        Type t = Type.GetType(qualifiedTypeName);
-
-        if (t != null)
-        {
-            return t;
-        }
-        else
-        {
-            foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                t = asm.GetType(qualifiedTypeName);
-                if (t != null)
-                    return t;
-            }
-            return null;
-        }
-    }
 
     class PacingEvent : MonoBehaviour
     {
@@ -95,12 +72,11 @@ public class PacingExtender : MonoBehaviour
         public float _cooldown = 0;
         public float _timeStamp = 0;
 
-        public PacingEvent(object PacingAction, Func<string, EventSettings> GetEventSettings)
+        public PacingEvent(PacingAction PacingAction, Func<string, EventSettings> GetEventSettings)
         {
-            Type _pacingActionType = PacingAction.GetType();
-            _legacyAction = (Action) _pacingActionType.GetField("Action", Public).GetValue(PacingAction);
+            _legacyAction = PacingAction.Action;
 
-            _name = (string) _pacingActionType.GetProperty("Name", Public).GetValue(PacingAction, null);
+            _name = PacingAction.Name;
             switch (_name)
             {
                 case "Cut the lights":
@@ -193,7 +169,7 @@ public class PacingExtender : MonoBehaviour
 
 	IEnumerator WaitForPaceMaker()
     {
-        Settings = (PacingSettings) BetterSettings.Settings;
+        Settings = PacingSettings.Settings;
 
         // Validate config file.
         if (Settings.Min > Settings.Max)
@@ -205,37 +181,38 @@ public class PacingExtender : MonoBehaviour
         {
             Settings.AbsoluteMinimum = Settings.Min;
         }
-		
-        yield return new WaitUntil(() => { _paceMakerObj = GameObject.Find("PaceMaker"); return _paceMakerObj != null; });
+
+        PaceMaker paceMaker = null;
+        yield return new WaitUntil(() => { paceMaker = SceneManager.Instance.GameplayState.GetPaceMaker(); return paceMaker != null; });
+        _paceMakerObj = paceMaker.gameObject;
 
         minTime = Math.Max(Math.Min(Settings.Min, Settings.Max), 0);
         maxTime = Math.Max(Settings.Max, minTime);
         timeLeft = UnityEngine.Random.Range(minTime, maxTime);
 
 		UI.SetActive(Settings.Debug);
-		
-		object paceMaker = _paceMakerObj.GetComponent("PaceMaker");
-        IList actions = (IList) _actions.GetValue(paceMaker);
-		
-		yield return new WaitUntil(() => (bool) _isActive.GetValue(paceMaker));
-        _populatePacingEvents.Invoke(paceMaker, null);
+
+        List<PacingAction> actions = paceMaker.GetValue<List<PacingAction>>("actions");
+
+		yield return new WaitUntil(() => paceMaker.GetValue<bool>("isActive"));
+        paceMaker.CallMethod("PopulatePacingActions");
         bool actionsEnabled = actions.Count > 0;
-		
-		object mission = _mission.GetValue(paceMaker);
-        if ((string) _ID.GetValue(mission, null) != "freeplay" && actionsEnabled)
+
+        Mission mission = paceMaker.GetValue<Mission>("mission");
+        if (mission.ID != "freeplay" && actionsEnabled)
         {
             activeImg.color = Color.yellow;
             yield return new WaitUntil(() =>
             {
-                List<object> idle = GetIdleEvents(actions);
+                List<PacingAction> idle = GetIdleEvents(actions);
                 eventCount.text = idle.Count.ToString();
                 return idle.Count == 0;
             });
-			_populatePacingEvents.Invoke(paceMaker, null);
+            paceMaker.CallMethod("PopulatePacingActions");
         }
-		
-		_isActive.SetValue(paceMaker, false);
-		
+
+        paceMaker.SetValue("isActive", false);
+
 		if (actionsEnabled)
         {
             eventCount.text = GetIdleEvents(actions).Count.ToString();
@@ -245,8 +222,8 @@ public class PacingExtender : MonoBehaviour
         {
             activeImg.color = Color.gray;
         }
-		
-		Events.AddRange(GetIdleEvents(actions).Select((object PacingAction) => new PacingEvent(PacingAction, GetEventSettings)).Where(e => GetEventSettings(e._name).Enabled));
+
+		Events.AddRange(GetIdleEvents(actions).Select(PacingAction => new PacingEvent(PacingAction, GetEventSettings)).Where(e => GetEventSettings(e._name).Enabled));
 
 		yield return new WaitForSeconds(1f);
         while (_paceMakerObj != null)
@@ -302,7 +279,7 @@ public class PacingExtender : MonoBehaviour
                 activeImg.color = Color.green;
             }
 		}
-		
+
 		OnRoundEnded();
     }
 
@@ -315,8 +292,8 @@ public class PacingExtender : MonoBehaviour
 			Destroy(_paceMakerObj);
 			_paceMakerObj = null;
 		}
-		
-		BetterSettings.Settings = Settings; // Any Event settings should have been added by now, so we can update the users config file.
+
+		PacingSettings.Settings = Settings; // Any Event settings should have been added by now, so we can update the users config file.
 		Events.Clear();
 
 		UI.SetActive(false);
@@ -324,31 +301,30 @@ public class PacingExtender : MonoBehaviour
 
     float CalculateSuccess()
     {
-        object[] Bombs = FindObjectsOfType(_bombType);
-        if (Bombs.Length > 0)
+        List<Bomb> Bombs = SceneManager.Instance.GameplayState.Bombs;
+        if (Bombs.Count > 0)
         {
             float worstRating = Settings.Min / (float) Settings.AbsoluteMinimum;
             float bestTimeRemaining = 0;
             float maxTimeRemaining = 0;
             int totalModules = 0;
             int totalSolved = 0;
-            foreach (object bomb in Bombs) totalModules += (int) _getSolvableMethod.Invoke(bomb, null);
+            foreach (Bomb bomb in Bombs) totalModules += bomb.GetSolvableComponentCount();
 
-            foreach (object bomb in Bombs)
+            foreach (Bomb bomb in Bombs)
             {
-                int thisSolved = (int) _getSolvedMethod.Invoke(bomb, null);
+                int thisSolved = bomb.GetSolvedComponentCount();
                 totalSolved += thisSolved;
 
-                object timer = _timer.GetValue(bomb);
-                float curTime = (float) _timeRemaining.GetValue(timer) / (float) _rateModifier.GetValue(timer);
-                float maxTime = (float) _totalTime.GetValue(bomb);
+                TimerComponent timer = bomb.GetTimer();
+                float curTime = timer.TimeRemaining / timer.GetRate();
+                float maxTime = bomb.TotalTime;
                 maxTimeRemaining = Math.Max(maxTimeRemaining, maxTime);
 
                 bestTimeRemaining = Mathf.Max(bestTimeRemaining, curTime);
-                worstRating = Mathf.Min(worstRating, CalculateRating((int) _getSolvableMethod.Invoke(bomb, null) - thisSolved, totalModules, curTime, maxTime));
+                worstRating = Mathf.Min(worstRating, CalculateRating(bomb.GetSolvableComponentCount() - thisSolved, totalModules, curTime, maxTime));
             }
-            worstRating = Mathf.Min(worstRating, CalculateRating(totalModules - totalSolved, totalModules, bestTimeRemaining, maxTimeRemaining));
-            return worstRating;
+            return Mathf.Min(worstRating, CalculateRating(totalModules - totalSolved, totalModules, bestTimeRemaining, maxTimeRemaining));
         }
         else return 1;
     }
@@ -359,35 +335,14 @@ public class PacingExtender : MonoBehaviour
         float curPace = remain / timeLeft;
 
         float rating = pace / curPace;
-        rating = Mathf.Min(Mathf.Max(rating, 0), 1.5f);
-
-        return rating;
+        return Mathf.Min(Mathf.Max(rating, 0), 1.5f);
     }
 
 	#region Type Definitions
-	// Used in WaitForPaceMaker()
-	Type _paceMakerType;
-	FieldInfo _isActive;
-	MethodInfo _populatePacingEvents;
-	FieldInfo _actions;
-	FieldInfo _mission;
-	PropertyInfo _ID;
 	GameObject _paceMakerObj;
 
-	// Used in CalculateSuccess()
-	Type _bombType;
-    MethodInfo _getSolvableMethod;
-    MethodInfo _getSolvedMethod;
-    FieldInfo _numStrikes;
-    FieldInfo _numStrikesToLose;
-    FieldInfo _totalTime;
-    FieldInfo _timer;
-    Type _timerType;
-    FieldInfo _timeRemaining;
-    FieldInfo _rateModifier;
-	
-	// Used for UI
-	Image activeImg = null;
+    // Used for UI
+    Image activeImg = null;
 	Text eventCount = null;
 
 	Text eventTime = null;
@@ -397,22 +352,6 @@ public class PacingExtender : MonoBehaviour
 	void Start()
     {
 		#region Type Assignments
-		_paceMakerType = FindType("Assets.Scripts.Pacing.PaceMaker");
-		_isActive = _paceMakerType.GetField("isActive", NonPublic);
-		_populatePacingEvents = _paceMakerType.GetMethod("PopulatePacingActions", NonPublic);
-		_actions = _paceMakerType.GetField("actions", NonPublic);
-		_mission = _paceMakerType.GetField("mission", NonPublic);
-		_ID = FindType("Assets.Scripts.Missions.Mission").GetProperty("ID", Public);
-
-		_bombType = FindType("Bomb");
-        _getSolvableMethod = _bombType.GetMethod("GetSolvableComponentCount", Public);
-        _getSolvedMethod = _bombType.GetMethod("GetSolvedComponentCount", Public);
-        _totalTime = _bombType.GetField("TotalTime", Public);
-        _timer = _bombType.GetField("timer", NonPublic);
-        _timerType = FindType("TimerComponent");
-        _timeRemaining = _timerType.GetField("TimeRemaining", Public);
-        _rateModifier = _timerType.GetField("rateModifier", NonPublic);
-		
 		activeImg = ActiveInd.GetComponent<Image>();
 		eventCount = ActiveInd.transform.Find("Text").GetComponent<Text>();
 		eventTime = NextEvent.transform.Find("Text").GetComponent<Text>();
@@ -421,18 +360,19 @@ public class PacingExtender : MonoBehaviour
 
 		Coroutine _mainCoroutine = null;
 
-        GetComponent<KMGameInfo>().OnStateChange = delegate (KMGameInfo.State state)
+        GetComponent<KMGameInfo>().OnStateChange = (KMGameInfo.State state) =>
         {
             if (state == KMGameInfo.State.Gameplay)
-			{
-				_mainCoroutine = StartCoroutine(WaitForPaceMaker());
-			} else if (_mainCoroutine != null)
-			{
-				StopCoroutine(_mainCoroutine);
-				_mainCoroutine = null;
+            {
+                _mainCoroutine = StartCoroutine(WaitForPaceMaker());
+            }
+            else if (_mainCoroutine != null)
+            {
+                StopCoroutine(_mainCoroutine);
+                _mainCoroutine = null;
 
-				OnRoundEnded();
-			}
+                OnRoundEnded();
+            }
         };
     }
 }

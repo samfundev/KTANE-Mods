@@ -13,6 +13,43 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: PacingExtender
   title: Pacing Extender
+  description: "[h1]About[/h1]\r\nPacing Extender adds more functionality to the existing
+    game's pacing events, which includes:\r\n[list]\r\n[*] Repeating events instead
+    of just having two for the whole bomb.\r\n[*] Adding support with the Multiple
+    Bombs mod.\r\n[*] Adding a better success rating calculation to the game.\r\n[*]
+    Disabling and configuring individual events to control if / when they appear.\r\n[*]
+    Allowing mod authors to be able to add new events to the game.\r\n[/list]\r\n\r\n[h1]Configuration
+    Options[/h1]\r\nA configuration file can be found in the mod settings folder in
+    a file called PacingExtender.json, here is an explanation of the options:\r\n[list]\r\n[*]
+    Min - The minimum number of seconds that can be picked for the timer to the next
+    pacing event.\r\n[*] Max - The maximum number of seconds that can be picked for
+    the timer to the next pacing event.\r\n[*] AbsoluteMinimum - The minimum number
+    of seconds until the next pacing event, no matter how high your success rating
+    is. See the Next Event Timing section below for more information.\r\n[*] Debug
+    - Shows debug information like the timer to the next event and what the current
+    success rating is.\r\n[*] EventSettings - This setting allows you to control individual
+    event settings. See the Event Settings section below for more information.\r\n[/list]\r\n\r\n[h1]Leaderboards
+    and Missions[/h1]\r\nPacing Extender doesn't activate in missions until after
+    the game's regular pacing events play.\r\nThis is to prevent users to get an advantage
+    over users not using this mod.\r\n\r\n[h1]The Algorithm[/h1]\r\nThis section describes
+    the algorithm that Pacing Extender uses.\r\n[list]\r\n[*] [b]Success Rating[/b]\r\nPacing
+    Extender trys to calculate your success rating based on how well you are keeping
+    up to the pace of the bomb.\r\nFor example: A 10 module bomb with 10 minutes expects
+    you to have a module solved every minute.\r\n\r\n[*] [b]Next Event Timing[/b]\r\nYour
+    success rating controls how quickly the timer ticks down to your next pacing event.\r\nFor
+    example: If your success rating is 150%, the timer will tick down one and half
+    a seconds every second.\r\nUse the setting AbsoluteMinimum to control the minimum
+    number of seconds that must pass before you can get another pacing event.\r\n\r\n[*]
+    [b]Event Settings[/b]\r\nThe EventSettings option will be automatically populated
+    after a bomb with any new events that were added that bomb.\r\nYou can control
+    an individual event by using these settings:\r\n[list]\r\n[*] Enabled - Allows
+    the event to be picked while Pacing Extender is active.\r\n[*] Weight - Sets the
+    weight that an event has compared to other events.\r\nFor example: A event with
+    a weight of 2 is twice as likely to show up compared to an event that has a weight
+    of 1.\r\n[*] MinRating - Prevents a event from being picked if your success rating
+    is below this number.\r\nFor example: 0.5 would only allow that event to spawn
+    if your success rating is 50% or higher.\r\n[/list]\r\n[/list]"
   version: 1
   outputFolder: C:\Program Files (x86)\Steam\steamapps\common\Keep Talking and Nobody
     Explodes\mods
+  previewImage: {fileID: 2800000, guid: bb775d033f9a09346a28b7003a9cabd7, type: 3}
