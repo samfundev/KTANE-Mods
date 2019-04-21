@@ -18,16 +18,16 @@ public class CheapCheckoutModule : MonoBehaviour
     public KMAudio BombAudio;
     public KMBombModule BombModule;
 
-    int DisplayPos = 0;
-    List<string> Items = new List<string>();
-    decimal Total = 0;
-    decimal Paid = 0;
-    decimal Display = 0;
-    decimal Change = 0;
+    int DisplayPos;
+    readonly List<string> Items = new List<string>();
+    decimal Total;
+    decimal Paid;
+    decimal Display;
+    decimal Change;
     string DOW = "";
-    bool waiting = false;
-    bool solved = false;
-    List<List<string>> Receipt = new List<List<string>>();
+    bool waiting;
+    bool solved;
+    readonly List<List<string>> Receipt = new List<List<string>>();
 
     static int idCounter = 1;
     int moduleID;
@@ -144,11 +144,6 @@ public class CheapCheckoutModule : MonoBehaviour
         Debug.LogFormat("[Cheap Checkout #{0}] {1}", moduleID, msg);
     }
 
-    int mod(int x, int m)
-    {
-        return (x % m + m) % m;
-    }
-
     void ButtonPress(KMSelectable Selectable)
     {
         Selectable.AddInteractionPunch(0.5f);
@@ -203,7 +198,7 @@ public class CheapCheckoutModule : MonoBehaviour
 
     decimal ApplySale(string itemName, decimal lbs, int index)
     {
-		Item item = lbs > 0 ? PricesLB.FirstOrDefault(value => value.Name == itemName) : Prices.FirstOrDefault(value => value.Name == itemName);
+		Item item = lbs > 0 ? Array.Find(PricesLB, value => value.Name == itemName) : Array.Find(Prices, value => value.Name == itemName);
 
 		decimal price = decimal.Round(lbs > 0 ? item.Price * lbs : item.Price, 2, MidpointRounding.AwayFromZero);
         bool fixeditem = (lbs <= 0);
@@ -222,7 +217,7 @@ public class CheapCheckoutModule : MonoBehaviour
         switch (DOW)
         {
             case "Sunday":
-                if (fixeditem && itemName.ToLower().IndexOf("s") > -1)
+                if (fixeditem && itemName.IndexOf("s", StringComparison.InvariantCultureIgnoreCase) > -1)
                 {
                     price += SundayValue;
                     line.Add("+" + SundayValue.ToString("N2"));
@@ -339,7 +334,7 @@ public class CheapCheckoutModule : MonoBehaviour
         DebugMsg("Receipt:\n" + receipt);
     }
 
-    IEnumerator waitForCustomer()
+    IEnumerator WaitForCustomer()
     {
         waiting = true;
         for (int i = 0; i < 2; i++)
@@ -432,8 +427,8 @@ public class CheapCheckoutModule : MonoBehaviour
         foreach (GameObject button in Amounts)
         {
             GameObject Button = button;
-            KMSelectable ButtonSelectable = button.GetComponent<KMSelectable>() as KMSelectable;
-            ButtonSelectable.OnInteract += delegate ()
+            KMSelectable ButtonSelectable = button.GetComponent<KMSelectable>();
+            ButtonSelectable.OnInteract += () =>
             {
                 if (!waiting)
                 {
@@ -453,14 +448,14 @@ public class CheapCheckoutModule : MonoBehaviour
                 }
                 else
                 {
-                    BombAudio.PlayGameSoundAtTransformWithRef(KMSoundOverride.SoundEffect.CapacitorPop, transform);
+                    BombAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.CapacitorPop, transform);
                 }
 
                 return false;
             };
         }
 
-        MoveLeft.OnInteract += delegate ()
+        MoveLeft.OnInteract += () =>
         {
             ButtonPress(MoveLeft);
 
@@ -470,7 +465,7 @@ public class CheapCheckoutModule : MonoBehaviour
             return false;
         };
 
-        MoveRight.OnInteract += delegate ()
+        MoveRight.OnInteract += () =>
         {
             ButtonPress(MoveRight);
 
@@ -480,7 +475,7 @@ public class CheapCheckoutModule : MonoBehaviour
             return false;
         };
 
-        Submit.OnInteract += delegate ()
+        Submit.OnInteract += () =>
         {
             if (!waiting)
             {
@@ -490,7 +485,7 @@ public class CheapCheckoutModule : MonoBehaviour
                 {
                     if (Change == 0)
                     {
-                        StartCoroutine(waitForCustomer());
+                        StartCoroutine(WaitForCustomer());
                     }
                     else
                     {
@@ -532,13 +527,13 @@ public class CheapCheckoutModule : MonoBehaviour
             }
             else
             {
-                BombAudio.PlayGameSoundAtTransformWithRef(KMSoundOverride.SoundEffect.CapacitorPop, transform);
+                BombAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.CapacitorPop, transform);
             }
 
             return false;
         };
 
-        Clear.OnInteract += delegate ()
+        Clear.OnInteract += () =>
         {
             if (!waiting)
             {
@@ -548,23 +543,21 @@ public class CheapCheckoutModule : MonoBehaviour
             }
             else
             {
-                BombAudio.PlayGameSoundAtTransformWithRef(KMSoundOverride.SoundEffect.CapacitorPop, transform);
+                BombAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.CapacitorPop, transform);
             }
 
             return false;
         };
     }
 
-    void Start()
+    public void Start()
     {
         moduleID = idCounter++;
 
         BombModule.OnActivate += OnActivate;
     }
 
-    #pragma warning disable 414
-    private string TwitchHelpMessage = "Cycle the items with !{0} items. Go to a specific item number with !{0} item 3. Get customers to pay the correct amount with !{0} submit. Return the proper change with !{0} submit 3.24.";
-	#pragma warning restore 414
+    public const string TwitchHelpMessage = "Cycle the items with !{0} items. Go to a specific item number with !{0} item 3. Get customers to pay the correct amount with !{0} submit. Return the proper change with !{0} submit 3.24.";
 
 	public bool EqualsAny(object obj, params object[] targets)
 	{
@@ -657,7 +650,7 @@ public class CheapCheckoutModule : MonoBehaviour
         }
     }
 
-	IEnumerator TwitchHandleForcedSolve()
+	public IEnumerator TwitchHandleForcedSolve()
 	{
 		if (Total > Display)
 		{
