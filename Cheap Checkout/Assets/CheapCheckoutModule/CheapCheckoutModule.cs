@@ -48,7 +48,7 @@ public class CheapCheckoutModule : MonoBehaviour
 
     // Item format: Name,Price,Category
     Item[] Prices = new[] {
-        // Original 33 items
+        // Original 34 items
         "Candy Canes,3.51,Sweet",
         "Socks,6.97,Other",
         "Lotion,7.97,Care Product",
@@ -108,7 +108,7 @@ public class CheapCheckoutModule : MonoBehaviour
 	}.Select(value => new Item(value.Split(','))).ToArray();
 
 	Item[] PricesLB = new[] {
-        // Original 11 items
+        // Original 12 items
 		"Turkey,2.98,Protein",
 		"Chicken,1.99,Protein",
 		"Steak,4.97,Protein",
@@ -357,13 +357,13 @@ public class CheapCheckoutModule : MonoBehaviour
         // If we are using the default seed, only pick the original items
         if (rng.Seed == 1)
         {
-            Prices = Prices.Take(33).ToArray();
-            PricesLB = PricesLB.Take(11).ToArray();
+            Prices = Prices.Take(34).ToArray();
+            PricesLB = PricesLB.Take(12).ToArray();
         }
         else
         {
-            Prices = rng.ShuffleFisherYates(Prices).Take(33).ToArray();
-            PricesLB = rng.ShuffleFisherYates(PricesLB).Take(11).ToArray();
+            Prices = rng.ShuffleFisherYates(Prices).Take(34).ToArray();
+            PricesLB = rng.ShuffleFisherYates(PricesLB).Take(12).ToArray();
 
             foreach (Item item in Prices)
             {
