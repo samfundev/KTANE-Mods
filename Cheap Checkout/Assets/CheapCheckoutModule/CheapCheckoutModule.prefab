@@ -871,6 +871,7 @@ GameObject:
   - component: {fileID: 114000013835845412}
   - component: {fileID: 114000012779433098}
   - component: {fileID: 114000013117440096}
+  - component: {fileID: 114703722479543630}
   m_Layer: 0
   m_Name: CheapCheckoutModule
   m_TagString: Untagged
@@ -4236,3 +4237,15 @@ MonoBehaviour:
   AllowSelectionWrapY: 0
   ForceSelectionHighlight: 0
   ForceInteractionHighlight: 0
+--- !u!114 &114703722479543630
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1000013955651654}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: adf69c2de51bd3c43bbd9bc22578ee08, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _seed: 1

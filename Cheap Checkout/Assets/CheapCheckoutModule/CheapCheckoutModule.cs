@@ -32,61 +32,112 @@ public class CheapCheckoutModule : MonoBehaviour
     static int idCounter = 1;
     int moduleID;
 
-    Dictionary<string, decimal> Prices = new Dictionary<string, decimal>()
-    {
-        {"Candy Canes",    3.51m},
-        {"Socks",          6.97m},
-        {"Lotion",         7.97m},
-        {"Cheese",         4.49m},
-        {"Mints",          6.39m},
-        {"Grape Jelly",    2.98m},
-        {"Honey",          8.25m},
-        {"Sugar",          2.08m},
-        {"Soda",           2.05m},
-        {"Tissues",        3.94m},
-        {"White Bread",    2.43m},
-        {"Canola Oil",     2.28m},
-        {"Mustard",        2.36m},
-        {"Deodorant",      3.97m},
-        {"White Milk",     3.62m},
-        {"Pasta Sauce",    2.30m},
-        {"Lollipops",      2.61m},
-        {"Cookies",        2.00m},
-        {"Paper Towels",   9.46m},
-        {"Tea",            2.35m},
-        {"Coffee Beans",   7.85m},
-        {"Mayonnaise",     3.99m},
-        {"Chocolate Milk", 5.68m},
-        {"Fruit Punch",    2.08m},
-        {"Potato Chips",   3.25m},
-        {"Shampoo",        4.98m},
-        {"Toothpaste",     2.50m},
-        {"Peanut Butter",  5.00m},
-        {"Gum",            1.12m},
-        {"Water Bottles",  9.37m},
-        {"Spaghetti",      2.92m},
-        {"Chocolate Bar",  2.10m},
-        {"Ketchup",        3.59m},
-        {"Cereal",         4.19m},
-    };
-    Dictionary<string, decimal> PricesLB = new Dictionary<string, decimal>()
-    {
-        {"Turkey",     2.98m},
-        {"Chicken",    1.99m},
-        {"Steak",      4.97m},
-        {"Pork",       4.14m},
-        {"Lettuce",    1.10m},
-        {"Potatoes",   0.68m},
-        {"Tomatoes",   1.80m},
-        {"Broccoli",   1.39m},
-        {"Oranges",    0.80m},
-        {"Lemons",     1.74m},
-        {"Bananas",    0.87m},
-        {"Grapefruit", 1.08m},
-    };
+	class Item
+	{
+		public string Name;
+		public decimal Price;
+		public string Category;
 
-    string[] Fruits = { "Bananas", "Grapefruit", "Lemons", "Oranges", "Tomatoes" };
-    string[] Sweets = { "Candy Canes", "Mints", "Honey", "Soda", "Lollipops", "Gum", "Chocolate Bar", "Fruit Punch", "Cookies", "Sugar", "Grape Jelly" };
+		public Item(string[] strings)
+		{
+			Name = strings[0];
+			Price = decimal.Parse(strings[1]);
+			Category = strings[2];
+		}
+	}
+
+    // Item format: Name,Price,Category
+    Item[] Prices = new[] {
+        // Original 33 items
+        "Candy Canes,3.51,Sweet",
+        "Socks,6.97,Other",
+        "Lotion,7.97,Care Product",
+        "Cheese,4.49,Dairy",
+        "Mints,6.39,Sweet",
+        "Grape Jelly,2.98,Sweet",
+        "Honey,8.25,Sweet",
+        "Sugar,2.08,Sweet",
+        "Soda,2.05,Sweet",
+        "Tissues,3.94,Care Product",
+        "White Bread,2.43,Grain",
+        "Canola Oil,2.28,Oil",
+        "Mustard,2.36,Other",
+        "Deodorant,3.97,Care Product",
+        "White Milk,3.62,Dairy",
+        "Pasta Sauce,2.30,Vegetable",
+        "Lollipops,2.61,Sweet",
+        "Cookies,2.00,Sweet",
+        "Paper Towels,9.46,Care Product",
+        "Tea,2.35,Water",
+        "Coffee Beans,7.85,Other",
+        "Mayonnaise,3.99,Oil",
+        "Chocolate Milk,5.68,Dairy",
+        "Fruit Punch,2.08,Sweet",
+        "Potato Chips,3.25,Oil",
+        "Shampoo,4.98,Care Product",
+        "Toothpaste,2.50,Care Product",
+        "Peanut Butter,5.00,Protein",
+        "Gum,1.12,Sweet",
+        "Water Bottles,9.37,Water",
+        "Spaghetti,2.92,Grain",
+        "Chocolate Bar,2.10,Sweet",
+        "Ketchup,3.59,Other",
+        "Cereal,4.19,Grain",
+
+        // New ruleseed items
+		"Eggs,2.67,Protein",
+		"Baked Beans,1.14,Protein",
+		"Peanuts,5.98,Protein",
+		"Yogurt,2.72,Dairy",
+		"Greek Yogurt,3.47,Dairy",
+		"Butter,5.86,Dairy",
+		"Toothbrush,2.24,Care Product",
+		"Medicine,3.73,Care Product",
+		"Soup,1.99,Care Product",
+		"Soap,3.97,Care Product",
+		"Pretzels,2.98,Grain",
+		"Popcorn,2.50,Grain",
+		"Oatmeal,7.98,Grain",
+		"Rice,2.02,Grain",
+		"Flour,3.49,Grain",
+		"Licorice,1.98,Sweet",
+		"Pie,3.98,Sweet",
+		"Cake,9.98,Sweet",
+		"Gummy Bears,7.98,Sweet",
+		"Relish,2.74,Vegetable",
+	}.Select(value => new Item(value.Split(','))).ToArray();
+
+	Item[] PricesLB = new[] {
+        // Original 11 items
+		"Turkey,2.98,Protein",
+		"Chicken,1.99,Protein",
+		"Steak,4.97,Protein",
+		"Pork,4.14,Protein",
+		"Lettuce,1.10,Vegetable",
+		"Potatoes,0.68,Vegetable",
+		"Tomatoes,1.80,Fruit",
+		"Broccoli,1.39,Vegetable",
+		"Oranges,0.80,Fruit",
+		"Lemons,1.74,Fruit",
+		"Bananas,0.87,Fruit",
+		"Grapefruit,1.08,Fruit",
+
+        // New ruleseed items
+		"Onion,1.82,Vegetable",
+		"Bacon,5.52,Protein",
+		"Apples,1.32,Fruit",
+		"Grapes,2.98,Fruit",
+		"Fish,9.99,Protein",
+		"Watermelon,0.32,Fruit",
+		"Carrots,0.77,Vegetable",
+		"Cherries,3.21,Fruit",
+		"Plums,1.99,Fruit",
+		"Pumpkins,1.38,Fruit",
+		"Avocados,2.23,Fruit",
+		"Ham,2.88,Protein",
+		"Sausages,3.88,Protein",
+		"Corn,1.14,Vegetable",
+	}.Select(value => new Item(value.Split(','))).ToArray();
 
     void DebugMsg(string msg)
     {
@@ -136,37 +187,53 @@ public class CheapCheckoutModule : MonoBehaviour
         ItemText.GetComponent<TextMesh>().text = Items[DisplayPos];
     }
 
-    decimal ApplySale(string item, decimal lbs, int index)
+    // Ruleseed numbers for sales
+    decimal SundayValue = 2.15m;
+    decimal MondayPercent = 0.85m;
+    bool ThursdayOddItems = true;
+    decimal ThursdayPercent = 0.5m;
+    decimal FridayPercent = 1.25m;
+    decimal SaturdayPercent = 0.65m;
+
+    string FormatRelativePercent(decimal percent)
     {
-        decimal price = decimal.Round(lbs > 0 ? PricesLB[item] * lbs : Prices[item], 2, MidpointRounding.AwayFromZero);
+        if (percent >= 1) return "+" + (percent * 100 - 100).ToString("N0") + "%";
+        else return "-" + (100 - percent * 100).ToString("N0") + "%";
+    }
+
+    decimal ApplySale(string itemName, decimal lbs, int index)
+    {
+		Item item = lbs > 0 ? PricesLB.FirstOrDefault(value => value.Name == itemName) : Prices.FirstOrDefault(value => value.Name == itemName);
+
+		decimal price = decimal.Round(lbs > 0 ? item.Price * lbs : item.Price, 2, MidpointRounding.AwayFromZero);
         bool fixeditem = (lbs <= 0);
         List<string> line = new List<string>();
 
         if (fixeditem)
         {
-            line.Add(item);
+            line.Add(itemName);
         }
         else
         {
-            line.Add(lbs + "lb of " + item);
+            line.Add(lbs + "lb of " + itemName);
         }
         line.Add("$" + price.ToString("N2").PadLeft(5));
 
         switch (DOW)
         {
             case "Sunday":
-                if (fixeditem && item.ToLower().IndexOf("s") > -1)
+                if (fixeditem && itemName.ToLower().IndexOf("s") > -1)
                 {
-                    price += 2.15m;
-                    line.Add("+2.15");
+                    price += SundayValue;
+                    line.Add("+" + SundayValue.ToString("N2"));
                 }
 
                 break;
             case "Monday":
                 if (index == 1 || index == 3 || index == 6)
                 {
-                    price *= 0.85m;
-                    line.Add("-15%");
+                    price *= MondayPercent;
+                    line.Add(FormatRelativePercent(MondayPercent));
                 }
 
                 break;
@@ -192,26 +259,26 @@ public class CheapCheckoutModule : MonoBehaviour
 
                 break;
             case "Thursday":
-                if (index % 2 == 1)
+                if (index % 2 == (ThursdayOddItems ? 1 : 0))
                 {
-                    price *= 0.5m;
-                    line.Add("-50%");
+                    price *= ThursdayPercent;
+                    line.Add(FormatRelativePercent(ThursdayPercent));
                 }
 
                 break;
             case "Friday":
-                if (!fixeditem && Array.IndexOf(Fruits, item) > -1)
+                if (!fixeditem && item.Category == "Fruit")
                 {
-                    price *= 1.25m;
-                    line.Add("+25%");
+                    price *= FridayPercent;
+                    line.Add(FormatRelativePercent(FridayPercent));
                 }
 
                 break;
             case "Saturday":
-                if (fixeditem && Array.IndexOf(Sweets, item) > -1)
+                if (fixeditem && item.Category == "Sweet")
                 {
-                    price *= 0.65m;
-                    line.Add("-35%");
+                    price *= SaturdayPercent;
+                    line.Add(FormatRelativePercent(SaturdayPercent));
                 }
 
                 break;
@@ -291,11 +358,41 @@ public class CheapCheckoutModule : MonoBehaviour
 
     void OnActivate()
     {
+        MonoRandom rng = GetComponent<KMRuleSeedable>().GetRNG();
+        // If we are using the default seed, only pick the original items
+        if (rng.Seed == 1)
+        {
+            Prices = Prices.Take(33).ToArray();
+            PricesLB = PricesLB.Take(11).ToArray();
+        }
+        else
+        {
+            Prices = rng.ShuffleFisherYates(Prices).Take(33).ToArray();
+            PricesLB = rng.ShuffleFisherYates(PricesLB).Take(11).ToArray();
+
+            foreach (Item item in Prices)
+            {
+                item.Price += rng.Next(-10, 11) * 0.01m;
+            }
+
+            foreach (Item item in PricesLB)
+            {
+                item.Price += rng.Next(-10, 11) * 0.01m;
+            }
+
+            SundayValue = rng.Next(50, 301) / 100m;
+            MondayPercent = rng.Next(10, 100) / 100m;
+            ThursdayOddItems = rng.Next(0, 2) == 1;
+            ThursdayPercent = rng.Next(25, 76) / 100m;
+            FridayPercent = rng.Next(50, 201) / 100m;
+            SaturdayPercent = rng.Next(50, 201) / 100m;
+        }
+
         DOW = DateTime.Now.DayOfWeek.ToString();
 
         DebugMsg("Sale is based on " + DOW + ".");
 
-        List<string> Possible = new List<string>(Prices.Keys);
+        List<string> Possible = new List<string>(Prices.Select(item => item.Name));
         for (int i = 0; i < 4; i++)
         {
             var item = Possible[Random.Range(0, Possible.Count)];
@@ -305,7 +402,7 @@ public class CheapCheckoutModule : MonoBehaviour
             Total += dollars;
         }
 
-        Possible = new List<string>(PricesLB.Keys);
+        Possible = new List<string>(PricesLB.Select(item => item.Name));
         for (int i = 0; i < 2; i++)
         {
             var item = Possible[Random.Range(0, Possible.Count)];
@@ -344,11 +441,11 @@ public class CheapCheckoutModule : MonoBehaviour
                     string text = GetTextMesh(Button).text;
                     if (text.Length > 2)
                     {
-                        BombAudio.PlaySoundAtTransform("coin_drop" + Random.Range(1, 2), transform);
+                        BombAudio.PlaySoundAtTransform("coin_drop" + Random.Range(1, 3), transform);
                     }
                     else
                     {
-                        BombAudio.PlaySoundAtTransform("count_bill" + Random.Range(1, 5), transform);
+                        BombAudio.PlaySoundAtTransform("count_bill" + Random.Range(1, 6), transform);
                     }
 
                     Change += decimal.Parse("0" + text);
