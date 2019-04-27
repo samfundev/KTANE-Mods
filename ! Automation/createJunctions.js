@@ -32,6 +32,7 @@ const junctions = [
 	"ProjectSettings",
 	"Manual\\css",
 	"Manual\\js",
+	"Manual\\font",
 	"Manual\\img\\page-bg-noise-01.png",
 	"Manual\\img\\page-bg-noise-02.png",
 	"Manual\\img\\page-bg-noise-03.png",
