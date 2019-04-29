@@ -1,9 +1,8 @@
 ﻿using System;
-using UnityEngine;
-using Assets.Scripts.Records;
-using Assets.Scripts.Missions;
 using System.Collections.Generic;
 using System.Linq;
+using Assets.Scripts.Missions;
+using UnityEngine;
 
 class BombWrapper
 {
@@ -28,11 +27,11 @@ class BombWrapper
 		timerComponent.StrikeIndicator.RedColour = modeColor;
 
 		if (Tweaks.CurrentMode == Mode.Zen)
-        {
+		{
 			ZenModeTimePenalty = Mathf.Abs(Modes.settings.ZenModeTimePenalty);
 			ZenModeTimerRate = -timerComponent.GetRate();
 			timerComponent.SetRateModifier(ZenModeTimerRate);
-            Modes.initialTime = timerComponent.TimeRemaining;
+			Modes.initialTime = timerComponent.TimeRemaining;
 
 			//This was in the original code to make sure the bomb didn't explode on the first strike
 			bomb.NumStrikesToLose++;
@@ -112,30 +111,37 @@ class BombWrapper
 
 		var moduleTweaks = new Dictionary<string, Func<BombComponent, ModuleTweak>>()
 		{
-            { "Emoji Math", bombComponent => new EmojiMathLogging(bombComponent) },
+			{ "Emoji Math", bombComponent => new EmojiMathLogging(bombComponent) },
 			{ "Probing", bombComponent => new ProbingLogging(bombComponent) },
 			{ "switchModule", bombComponent => new SwitchesLogging(bombComponent) },
 			{ "WordScrambleModule", bombComponent => new WordScramblePatch(bombComponent) }
 		};
 
-        foreach (KMBombModule component in bomb.BombComponents.Select(x => x.GetComponent<KMBombModule>()).Where(x => x != null))
-        {
-            switch (component.ModuleType)
-            {
-                //TTK is our favorite Zen mode compatible module
-                //Of course, everything here is repurposed from Twitch Plays.
-                case "TurnTheKey":
-                    new TTKComponentSolver(component, bomb, Tweaks.CurrentMode.Equals(Mode.Zen) ? Modes.initialTime : timerComponent.TimeRemaining);
-                    break;
+		foreach (KMBombModule component in bomb.BombComponents.Select(x => x.GetComponent<KMBombModule>()).Where(x => x != null))
+		{
+			switch (component.ModuleType)
+			{
+				//TTK is our favorite Zen mode compatible module
+				//Of course, everything here is repurposed from Twitch Plays.
+				case "TurnTheKey":
+					new TTKComponentSolver(component, bomb, Tweaks.CurrentMode.Equals(Mode.Zen) ? Modes.initialTime : timerComponent.TimeRemaining);
+					break;
 
-				// Correct the position of the status light
+				// Correct some mispositioned objects in older modules
 				case "ForeignExchangeRates":
 				case "resistors":
 				case "CryptModule":
 				case "LEDEnc":
+					// This fixes the position of the module itself (but keeps the status light in its original location, which fixes it)
 					component.transform.Find("Model").transform.localPosition = new Vector3(0.004f, 0, 0);
 					break;
+				case "Listening":
+					// This fixes the Y-coordinate of the position of the status light
+					component.transform.Find("StatusLight").transform.localPosition = new Vector3(-0.0761f, 0.01986f, 0.075f);
+					break;
 				case "TwoBits":
+				case "errorCodes":
+					// This fixes the position of the status light
 					component.GetComponentInChildren<StatusLightParent>().transform.localPosition = new Vector3(0.075167f, 0.01986f, 0.076057f);
 					break;
 			}
@@ -155,7 +161,7 @@ class BombWrapper
 
 	void LogChildren(Transform goTransform, int depth = 0)
 	{
-		Debug.LogFormat("{2}{0} - {1}", goTransform.name, goTransform.localPosition.ToString("N6"), new String('\t', depth));
+		Debug.LogFormat("{2}{0} - {1}", goTransform.name, goTransform.localPosition.ToString("N6"), new string('\t', depth));
 		foreach (Transform child in goTransform)
 		{
 			LogChildren(child, depth + 1);
@@ -180,7 +186,8 @@ class BombWrapper
 	public float CurrentTimer
 	{
 		get => timerComponent.TimeRemaining;
-		set {
+		set
+		{
 			timerComponent.TimeRemaining = (value < 0) ? 0 : value;
 			timerComponent.text.text = timerComponent.GetFormattedTime(value, true);
 		}
