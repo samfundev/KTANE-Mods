@@ -84,7 +84,7 @@ public class CheapCheckoutModule : MonoBehaviour
         "Ketchup,3.59,Other",
         "Cereal,4.19,Grain",
 
-        // New ruleseed items
+		// New rule seed items
 		"Eggs,2.67,Protein",
 		"Baked Beans,1.14,Protein",
 		"Peanuts,5.98,Protein",
@@ -93,7 +93,7 @@ public class CheapCheckoutModule : MonoBehaviour
 		"Butter,5.86,Dairy",
 		"Toothbrush,2.24,Care Product",
 		"Medicine,3.73,Care Product",
-		"Soup,1.99,Care Product",
+		"Soup,1.99,Other",
 		"Soap,3.97,Care Product",
 		"Pretzels,2.98,Grain",
 		"Popcorn,2.50,Grain",
@@ -105,10 +105,55 @@ public class CheapCheckoutModule : MonoBehaviour
 		"Cake,9.98,Sweet",
 		"Gummy Bears,7.98,Sweet",
 		"Relish,2.74,Vegetable",
+		"Napkins,1.09,Care Product",
+		"Band-Aids,1.11,Care Product",
+		"Playing Cards,2.13,Other",
+		"Beef Jerky,1.23,Other",
+		"Ice Cream,4.99,Dairy",
+		"Salad Mix,2.47,Vegetable",
+		"Bagel,4.20,Grain",
+		"Vegetable Oil,2.89,Oil",
+		"Batteries,4.49,Other",
+		"Taco Shells,5.01,Grain",
+		"Bleach,6.90,Other",
+		"Baking Soda,0.33,Other",
+		"Paper Bags,1.07,Other",
+		"Printer Paper,4.49,Other",
+		"Diapers,6.96,Care Product",
+		"Shower Gel,1.63,Care Product",
+		"Makeup Remover,1.02,Care Product",
+		"Blank DVDs,9.00,Other",
+		"Nail Polish,3.13,Care Product",
+		"Fusilli,2.92,Grain",
+		"Tagliatelle,2.92,Grain",
+		"Spirelli,2.92,Grain",
+		"Penne,2.92,Grain",
+		"Car Engine Oil,3.36,Oil",
+		"Parsley,0.69,Spice",
+		"Sage,1.75,Spice",
+		"Rosemary,3.19,Spice",
+		"Thyme,2.89,Spice",
+		"White Pepper,2.49,Spice",
+		"Coriander,0.99,Spice",
+		"Oregano,1.59,Spice",
+		"Cumin,3.45,Spice",
+		"Masala,4.99,Spice",
+		"Saffron,12.79,Spice",
+		"Cinnamon,2.40,Spice",
+		"Cayenne Pepper,11.27,Spice",
+		"Ginger Root,1.00,Spice",
+		"Salt,3.98,Spice",
+		"Sesame,3.19,Spice",
+		"Vanilla Extract,11.82,Spice",
+		"Red Wine,20.90,Water",
+		"White Wine,18.60,Water",
+		"12-Pack Beer,10.49,Water",
+		"6-Pack Beer,5.79,Water",
+		"Vinegar,2.50,Other",
 	}.Select(value => new Item(value.Split(','))).ToArray();
 
 	Item[] PricesLB = new[] {
-        // Original 12 items
+        // Original 12 weight based items
 		"Turkey,2.98,Protein",
 		"Chicken,1.99,Protein",
 		"Steak,4.97,Protein",
@@ -122,13 +167,13 @@ public class CheapCheckoutModule : MonoBehaviour
 		"Bananas,0.87,Fruit",
 		"Grapefruit,1.08,Fruit",
 
-        // New ruleseed items
-		"Onion,1.82,Vegetable",
+        // New rule seed weight based items
+		"Onions,1.82,Vegetable",
 		"Bacon,5.52,Protein",
 		"Apples,1.32,Fruit",
 		"Grapes,2.98,Fruit",
 		"Fish,9.99,Protein",
-		"Watermelon,0.32,Fruit",
+		"Watermelons,0.32,Fruit",
 		"Carrots,0.77,Vegetable",
 		"Cherries,3.21,Fruit",
 		"Plums,1.99,Fruit",
@@ -137,6 +182,13 @@ public class CheapCheckoutModule : MonoBehaviour
 		"Ham,2.88,Protein",
 		"Sausages,3.88,Protein",
 		"Corn,1.14,Vegetable",
+		"Pears,1.74,Fruit",
+		"Leek,3.17,Vegetable",
+		"Bologna,1.69,Protein",
+		"Minced Beef,2.36,Protein",
+		"Garlic,0.97,Vegetable",
+		"Tofu,3.11,Protein",
+		"Salmon,21.55,Protein",
 	}.Select(value => new Item(value.Split(','))).ToArray();
 
     void DebugMsg(string msg)
@@ -182,9 +234,12 @@ public class CheapCheckoutModule : MonoBehaviour
         ItemText.GetComponent<TextMesh>().text = Items[DisplayPos];
     }
 
-    // Ruleseed numbers for sales
+    // Rule seed info for sales
     decimal SundayValue = 2.15m;
     decimal MondayPercent = 0.85m;
+    int TuesdayExcludedDigit = -1; // 0 would be ones place, -1 means no digit is removed.
+    bool WednesdayLargeOrSmall = true; // Does the largest get swapped with the smallest?
+    bool WednesdayViceVersa = true; // Do both of the digits swap places or is it one way?
     bool ThursdayOddItems = true;
     decimal ThursdayPercent = 0.5m;
     decimal FridayPercent = 1.25m;
@@ -235,9 +290,20 @@ public class CheapCheckoutModule : MonoBehaviour
             case "Tuesday":
                 if (fixeditem)
                 {
-                    // Convert to string -> Remove decimal -> Convert to decimal -> Apply digital root.
-                    price += (decimal.Parse(price.ToString().Replace(".", "")) - 1) % 9 + 1;
-                    line.Add("dgt rt");
+                    // Convert to string -> Remove decimal -> Exclude digit
+                    string priceString = price.ToString().Replace(".", "");
+                    string lineNote = "dgt rt";
+
+                    if (TuesdayExcludedDigit != -1 && priceString.Length - 1 - TuesdayExcludedDigit >= 0)
+                    {
+                        priceString = priceString.Remove(priceString.Length - 1 - TuesdayExcludedDigit, 1);
+
+                        lineNote += " ex. " + new[] { "1s", "10s", "100s" }[TuesdayExcludedDigit];
+                    }
+
+                    // Convert to decimal -> Apply digital root.
+                    price += (decimal.Parse(priceString) - 1) % 9 + 1;
+                    line.Add(lineNote);
                 }
 
                 break;
@@ -248,9 +314,22 @@ public class CheapCheckoutModule : MonoBehaviour
 
                 string highest = Math.Max(Math.Max(a, b), c).ToString();
                 string lowest = Math.Min(Math.Min(a, b), c).ToString();
-                var result = price.ToString("N2").Select(x => x.ToString() == highest ? lowest : (x.ToString() == lowest ? highest : x.ToString())).ToArray();
+                var result = price.ToString("N2").Select(charDigit =>
+                {
+                    string digit = charDigit.ToString();
+                    if (digit == highest && (WednesdayViceVersa || WednesdayLargeOrSmall))
+                    {
+                        return lowest;
+                    }
+                    else if (digit == lowest && (WednesdayViceVersa || !WednesdayLargeOrSmall))
+                    {
+                        return highest;
+                    }
+
+                    return digit;
+                }).ToArray();
                 price = decimal.Parse(string.Join("", result));
-                line.Add(highest + " <-> " + lowest);
+                line.Add(highest + (WednesdayViceVersa ? " <-> " : WednesdayLargeOrSmall ? " --> " : " <-- ") + lowest);
 
                 break;
             case "Thursday":
@@ -377,6 +456,9 @@ public class CheapCheckoutModule : MonoBehaviour
 
             SundayValue = rng.Next(50, 301) / 100m;
             MondayPercent = rng.Next(10, 100) / 100m;
+            TuesdayExcludedDigit = rng.Next(-1, 3);
+            WednesdayLargeOrSmall = rng.Next(0, 2) == 1;
+            WednesdayViceVersa = rng.Next(0, 2) == 1;
             ThursdayOddItems = rng.Next(0, 2) == 1;
             ThursdayPercent = rng.Next(25, 76) / 100m;
             FridayPercent = rng.Next(50, 201) / 100m;
