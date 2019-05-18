@@ -152,7 +152,7 @@ class Tweaks : MonoBehaviour
 
 			if (state == KMGameInfo.State.Gameplay)
 			{
-				bool disableRecords = settings.BombHUD || settings.ShowEdgework || CurrentMode != Mode.Normal;
+				bool disableRecords = settings.BombHUD || settings.ShowEdgework || CurrentMode != Mode.Normal || settings.MissionSeed != -1;
 
 				Assets.Scripts.Stats.StatsManager.Instance.DisableStatChanges =
 				Assets.Scripts.Records.RecordManager.Instance.DisableBestRecords = disableRecords;
@@ -170,6 +170,9 @@ class Tweaks : MonoBehaviour
 				BombStatus.Instance.UpdateMultiplier();
 				bombWrappers = new BombWrapper[] { };
 				StartCoroutine(CheckForBombs());
+				if (settings.SkipGameplayDelay) StartCoroutine(SkipGameplayDelay());
+
+				if (GameplayState.BombSeedToUse == -1) GameplayState.BombSeedToUse = settings.MissionSeed;
 			}
 			else if (state == KMGameInfo.State.Setup)
 			{
@@ -193,6 +196,8 @@ class Tweaks : MonoBehaviour
 
 				StartCoroutine(ModifyFreeplayDevice(true));
 				GetComponentInChildren<ModSelectorExtension>().FindAPI();
+
+				GameplayState.BombSeedToUse = -1;
 			}
 			else if (state == KMGameInfo.State.Transitioning)
 			{
@@ -437,6 +442,13 @@ class Tweaks : MonoBehaviour
 		}
 	}
 
+	public IEnumerator SkipGameplayDelay()
+	{
+		Time.timeScale = 100;
+		yield return new WaitForSeconds(6);
+		Time.timeScale = 1;
+	}
+
 	static float originalTime = 300;
 	public static IEnumerator ModifyFreeplayDevice(bool firstTime)
 	{
@@ -447,8 +459,9 @@ class Tweaks : MonoBehaviour
 			FreeplayDevice freeplayDevice = setupRoom.FreeplayDevice;
 			ExecOnDescendants(freeplayDevice.gameObject, gameObj =>
 			{
-				if (gameObj.name == "FreeplayLabel" || gameObj.name == "Free Play Label")
-					gameObj.GetComponent<TMPro.TextMeshPro>().text = CurrentMode == Mode.Normal ? "free play" : $"{CurrentMode.ToString()} mode";
+				string gameObjName = gameObj.name;
+				if (gameObjName == "FreeplayLabel" || gameObjName == "Free Play Label")
+					gameObj.GetComponent<TMPro.TextMeshPro>().text = CurrentMode == Mode.Normal ? Localization.GetLocalizedString($"FreeplayDevice/label_free{(gameObjName == "FreeplayLabel" ? "playInnerTitle" : "PlayCover")}") : $"{CurrentMode.ToString()} mode";
 			});
 
 			freeplayDevice.CurrentSettings.Time = CurrentMode == Mode.Time ? Modes.settings.TimeModeStartingTime * 60 : originalTime;
@@ -534,11 +547,13 @@ class Tweaks : MonoBehaviour
 					},
 					new Dictionary<string, object> { { "Key", "FadeTime" }, { "Text", "Fade Time" }, { "Description", "The number seconds should it take to fade in and out of scenes." } },
 					new Dictionary<string, object> { { "Key", "InstantSkip" }, { "Text", "Instant Skip" }, { "Description", "Skips the gameplay loading screen as soon as possible." } },
+					new Dictionary<string, object> { { "Key", "SkipGameplayDelay" }, { "Text", "Skip Gameplay Delay" }, { "Description", "Skips the delay at the beginning of a round when the lights are out." } },
 					new Dictionary<string, object> { { "Key", "BetterCasePicker" }, { "Text", "Better Case Picker" }, { "Description", "Chooses the smallest case that fits instead of a random one." } },
 					new Dictionary<string, object> { { "Key", "EnableModsOnlyKey" }, { "Text", "Enable Mods Only Key" }, { "Description", "Turns the Mods Only key to be on by default." } },
 					new Dictionary<string, object> { { "Key", "FixFER" }, { "Text", "Fix Foreign Exchange Rates" }, { "Description", "Changes the URL that is queried since the old one is no longer operational." } },
 					new Dictionary<string, object> { { "Key", "BombHUD" }, { "Text", "Bomb HUD" }, { "Description", "Adds a HUD in the top right corner showing information about the currently selected bomb." } },
 					new Dictionary<string, object> { { "Key", "ShowEdgework" }, { "Text", "Show Edgework" }, { "Description", "Adds a HUD to the top of the screen showing the edgework for the currently selected bomb." } },
+					new Dictionary<string, object> { { "Key", "MissionSeed" }, { "Text", "Mission Seed" }, { "Description", "Seeds the random numbers for the mission which should make it generate\nconsistently." } },
 					new Dictionary<string, object> { { "Key", "CaseGenerator" }, { "Text", "Case Generator" }, { "Description", "Generates a case to best fit the bomb which can be one of the colors defined by CaseColors." } },
 				}
 			}
@@ -597,6 +612,7 @@ class TweakSettings
 {
 	public float FadeTime = 1f;
 	public bool InstantSkip = true;
+	public bool SkipGameplayDelay = false;
 	public bool BetterCasePicker = true;
 	public bool EnableModsOnlyKey = false;
 	public bool FixFER = false;
@@ -604,6 +620,7 @@ class TweakSettings
 	public bool ShowEdgework = false;
 	public List<string> HideTOC = new List<string>();
 	public Mode Mode = Mode.Normal;
+	public int MissionSeed = -1;
 	public bool CaseGenerator = true;
 	public List<string> CaseColors = new List<string>();
 	public HashSet<string> PinnedSettings = new HashSet<string>();
@@ -613,12 +630,14 @@ class TweakSettings
 		return obj is TweakSettings settings &&
 			   FadeTime == settings.FadeTime &&
 			   InstantSkip == settings.InstantSkip &&
+			   SkipGameplayDelay == settings.SkipGameplayDelay &&
 			   BetterCasePicker == settings.BetterCasePicker &&
 			   FixFER == settings.FixFER &&
 			   BombHUD == settings.BombHUD &&
 			   ShowEdgework == settings.ShowEdgework &&
 			   HideTOC.SequenceEqual(settings.HideTOC) &&
 			   Mode == settings.Mode &&
+			   MissionSeed == settings.MissionSeed &&
 			   CaseGenerator == settings.CaseGenerator &&
 			   CaseColors.SequenceEqual(settings.CaseColors) &&
 			   PinnedSettings.SequenceEqual(settings.PinnedSettings);
@@ -629,6 +648,7 @@ class TweakSettings
 		var hashCode = -1948346948;
 		hashCode = hashCode * -1521134295 + FadeTime.GetHashCode();
 		hashCode = hashCode * -1521134295 + InstantSkip.GetHashCode();
+		hashCode = hashCode * -1521134295 + SkipGameplayDelay.GetHashCode();
 		hashCode = hashCode * -1521134295 + BetterCasePicker.GetHashCode();
 		hashCode = hashCode * -1521134295 + EnableModsOnlyKey.GetHashCode();
 		hashCode = hashCode * -1521134295 + FixFER.GetHashCode();
@@ -636,6 +656,7 @@ class TweakSettings
 		hashCode = hashCode * -1521134295 + ShowEdgework.GetHashCode();
 		hashCode = hashCode * -1521134295 + HideTOC.GetHashCode();
 		hashCode = hashCode * -1521134295 + Mode.GetHashCode();
+		hashCode = hashCode * -1521134295 + MissionSeed.GetHashCode();
 		hashCode = hashCode * -1521134295 + CaseGenerator.GetHashCode();
 		hashCode = hashCode * -1521134295 + CaseColors.GetHashCode();
 		hashCode = hashCode * -1521134295 + PinnedSettings.GetHashCode();

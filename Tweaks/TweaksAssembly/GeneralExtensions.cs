@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
+using System;
 
 public static class GeneralExtensions
 {
@@ -73,7 +74,14 @@ public static class GeneralExtensions
 		).IsMatch(str);
 	}
 
-	public static void EnsureModHighlightable(this KMSelectable selectable)
+    // https://stackoverflow.com/a/1450889/8213163
+    public static IEnumerable<string> ChunkBy(this string str, int maxChunkSize)
+    {
+        for (int i = 0; i < str.Length; i += maxChunkSize)
+            yield return str.Substring(i, Math.Min(maxChunkSize, str.Length - i));
+    }
+
+    public static void EnsureModHighlightable(this KMSelectable selectable)
 	{
 		KMHighlightable highlightable = selectable.Highlight;
 		if (highlightable != null)

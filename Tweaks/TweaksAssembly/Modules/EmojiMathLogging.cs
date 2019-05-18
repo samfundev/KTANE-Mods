@@ -3,20 +3,14 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
-public class EmojiMathLogging : ModuleTweak
+public class EmojiMathLogging : ModuleLogging
 {
     const string typeName = "EmojiMathModule";
 
-    private static int idCounter = 1;
-    private readonly int moduleID;
-    private readonly KMBombInfo bombInfo;
-
-    public EmojiMathLogging(BombComponent bombComponent) : base(bombComponent)
+    public EmojiMathLogging(BombComponent bombComponent) : base(bombComponent, "Emoji Math")
     {
         componentType = componentType ?? (componentType = ReflectionHelper.FindType(typeName));
         component = bombComponent.GetComponent(componentType);
-        moduleID = idCounter++;
-        bombInfo = bombComponent.GetComponent<KMBombInfo>();
 
         mPuzzle = componentType?.GetField("Puzzle", BindingFlags.NonPublic | BindingFlags.Instance);
         mButtons = componentType?.GetField("Buttons", BindingFlags.Public | BindingFlags.Instance);
@@ -26,7 +20,7 @@ public class EmojiMathLogging : ModuleTweak
 
         if (componentType == null || component == null || mPuzzle == null || mButtons == null || mSign == null || mAnswer == null || mDisplayText == null)
         {
-            Debug.Log($"[Emoji Math #{moduleID}] Logging failed (1): {new object[] { componentType, component, mPuzzle, mButtons, mSign, mAnswer, mDisplayText }.Select(obj => obj == null ? "<NULL>" : "(not null)").Join(", ")}.");
+            Log($"Logging failed (1): {new object[] { componentType, component, mPuzzle, mButtons, mSign, mAnswer, mDisplayText }.Select(obj => obj == null ? "<NULL>" : "(not null)").Join(", ")}.");
             return;
         }
 
@@ -41,9 +35,9 @@ public class EmojiMathLogging : ModuleTweak
             var op1 = (int) mOperand1.GetValue(puzzle);
             var op2 = (int) mOperand2.GetValue(puzzle);
             var op = (string) mGetOperationString.Invoke(null, new object[] { mOperator.GetValue(puzzle) });
-            Debug.Log($"[Emoji Math #{moduleID}] Puzzle on module: “{((TextMesh) mDisplayText.GetValue(component)).text}”");
-            Debug.Log($"[Emoji Math #{moduleID}] Decoded puzzle: “{op1} {op} {op2}”");
-            Debug.Log($"[Emoji Math #{moduleID}] Expected answer: “{(op == "+" ? op1 + op2 : op1 - op2)}”");
+            Log($"Puzzle on module: “{((TextMesh) mDisplayText.GetValue(component)).text}”");
+            Log($"Decoded puzzle: “{op1} {op} {op2}”");
+            Log($"Expected answer: “{(op == "+" ? op1 + op2 : op1 - op2)}”");
         };
     }
 
@@ -57,15 +51,15 @@ public class EmojiMathLogging : ModuleTweak
             switch (i)
             {
                 case 10:    // Minus button
-                    Debug.Log($"[Emoji Math #{moduleID}] You pressed Minus. Sign is now {(mSign.GetValue(component).Equals(1) ? "positive." : "negative. Remember that this sticks even across strikes!")}");
+                    Log($"You pressed Minus. Sign is now {(mSign.GetValue(component).Equals(1) ? "positive." : "negative. Remember that this sticks even across strikes!")}");
                     break;
 
                 case 11:    // Enter button
-                    Debug.Log($"[Emoji Math #{moduleID}] You submitted “{(mSign.GetValue(component).Equals(1) ? "" : "-")}{prevAnswer}”. This is {(mCheckAnswer.Invoke(mPuzzle.GetValue(component), new object[] { prevAnswer, mSign.GetValue(component) }).Equals(true) ? "correct. Module solved." : "wrong. Strike!")}");
+                    Log($"You submitted “{(mSign.GetValue(component).Equals(1) ? "" : "-")}{prevAnswer}”. This is {(mCheckAnswer.Invoke(mPuzzle.GetValue(component), new object[] { prevAnswer, mSign.GetValue(component) }).Equals(true) ? "correct. Module solved." : "wrong. Strike!")}");
                     break;
 
                 default:    // Digit
-                    Debug.Log($"[Emoji Math #{moduleID}] You pressed {i}. Input is now “{(mSign.GetValue(component).Equals(1) ? "" : "-")}{mAnswer.GetValue(component)}”.");
+                    Log($"You pressed {i}. Input is now “{(mSign.GetValue(component).Equals(1) ? "" : "-")}{mAnswer.GetValue(component)}”.");
                     break;
             }
             return ret;
@@ -81,7 +75,7 @@ public class EmojiMathLogging : ModuleTweak
         mOperator = puzzleType.GetField("Operator", BindingFlags.Public | BindingFlags.Instance);
 
         if (mCheckAnswer == null || mGetOperationString == null || mOperand1 == null || mOperand2 == null || mOperator == null)
-            Debug.Log($"[Emoji Math #{moduleID}] Logging failed (2): {new object[] { mCheckAnswer, mGetOperationString, mOperand1, mOperand2, mOperator }.Select(obj => obj == null ? "<NULL>" : "(not null)").Join(", ")}.");
+            Log($"Logging failed (2): {new object[] { mCheckAnswer, mGetOperationString, mOperand1, mOperand2, mOperator }.Select(obj => obj == null ? "<NULL>" : "(not null)").Join(", ")}.");
     }
 
     static Type componentType;

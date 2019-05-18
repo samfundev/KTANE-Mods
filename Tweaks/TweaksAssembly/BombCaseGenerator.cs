@@ -95,6 +95,7 @@ public class BombCaseGenerator : MonoBehaviour
         casing.W_Right.Translate(new Vector3(size.x * widget_offset / 2 + widget_constant_offset, 0, 0), Space.World);
 
 		//Generate the crossbars.
+		if (Cross_Bar.GetComponent<ExcludeFromTexturePack>() == null) Cross_Bar.AddComponent<ExcludeFromTexturePack>();
 		Cross_Bar.GetComponent<Renderer>().sharedMaterial.color = MakeCaseColor(Tweaks.settings.CaseColors);
 
 		for (int i = 0; i <= size.x; i++)
@@ -184,7 +185,7 @@ public class BombCaseGenerator : MonoBehaviour
 
 	bool TryParseColor(string colorString, out Color color)
 	{
-		color = default(Color); // If the color isn't parsed successfully, we still need to set some color.
+		color = default; // If the color isn't parsed successfully, we still need to set some color.
 
 		if (ColorUtility.TryParseHtmlString(colorString, out Color parsedColor))
 		{

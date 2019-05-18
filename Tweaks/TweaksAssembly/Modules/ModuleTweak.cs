@@ -6,7 +6,7 @@ public abstract class ModuleTweak
 
 	protected readonly BombComponent bombComponent = null;
 
-	public ModuleTweak(BombComponent BombComponent)
+	protected ModuleTweak(BombComponent BombComponent)
 	{
 		bombComponent = BombComponent;
 	}

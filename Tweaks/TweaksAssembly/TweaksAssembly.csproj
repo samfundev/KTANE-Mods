@@ -87,6 +87,9 @@
     <Compile Include="BombStatus.cs" />
     <Compile Include="GeneralExtensions.cs" />
     <Compile Include="MainThreadQueue.cs" />
+    <Compile Include="Modules\ModuleLogging.cs" />
+    <Compile Include="Modules\KeypadLogging.cs" />
+    <Compile Include="Modules\WiresLogging.cs" />
     <Compile Include="Modules\ProbingLogging.cs" />
     <Compile Include="Modules\EmojiMathLogging.cs" />
     <Compile Include="Modules\SwitchesLogging.cs" />

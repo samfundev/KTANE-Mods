@@ -5,7 +5,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
-public class ProbingLogging : ModuleTweak
+public class ProbingLogging : ModuleLogging
 {
     const string typeName = "ProbingModule";
 
@@ -19,7 +19,7 @@ public class ProbingLogging : ModuleTweak
         D = 0x8
     }
 
-    Dictionary<WireValues, string> wireHz = new Dictionary<WireValues, string>()
+    readonly Dictionary<WireValues, string> wireHz = new Dictionary<WireValues, string>()
     {
         { WireValues.A, "10" },
         { WireValues.B, "22" },
@@ -41,11 +41,9 @@ public class ProbingLogging : ModuleTweak
         { WireValues.A | WireValues.B | WireValues.C, "the other condition didn't apply" }
     };
 
-    private static int idCounter = 1;
-    private readonly int moduleID;
     private readonly KMBombInfo bombInfo;
 
-    public ProbingLogging(BombComponent bombComponent) : base(bombComponent)
+    public ProbingLogging(BombComponent bombComponent) : base(bombComponent, "Probing")
     {
         componentType = componentType ?? (componentType = ReflectionHelper.FindType(typeName));
         mWiresField = mWiresField ?? (mWiresField = componentType.GetField("mWires", NonPublicInstance));
@@ -53,13 +51,12 @@ public class ProbingLogging : ModuleTweak
         mTargetWireBField = mTargetWireBField ?? (mTargetWireBField = componentType.GetField("mTargetWireB", NonPublicInstance));
 
         component = bombComponent.GetComponent(componentType);
-        moduleID = idCounter++;
         bombInfo = bombComponent.GetComponent<KMBombInfo>();
         mNumStrikes = bombInfo.GetStrikes();
         bombComponent.GetComponent<KMBombModule>().OnActivate += () => bActive = true;
         bombComponent.GetComponent<KMBombModule>().OnPass += () =>
         {
-            Debug.Log($"[Probing #{moduleID}] Module solved.");
+            Log("Module solved.");
             return true;
         };
 
@@ -85,11 +82,11 @@ public class ProbingLogging : ModuleTweak
                 mWires = mWiresNew;
                 if (valuesChanged)
                 {
-                    Debug.Log($"[Probing #{moduleID}] The number of strikes changed and so did the wire values.");
+                    Log("The number of strikes changed and so did the wire values.");
                     LogWires();
                 }
                 else
-                    Debug.Log($"[Probing #{moduleID}] The number of strikes changed but the wire values stayed the same.");
+                    Log("The number of strikes changed but the wire values stayed the same.");
             }
             yield return null;
         }
@@ -106,14 +103,14 @@ public class ProbingLogging : ModuleTweak
 
         var missingWireValues = mWires.Select(wireValue => wireHz.First(pair => (wireValue & pair.Key) == 0).Value);
 
-        Debug.Log($"[Probing #{moduleID}] Wire values:\n{wireValues.Take(3).Join(" | ")}\n{wireValues.Skip(3).Join(" | ")}");
-        Debug.Log($"[Probing #{moduleID}] Missing wire values:\n{missingWireValues.Take(3).Join(" | ")}\n{missingWireValues.Skip(3).Join(" | ")}");
+        Log($"Wire values:\n{wireValues.Take(3).Join(" | ")}\n{wireValues.Skip(3).Join(" | ")}");
+        Log($"Missing wire values:\n{missingWireValues.Take(3).Join(" | ")}\n{missingWireValues.Skip(3).Join(" | ")}");
 
         WireValues redTargetValues = (WireValues) mTargetWireAField.GetValue(component);
         WireValues blueTargetValues = (WireValues) mTargetWireBField.GetValue(component);
 
-        Debug.Log($"[Probing #{moduleID}] The red clip should be connected to a wire containing {FormatWireValue(redTargetValues)} because {redClipRules[redTargetValues]}.");
-        Debug.Log($"[Probing #{moduleID}] The blue clip should be connected to a wire containing {FormatWireValue(blueTargetValues)} because {blueClipRules[blueTargetValues]}.");
+        Log($"The red clip should be connected to a wire containing {FormatWireValue(redTargetValues)} because {redClipRules[redTargetValues]}.");
+        Log($"The blue clip should be connected to a wire containing {FormatWireValue(blueTargetValues)} because {blueClipRules[blueTargetValues]}.");
     }
 
     static Type componentType;
