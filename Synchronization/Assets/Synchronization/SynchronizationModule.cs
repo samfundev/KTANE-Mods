@@ -671,114 +671,77 @@ public class SynchronizationModule : MonoBehaviour
 		return null;
 	}
 
-	enum TPActionType
-	{
-		Interact,
-		WaitForConditional
-	}
-
-	class TPAction
-	{
-		public TPActionType ActionType;
-		public float HoldTime;
-		public KMSelectable Selectable;
-		public Func<bool> Conditional;
-
-		public TPAction(KMSelectable selectable)
-		{
-			Selectable = selectable;
-			ActionType = TPActionType.Interact;
-		}
-
-		public TPAction(KMSelectable selectable, float holdTime)
-		{
-			Selectable = selectable;
-			HoldTime = holdTime;
-			ActionType = TPActionType.Interact;
-		}
-
-		public TPAction(Func<bool> conditional)
-		{
-			Conditional = conditional;
-			ActionType = TPActionType.WaitForConditional;
-		}
-	}
-
-	#pragma warning disable 414
-	private string TwitchHelpMessage = "To sync a pair of lights do !{0} <position> <state> <position> <state>. States: off/- on/+. To sync to the bomb timer use !{0} 5. To reset the module use !{0} reset. Commands are chainable.";
-	#pragma warning restore 414
+	public readonly string TwitchHelpMessage = "To sync a pair of lights do !{0} <position> <state> <position> <state>. States: off/- on/+. To sync to the bomb timer use !{0} 5. To reset the module use !{0} reset. Commands are chainable.";
 
 	public IEnumerator ProcessTwitchCommand(string command)
 	{
-		List<TPAction> tpActions = new List<TPAction>();
-		foreach (string subcommand in command.ToLowerInvariant().Split(new char[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries))
+		string[] chainedCommands = command.Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries);
+		if (chainedCommands.Length > 1)
 		{
-			string[] split = subcommand.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
-			if (split.Length == 1)
+			var commandRoutines = chainedCommands.Select(ProcessTwitchCommand).ToArray();
+			var invalidCommand = Array.Find(commandRoutines, routine => !routine.MoveNext());
+			if (invalidCommand != null)
 			{
-				if (split[0].Length == 1)
-				{
-					int seconds;
-					if (int.TryParse(split[0], out seconds))
-					{
-						tpActions.Add(new TPAction(() => ((int) BombInfo.GetTime() % 60).ToString().Contains(split[0])));
-						tpActions.Add(new TPAction(SyncButton));
-						continue;
-					}
-				}
-				else if (split[0] == "reset")
-				{
-					tpActions.Add(new TPAction(SyncButton, 2.1f));
-					continue;
-				}
-			}
-			else if (split.Length == 4 && EqualsAny(split[1], "on", "+", "true", "t", "off", "-", "false", "f") && EqualsAny(split[3], "on", "+", "true", "t", "off", "-", "false", "f"))
-			{
-				Light lightA = StringToLight(split[0]);
-				bool lightAState = EqualsAny(split[1], "on", "+", "true", "t");
-
-				Light lightB = StringToLight(split[2]);
-				bool lightBState = EqualsAny(split[3], "on", "+", "true", "t");
-
-				if (lightA == null || lightB == null) yield break;
-				if (lightA.speed == 0 || lightB.speed == 0 || lightA.speed == lightB.speed) yield break;
-
-				tpActions.Add(new TPAction(() => lightA.state == lightAState));
-				tpActions.Add(new TPAction(lightA.gObject.GetComponent<KMSelectable>()));
-
-				tpActions.Add(new TPAction(() => lightB.state == lightBState));
-				tpActions.Add(new TPAction(lightB.gObject.GetComponent<KMSelectable>()));
-				continue;
+				yield return "sendtochaterror The command \"" + chainedCommands[Array.IndexOf(commandRoutines, invalidCommand)] + "\" is invalid.";
+				yield break;
 			}
 
-			// Instead of placing a bunch of yield break's around the code,
-			// I decided to just place one here and use a continue statement
-			// whenever the subcommand is correct. Which I think looks better.
+			yield return null;
+			foreach (IEnumerator routine in commandRoutines)
+				yield return routine;
+
 			yield break;
 		}
 
-		foreach (TPAction tpAction in tpActions)
+		string[] split = command.ToLowerInvariant().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+		if (split.Length == 1)
 		{
-			switch (tpAction.ActionType)
+			if (split[0].Length == 1)
 			{
-				case TPActionType.Interact:
-					tpAction.Selectable.OnInteract();
-					if (tpAction.HoldTime != 0) yield return new WaitForSeconds(tpAction.HoldTime);
-
-					var action = tpAction.Selectable.OnInteractEnded;
-					if (action != null) action();
-
-					yield return new WaitForSeconds(0.1f);
-					break;
-				case TPActionType.WaitForConditional:
-					while (!tpAction.Conditional()) yield return true;
-					break;
+				int seconds;
+				if (int.TryParse(split[0], out seconds))
+				{
+					yield return null;
+					yield return new WaitUntil(() => ((int) BombInfo.GetTime() % 60).ToString().Contains(split[0]));
+					yield return Interact(SyncButton);
+				}
+			}
+			else if (split[0] == "reset")
+			{
+				yield return null;
+				yield return Interact(SyncButton, 2.1f);
 			}
 		}
+		else if (split.Length == 4 && EqualsAny(split[1], "on", "+", "true", "t", "off", "-", "false", "f") && EqualsAny(split[3], "on", "+", "true", "t", "off", "-", "false", "f"))
+		{
+			Light lightA = StringToLight(split[0]);
+			bool lightAState = EqualsAny(split[1], "on", "+", "true", "t");
+
+			Light lightB = StringToLight(split[2]);
+			bool lightBState = EqualsAny(split[3], "on", "+", "true", "t");
+
+			if (lightA == null || lightB == null) yield break;
+			if (lightA.speed == 0 || lightB.speed == 0 || lightA.speed == lightB.speed) yield break;
+
+			yield return null;
+			yield return new WaitUntil(() => lightA.state == lightAState && !syncPause);
+			yield return Interact(lightA.gObject.GetComponent<KMSelectable>());
+
+			yield return new WaitUntil(() => lightB.state == lightBState && !syncPause);
+			yield return Interact(lightB.gObject.GetComponent<KMSelectable>());
+		}
 	}
-	
-	IEnumerator TwitchHandleForcedSolve()
+
+	public IEnumerator Interact(KMSelectable selectable, float holdTime = 0)
+	{
+		selectable.OnInteract();
+		if (holdTime > 0) yield return new WaitForSeconds(holdTime);
+		if (selectable.OnInteractEnded != null) selectable.OnInteractEnded();
+		yield return new WaitForSeconds(0.1f);
+	}
+
+	public IEnumerator TwitchHandleForcedSolve()
 	{
 		while (true)
 		{
