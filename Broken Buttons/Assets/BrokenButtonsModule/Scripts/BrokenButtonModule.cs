@@ -35,7 +35,7 @@ public class BrokenButtonModule : MonoBehaviour
     public KMBombModule BombModule;
     public KMBombInfo BombInfo;
 
-    string[] words = {
+    readonly string[] words = {
 		// Explosion Related
 		"bomb", "blast", "boom", "burst",
 
@@ -73,7 +73,7 @@ public class BrokenButtonModule : MonoBehaviour
 
     List<GameObject> Solution = new List<GameObject>();
     bool SubmitButton = false;
-    List<string> Pressed = new List<string>();
+    readonly List<string> Pressed = new List<string>();
     bool LetterE = false;
     bool Solved = false;
 	bool Animating = false;
@@ -90,12 +90,6 @@ public class BrokenButtonModule : MonoBehaviour
     {
         Selectable.AddInteractionPunch();
         BombAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
-    }
-
-    IEnumerator Wait(float time, Func<bool> func)
-    {
-        yield return new WaitForSeconds(time);
-        func();
     }
 
     TextMesh GetTextMesh(GameObject Button)
@@ -305,9 +299,11 @@ public class BrokenButtonModule : MonoBehaviour
             }
             else if (Pressed.Count == 0)
             {
-                Solution = new List<GameObject>();
-                Solution.Add(GetButtonPos(Tuple.Create(3, 2)));
-                DebugMsg("Step: Press the third button in the second row.");
+				Solution = new List<GameObject>
+				{
+					GetButtonPos(Tuple.Create(3, 2))
+				};
+				DebugMsg("Step: Press the third button in the second row.");
             }
             else if (LetterE)
             {
@@ -324,11 +320,11 @@ public class BrokenButtonModule : MonoBehaviour
             if (Solution.Count > 0)
             {
                 string Text = "Press: ";
-                Solution.ForEach(delegate (GameObject button)
-                {
-                    var pos = GetPos(button);
-                    Text += "\"" + GetTextMesh(button).text.ToUpper() + "\" at " + pos.Item1 + ", " + pos.Item2 + "\n";
-                });
+                Solution.ForEach((GameObject button) =>
+				{
+					var pos = GetPos(button);
+					Text += "\"" + GetTextMesh(button).text.ToUpper() + "\" at " + pos.Item1 + ", " + pos.Item2 + "\n";
+				});
                 DebugMsg(Text.Substring(0, Text.Length - 1));
             }
         }
@@ -354,7 +350,7 @@ public class BrokenButtonModule : MonoBehaviour
         DebugMsg(Text.Substring(0, Text.Length - 1));
     }
 
-    void Start()
+    public void Start()
     {
         moduleID = idCounter++;
 
@@ -363,35 +359,35 @@ public class BrokenButtonModule : MonoBehaviour
             GameObject Button = button;
             GetTextMesh(Button).text = GetNewWord("-");
             KMSelectable selectable = button.GetComponent<KMSelectable>() as KMSelectable;
-            selectable.OnInteract += delegate ()
+            selectable.OnInteract += () =>
 			{
 				if (Animating) return false;
 				ButtonPress(selectable);
 
-                var index = Solution.IndexOf(Button);
-                if (index > -1 && Pressed.Count < 5)
-                {
-                    if (Pressed.Count == 0 && GetTextMesh(Button).text.IndexOf("e") > -1)
-                    {
-                        LetterE = true;
-                    }
+				var index = Solution.IndexOf(Button);
+				if (index > -1 && Pressed.Count < 5)
+				{
+					if (Pressed.Count == 0 && GetTextMesh(Button).text.IndexOf("e") > -1)
+					{
+						LetterE = true;
+					}
 
-                    Pressed.Add(GetTextMesh(Button).text);
+					Pressed.Add(GetTextMesh(Button).text);
 					StartCoroutine(SwapButtonText(Button));
 				}
-                else
-                {
-                    BombModule.HandleStrike();
+				else
+				{
+					BombModule.HandleStrike();
 					StartCoroutine(StrikeButtonAnimation(Button));
 
-                    if (Pressed.Count == 5)
-                    {
-                        DebugMsg("Strike: Press the correct submit button because you've pressed 5 buttons.");
-                    }
-                }
+					if (Pressed.Count == 5)
+					{
+						DebugMsg("Strike: Press the correct submit button because you've pressed 5 buttons.");
+					}
+				}
 
-                return false;
-            };
+				return false;
+			};
         }
         LogButtons();
 
@@ -399,29 +395,29 @@ public class BrokenButtonModule : MonoBehaviour
         {
             string name = button.name;
             KMSelectable selectable = button.GetComponent<KMSelectable>() as KMSelectable;
-            selectable.OnInteract += delegate ()
-            {
+            selectable.OnInteract += () =>
+			{
 				if (Animating) return false;
-                ButtonPress(selectable);
+				ButtonPress(selectable);
 
-                bool correct = (name == "Right");
-                if (correct == SubmitButton && (Solution.Count == 0 || Pressed.Count == 5) && !Solved)
-                {
-                    Solved = true;
-                    BombModule.HandlePass();
+				bool correct = (name == "Right");
+				if (correct == SubmitButton && (Solution.Count == 0 || Pressed.Count == 5) && !Solved)
+				{
+					Solved = true;
+					BombModule.HandlePass();
 					DebugMsg("Module solved.");
 					StartCoroutine(SolveAnimation());
-                }
-                else
-                {
-                    BombModule.HandleStrike();
+				}
+				else
+				{
+					BombModule.HandleStrike();
 					StartCoroutine(StrikeButtonAnimation(button));
 
-                    LogButtons();
-                }
+					LogButtons();
+				}
 
-                return false;
-            };
+				return false;
+			};
         }
 
         FindCorrectButtons();
@@ -446,7 +442,7 @@ public class BrokenButtonModule : MonoBehaviour
 	IEnumerator StrikeButtonAnimation(GameObject Button)
 	{
 		Animating = true;
-		
+
 		Vector2 textureScale = new Vector2(Random.Range(0.1f, 1f), Random.Range(0.1f, 1f));
 
 		TextMesh textMesh = GetTextMesh(Button);
@@ -532,9 +528,7 @@ public class BrokenButtonModule : MonoBehaviour
 		Animating = false;
 	}
 
-    #pragma warning disable 414
-    private string TwitchHelpMessage = "Press the button by name with !{0} press \"this\". Press the button in column 2 row 3 with !{0} press 2 3. Press the right submit button with !{0} submit right.";
-    #pragma warning restore 414
+    public const string TwitchHelpMessage = "Press the button by name with !{0} press \"this\". Press the button in column 2 row 3 with !{0} press 2 3. Press the right submit button with !{0} submit right.";
 
     public KMSelectable[] ProcessTwitchCommand(string command)
     {
@@ -566,22 +560,22 @@ public class BrokenButtonModule : MonoBehaviour
         }
         else if (split.Length == 3 && split[0] == "press")
         {
-            int x = 0;
-            int y = 0;
-            if (int.TryParse(split[1], out x) && int.TryParse(split[2], out y))
-            {
-                GameObject button = GetButtonPos(Tuple.Create(x, y));
-                if (button)
-                {
-                    return new KMSelectable[] { button.GetComponent<KMSelectable>() };
-                }
-            }
-        }
+			int x;
+			int y;
+			if (int.TryParse(split[1], out x) && int.TryParse(split[2], out y))
+			{
+				GameObject button = GetButtonPos(Tuple.Create(x, y));
+				if (button)
+				{
+					return new KMSelectable[] { button.GetComponent<KMSelectable>() };
+				}
+			}
+		}
 
         return null;
     }
 
-	IEnumerator TwitchHandleForcedSolve()
+	public IEnumerator TwitchHandleForcedSolve()
 	{
 		while (Solution.Count > 0)
 		{
