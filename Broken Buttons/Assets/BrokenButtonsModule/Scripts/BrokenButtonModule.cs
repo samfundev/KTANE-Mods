@@ -587,6 +587,7 @@ public class BrokenButtonModule : MonoBehaviour
 		{
 			Solution[Random.Range(0, Solution.Count - 1)].GetComponent<KMSelectable>().OnInteract();
 			yield return new WaitForSeconds(0.1f);
+			yield return new WaitUntil(() => !Animating);
 		}
 
 		SubmitButtons.First(button => button.name == "Right" == SubmitButton).GetComponent<KMSelectable>().OnInteract();
