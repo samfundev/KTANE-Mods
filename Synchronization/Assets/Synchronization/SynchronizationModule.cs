@@ -19,12 +19,12 @@ public class SynchronizationModule : MonoBehaviour
 	public GameObject[] LightObjects;
 	public GameObject AnimationPivot;
 
-	static float FlashingSpeed = 0.35f;
+	const float FlashingSpeed = 0.35f;
 	int DisplayNumber;
 	bool Solved = false;
 	Light SelectedLight;
 	int[] SyncMethod;
-	int[] InitialSpeeds = new int[9];
+	readonly int[] InitialSpeeds = new int[9];
 
 	static int idCounter = 1;
 	int moduleID;
@@ -35,9 +35,9 @@ public class SynchronizationModule : MonoBehaviour
 	{
 		bool _state = true;
 		Color _color = Color.white;
-		MonoBehaviour _module;
+		readonly MonoBehaviour _module;
 
-		Material lightMat;
+		readonly Material lightMat;
 		Coroutine flashingCoroutine;
 
 		public GameObject gObject;
@@ -60,7 +60,7 @@ public class SynchronizationModule : MonoBehaviour
 			lightMat.SetColor("_LitColor", _color);
 		}
 
-		public bool state
+		public bool State
 		{
 			set
 			{
@@ -73,7 +73,7 @@ public class SynchronizationModule : MonoBehaviour
 			}
 		}
 
-		public Color color
+		public Color Color
 		{
 			set
 			{
@@ -89,9 +89,9 @@ public class SynchronizationModule : MonoBehaviour
 			WaitForSeconds flashPause = new WaitForSeconds((6 - speed) * FlashingSpeed);
 			while (true)
 			{
-				state = true;
+				State = true;
 				yield return flashPause;
-				state = false;
+				State = false;
 				yield return flashPause;
 			}
 		}
@@ -150,7 +150,7 @@ public class SynchronizationModule : MonoBehaviour
 		Log(string.Format(data.ToString(), formatting));
 	}
 
-	void Start()
+	public void Start()
 	{
 		moduleID = idCounter++;
 
@@ -174,10 +174,10 @@ public class SynchronizationModule : MonoBehaviour
 	KMAudio.KMAudioRef SelectAudioRef;
 	KMSelectable.OnInteractHandler SetupInteraction(Light light)
 	{
-		return delegate ()
+		return () =>
 		{
 			if (light.speed == 0 || Solved || syncPause) return false;
-			
+
 			light.gObject.GetComponent<KMSelectable>().AddInteractionPunch(0.5f);
 
 			if (SelectAudioRef != null)
@@ -186,7 +186,7 @@ public class SynchronizationModule : MonoBehaviour
 				SelectAudioRef = null;
 				StopCoroutine(SelectSFXCoroutine);
 			}
-			
+
 			if (SelectedLight == null)
 			{
 				SelectAudioRef = Audio.PlaySoundAtTransformWithRef("Select", transform);
@@ -234,7 +234,7 @@ public class SynchronizationModule : MonoBehaviour
 
 		foreach (Light light in Lights)
 		{
-			light.color = Color.yellow;
+			light.Color = Color.yellow;
 		}
 
 		yield return new WaitForSeconds(0.4f);
@@ -246,7 +246,7 @@ public class SynchronizationModule : MonoBehaviour
 			light.speed = InitialSpeeds[i];
 			light.StartFlashing();
 
-			light.color = Color.white;
+			light.Color = Color.white;
 		}
 
 		syncPause = false;
@@ -259,10 +259,10 @@ public class SynchronizationModule : MonoBehaviour
 		syncPause = true;
 
 		ApplyToSpeed(light, l => l.StopFlashing());
-		
+
 		List<Action<float>> animations = new List<Action<float>>();
 		var lightsToSync = Lights.Where(l => l.speed == SelectedLight.speed).OrderBy(l => l.syncIndex).Concat(Lights.OrderBy(l => l.syncIndex).Where(l => l.speed == light.speed)).ToArray();
-		for (int i = 0; i < lightsToSync.Length -1 ; i++)
+		for (int i = 0; i < lightsToSync.Length - 1; i++)
 		{
 			animations.Add(SyncAnimation(lightsToSync[i], lightsToSync[i + 1]));
 		}
@@ -276,14 +276,14 @@ public class SynchronizationModule : MonoBehaviour
 			foreach (Action<float> animation in animations) animation(alpha);
 			yield return null;
 		}
-		
+
 		bool valid = ValidateSync(SelectedLight, light);
 
-		Log("{0} synced {1} while {2} and {3} while {4}.", valid ? "Successfully" : "Incorrectly", SelectedLight.speed, SelectedLight.state ? "on" : "off", light.speed, light.state ? "on" : "off");
+		Log("{0} synced {1} while {2} and {3} while {4}.", valid ? "Successfully" : "Incorrectly", SelectedLight.speed, SelectedLight.State ? "on" : "off", light.speed, light.State ? "on" : "off");
 
 		if (valid)
 		{
-			int startingIndex = Lights.Where(l => l.speed == SelectedLight.speed).Count() + 1;
+			int startingIndex = Lights.Count(l => l.speed == SelectedLight.speed) + 1;
 			ApplyToSpeed(light, l =>
 			{
 				l.StopFlashing();
@@ -315,7 +315,7 @@ public class SynchronizationModule : MonoBehaviour
 		Vector3 lightAlP = lightA.gObject.transform.localPosition;
 		Vector3 lightBlP = lightB.gObject.transform.localPosition;
 		Transform animationPivot = Instantiate(AnimationPivot, AnimationPivot.transform.parent).transform;
-		
+
 		animationPivot.localPosition = lightAlP;
 		animationPivot.localRotation = Quaternion.Euler(0, Mathf.Atan2(lightBlP.x - lightAlP.x, lightBlP.z - lightAlP.z) * 180f / Mathf.PI, 0);
 
@@ -346,7 +346,7 @@ public class SynchronizationModule : MonoBehaviour
 		var speeds = Lights.Select(l => l.speed).Where(s => s != 0).Distinct();
 		if (speedDuplicates.Count(group => group.Count() == 1) >= 2)
 		{
-			speeds = speeds.Where(s => speedDuplicates.Where(group => group.Key == s).First().Count() == 1);
+			speeds = speeds.Where(s => speedDuplicates.First(group => group.Key == s).Count() == 1);
 		}
 
 		int[] orderedSpeeds = speeds.OrderBy(s => s).ToArray();
@@ -384,49 +384,42 @@ public class SynchronizationModule : MonoBehaviour
 		switch (SyncMethod[1])
 		{
 			case 0:
-				if (lightA.state == false || lightB.state == false) return false;
+				if (!lightA.State || !lightB.State) return false;
 
 				break;
 			case 1:
-				if (lightA.state == true || lightB.state == true) return false;
+				if (lightA.State || lightB.State) return false;
 
 				break;
 			case 2:
-				if (firstSyncDone && (lightA.state == altRuleState || lightB.state == altRuleState)) return false; // Make sure they keep alternating
+				if (firstSyncDone && (lightA.State == altRuleState || lightB.State == altRuleState)) return false; // Make sure they keep alternating
 
-				if (lightA.state != lightB.state) return false;
+				if (lightA.State != lightB.State) return false;
 
-				if (firstSyncDone)
-				{
-					altRuleState = !altRuleState;
-				}
-				else
-				{
-					altRuleState = lightA.state;
-				}
+				altRuleState = firstSyncDone ? !altRuleState : lightA.State;
 
 				break;
 		}
 
 		// Gather info for alt rule and opp rule.
-		altRuleState = lightA.state;
+		altRuleState = lightA.State;
 		oppRuleFirstGreater = lightA.speed > lightB.speed;
 
 		firstSyncDone = true;
 		return true;
 	}
 
-	string[] orders = new[] { "Asc", "Des", "Opp" };
-	string[] states = new[] { "+", "-", "Alt" };
-	int[][][] chart = new int[][][]
+	readonly string[] orders = new[] { "Asc", "Des", "Opp" };
+	readonly string[] states = new[] { "+", "-", "Alt" };
+	readonly int[][][] chart = new int[][][]
 	{
 		new[] {new[] {1, 1}, new[] {0, 1}, new[] {2, 2}, new[] {0, 2}, new[] {2, 2}, new[] {0, 1}, new[] {2, 1}, new[] {2, 1}, new[] {2, 0}},
 		new[] {new[] {0, 0}, new[] {2, 2}, new[] {1, 2}, new[] {1, 0}, new[] {1, 2}, new[] {1, 0}, new[] {0, 1}, new[] {0, 0}, new[] {0, 2}},
 		new[] {new[] {1, 1}, new[] {1, 2}, new[] {2, 1}, new[] {2, 0}, new[] {1, 0}, new[] {0, 2}, new[] {0, 0}, new[] {1, 1}, new[] {2, 0}}
 	};
 
-	int[] lightToCol = new int[] { 0, 1, 2, 7, 8, 3, 6, 5, 4 }; // Since the chart columns are in a different order than my light indexes
-	Vector2Int[] lightToDir = new Vector2Int[] {
+	readonly int[] lightToCol = new int[] { 0, 1, 2, 7, 8, 3, 6, 5, 4 }; // Since the chart columns are in a different order than my light indexes
+	readonly Vector2Int[] lightToDir = new Vector2Int[] {
 		new Vector2Int(-1, -1), new Vector2Int(0, -1), new Vector2Int(1, -1),
 		new Vector2Int(-1, 0), new Vector2Int(0, 0), new Vector2Int(1, 0),
 		new Vector2Int(-1, 1), new Vector2Int(0, 1), new Vector2Int(1, 1)
@@ -434,7 +427,7 @@ public class SynchronizationModule : MonoBehaviour
 
 	void Activate()
 	{
-		SyncButton.OnInteract += delegate ()
+		SyncButton.OnInteract += () =>
 		{
 			if (Lights.Where(l => l.speed != 0).Select(l => l.speed).Distinct().Count() == 1 && !Solved)
 			{
@@ -449,7 +442,7 @@ public class SynchronizationModule : MonoBehaviour
 					foreach (Light light in Lights)
 					{
 						light.StopFlashing();
-						light.state = true;
+						light.State = true;
 					}
 
 					Audio.PlaySoundAtTransform("Solve", transform);
@@ -468,7 +461,7 @@ public class SynchronizationModule : MonoBehaviour
 			return false;
 		};
 
-		SyncButton.OnInteractEnded += delegate ()
+		SyncButton.OnInteractEnded += () =>
 		{
 			if (resetCoroutine != null && !syncPause)
 			{
@@ -492,7 +485,7 @@ public class SynchronizationModule : MonoBehaviour
 
 		foreach (int lightIndex in lightIndexes)
 		{
-			Lights[lightIndex].state = true;
+			Lights[lightIndex].State = true;
 		}
 
 		for (int i = 0; i < 9; i++)
@@ -504,7 +497,7 @@ public class SynchronizationModule : MonoBehaviour
 		{
 			light.StartFlashing();
 		}
-		
+
 		Log("Light speeds:\n{0} {1} {2}\n{3} {4} {5}\n{6} {7} {8}", Lights.Select(l => (object) l.speed).ToArray());
 
 		// Find which way the user needs to sync 
@@ -548,19 +541,19 @@ public class SynchronizationModule : MonoBehaviour
 		int[] pattern = patterns[Random.Range(0, patterns.Length)];
 		foreach (int light in pattern)
 		{
-			Lights[light].state = true;
+			Lights[light].State = true;
 			yield return new WaitForSeconds(0.1f);
 		}
 
 		yield return new WaitForSeconds(0.5f);
 		foreach (int light in pattern)
 		{
-			Lights[light].state = false;
+			Lights[light].State = false;
 			yield return new WaitForSeconds(0.1f);
 		}
 	}
 
-	string[] WinningAnimations = {
+	readonly string[] WinningAnimations = {
 		//"4,1357,0268", // Middle -> All
 		"0,13,246,57,8", // TL -> BR
 		"2,15,048,37,6", // TR -> BL
@@ -590,7 +583,7 @@ public class SynchronizationModule : MonoBehaviour
 		if (Random.Range(0, 2) == 1) animationIterable = animationIterable.Reverse();
 
 		var animation = animationIterable.ToArray();
-		
+
 		float startTime = Time.time;
 		float alphaStep = 1f / animation.Length;
 		float alpha = 0;
@@ -602,10 +595,10 @@ public class SynchronizationModule : MonoBehaviour
 			{
 				foreach (Light light in animation[i])
 				{
-					light.color = Color.Lerp(Color.white, Color.green, (alpha - alphaStep * i) / alphaStep);
+					light.Color = Color.Lerp(Color.white, Color.green, (alpha - alphaStep * i) / alphaStep);
 				}
 			}
-			
+
 			yield return null;
 		}
 	}
@@ -617,14 +610,6 @@ public class SynchronizationModule : MonoBehaviour
 		list.RemoveAt(index);
 
 		return value;
-	}
-
-	int WrapInt(int a, int b)
-	{
-		while (a < 0) a += b + 1;
-		while (a > b) a -= b + 1;
-
-		return a;
 	}
 
 	private bool EqualsAny(object obj, params object[] targets)
@@ -663,12 +648,7 @@ public class SynchronizationModule : MonoBehaviour
 		}
 
 		int lightInt;
-		if (light.Length == 1 && int.TryParse(light, out lightInt) && lightInt > 0)
-		{
-			return Lights[lightInt - 1];
-		}
-
-		return null;
+		return light.Length == 1 && int.TryParse(light, out lightInt) && lightInt > 0 ? Lights[lightInt - 1] : null;
 	}
 
 	public readonly string TwitchHelpMessage = "To sync a pair of lights do !{0} <position> <state> <position> <state>. States: off/- on/+. To sync to the bomb timer use !{0} 5. To reset the module use !{0} reset. Commands are chainable.";
@@ -725,10 +705,10 @@ public class SynchronizationModule : MonoBehaviour
 			if (lightA.speed == 0 || lightB.speed == 0 || lightA.speed == lightB.speed) yield break;
 
 			yield return null;
-			yield return new WaitUntil(() => lightA.state == lightAState && !syncPause);
+			yield return new WaitUntil(() => lightA.State == lightAState && !syncPause);
 			yield return Interact(lightA.gObject.GetComponent<KMSelectable>());
 
-			yield return new WaitUntil(() => lightB.state == lightBState && !syncPause);
+			yield return new WaitUntil(() => lightB.State == lightBState && !syncPause);
 			yield return Interact(lightB.gObject.GetComponent<KMSelectable>());
 		}
 	}
@@ -750,7 +730,7 @@ public class SynchronizationModule : MonoBehaviour
 			var speeds = Lights.Select(l => l.speed).Where(s => s != 0).Distinct();
 			if (speedDuplicates.Count(group => group.Count() == 1) >= 2)
 			{
-				speeds = speeds.Where(s => speedDuplicates.Where(group => group.Key == s).First().Count() == 1);
+				speeds = speeds.Where(s => speedDuplicates.First(group => group.Key == s).Count() == 1);
 			}
 
 			int[] orderedSpeeds = speeds.OrderBy(s => s).ToArray();
@@ -787,9 +767,9 @@ public class SynchronizationModule : MonoBehaviour
 			}
 
 			bool[] lightStates = { true, false, !altRuleState };
-			
+
 			yield return ProcessTwitchCommand(string.Format("{0} {1} {2} {3}", Array.FindIndex(Lights, light => light.speed == lightASpeed) + 1, lightStates[SyncMethod[1]], Array.FindIndex(Lights, light => light.speed == lightBSpeed) + 1, lightStates[SyncMethod[1]]));
-			yield return new WaitUntil(() => syncPause == false);
+			yield return new WaitUntil(() => !syncPause);
 		}
 
 		yield return ProcessTwitchCommand(DisplayNumber.ToString());
