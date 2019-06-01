@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 615501dbe4f3fe94fbf4b564abb10237, type: 3}
+  m_Name: ModConfig
+  m_EditorClassIdentifier: 
+  id: EncryptedEquations
+  title: Encrypted Equations
+  author: 
+  description: "[h1]About[/h1]\r\nThis pair of modules has got an encrypted equation
+    for you to decrypt and solve.\n\n[h1]Manuals[/h1]\r\r\n[b]Encrypted Equations[/b]\n\r[url=https://ktane.timwi.de/HTML/Encrypted%20Equations.html]HTML[/url]\r\n[url=https://ktane.timwi.de/PDF/Encrypted%20Equations.pdf]PDF[/url]\n\n[b]Encrypted
+    Values[/b] \n\r[url=https://ktane.timwi.de/HTML/Encrypted%20Values.html]HTML[/url]\r\n[url=https://ktane.timwi.de/PDF/Encrypted%20Values.pdf]PDF[/url]\n\n[h1]Credits[/h1]\r\nModule
+    Ideas by Lumbud\r84\nImplemented by samfun123\n\r\n[h1]Module IDs[/h1]\r\nEncryptedEquationsModule
+    and EncryptedValuesModule"
+  version: 
+  outputFolder: C:\Program Files (x86)\Steam\steamapps\common\Keep Talking and Nobody
+    Explodes\mods
+  previewImage: {fileID: 2800000, guid: 128abbe56b58aad4fb574623770b33b8, type: 3}
