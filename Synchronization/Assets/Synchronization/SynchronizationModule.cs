@@ -683,7 +683,8 @@ public class SynchronizationModule : MonoBehaviour
 				if (int.TryParse(split[0], out seconds))
 				{
 					yield return null;
-					yield return new WaitUntil(() => ((int) BombInfo.GetTime() % 60).ToString().Contains(split[0]));
+					while (!((int) BombInfo.GetTime() % 60).ToString().Contains(split[0]))
+						yield return true;
 					yield return Interact(SyncButton);
 				}
 			}
@@ -705,10 +706,12 @@ public class SynchronizationModule : MonoBehaviour
 			if (lightA.speed == 0 || lightB.speed == 0 || lightA.speed == lightB.speed) yield break;
 
 			yield return null;
-			yield return new WaitUntil(() => lightA.State == lightAState && !syncPause);
+			while (lightA.State != lightAState || syncPause)
+				yield return true;
 			yield return Interact(lightA.gObject.GetComponent<KMSelectable>());
 
-			yield return new WaitUntil(() => lightB.State == lightBState && !syncPause);
+			while (lightB.State != lightBState || syncPause)
+				yield return true;
 			yield return Interact(lightB.gObject.GetComponent<KMSelectable>());
 		}
 	}
@@ -768,10 +771,13 @@ public class SynchronizationModule : MonoBehaviour
 
 			bool[] lightStates = { true, false, !altRuleState };
 
-			yield return ProcessTwitchCommand(string.Format("{0} {1} {2} {3}", Array.FindIndex(Lights, light => light.speed == lightASpeed) + 1, lightStates[SyncMethod[1]], Array.FindIndex(Lights, light => light.speed == lightBSpeed) + 1, lightStates[SyncMethod[1]]));
-			yield return new WaitUntil(() => !syncPause);
+			var enumerator = ProcessTwitchCommand(string.Format("{0} {1} {2} {3}", Array.FindIndex(Lights, light => light.speed == lightASpeed) + 1, lightStates[SyncMethod[1]], Array.FindIndex(Lights, light => light.speed == lightBSpeed) + 1, lightStates[SyncMethod[1]]));
+			while (enumerator.MoveNext())
+				yield return enumerator.Current;
 		}
 
-		yield return ProcessTwitchCommand(DisplayNumber.ToString());
+		var submitEnumerator = ProcessTwitchCommand(DisplayNumber.ToString());
+		while (submitEnumerator.MoveNext())
+			yield return submitEnumerator.Current;
 	}
 }
