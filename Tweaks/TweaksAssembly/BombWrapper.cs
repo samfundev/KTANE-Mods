@@ -115,6 +115,7 @@ class BombWrapper
 		{
 			{ "Emoji Math", bombComponent => new EmojiMathLogging(bombComponent) },
 			{ "Probing", bombComponent => new ProbingLogging(bombComponent) },
+			{ "SeaShells", bombComponent => new SeaShellsLogging(bombComponent) },
 			{ "switchModule", bombComponent => new SwitchesLogging(bombComponent) },
 			{ "WordScrambleModule", bombComponent => new WordScramblePatch(bombComponent) },
 

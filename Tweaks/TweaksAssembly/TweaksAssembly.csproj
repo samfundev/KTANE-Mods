@@ -89,6 +89,7 @@
     <Compile Include="MainThreadQueue.cs" />
     <Compile Include="Modules\ModuleLogging.cs" />
     <Compile Include="Modules\KeypadLogging.cs" />
+    <Compile Include="Modules\SeaShellsLogging.cs" />
     <Compile Include="Modules\WiresLogging.cs" />
     <Compile Include="Modules\ProbingLogging.cs" />
     <Compile Include="Modules\EmojiMathLogging.cs" />
