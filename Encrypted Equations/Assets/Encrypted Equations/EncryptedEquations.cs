@@ -603,7 +603,7 @@ class EncryptedEquations : MonoBehaviour
 		Debug.LogFormat("[Encrypted Equations #{0}] {1}", moduleID, values.Select(Convert.ToString).Join());
 	}
 
-	public readonly string TwitchHelpMessage = "Submit the final value using !{0} submit 1234";
+	public readonly string TwitchHelpMessage = "Submit the final value using !{0} submit 1234. Clear the submitted value using !{0} clear.";
 
 	public IEnumerable<KMSelectable> ProcessTwitchCommand(string command)
 	{
@@ -612,6 +612,11 @@ class EncryptedEquations : MonoBehaviour
 
 		if (split[0].EqualsAny("submit", "press", "enter", "answer", "s", "p", "e", "a"))
 			split = split.Skip(1).ToArray();
+
+		if (split.Length == 1 && split[0] == "clear")
+		{
+			return new[] { ClearButton };
+		}
 
 		buttons.Add(ClearButton);
 
