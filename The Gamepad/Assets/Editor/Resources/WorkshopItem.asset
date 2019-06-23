@@ -13,10 +13,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   WorkshopPublishedFileID: 776105833
   Title: The Gamepad
-  Description: "[h1]About[/h1]\r\nA retro module about some \"prime\" math. Just input
-    the correct sequence based on the display readout.\r\n\r\n[h1]Manual[/h1]\r\n[url=https://cdn.rawgit.com/samfun123/KTANE-Mods/b134b12b/Manuals/The%20Gamepad/ManualPage.pdf]PDF[/url]\r\n[url=https://cdn.rawgit.com/samfun123/KTANE-Mods/b134b12b/Manuals/The%20Gamepad/ManualPage.html]HTML[/url]\r\n\r\n[h1]Credits[/h1]\r\n[b]samfun123[/b]
-    - Programming\r\n[b]theFIZZYnator[/b] - Original Mod Idea\r\n[b]Flamanis[/b] -
-    Controller Support\r\n\r\n[h1]Module ID[/h1]\r\nTheGamepad"
-  PreviewImage: {fileID: 2800000, guid: 0840a265b3ffd364db54f8a6b4160ace, type: 3}
   Tags:
   - Regular Module

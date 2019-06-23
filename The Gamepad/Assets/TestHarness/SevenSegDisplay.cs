@@ -1,7 +1,5 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using UnityEngine;
-using UnityEngine.UI;
 using KM_Scripts;
 
 public class SevenSegDisplay : MonoBehaviour
