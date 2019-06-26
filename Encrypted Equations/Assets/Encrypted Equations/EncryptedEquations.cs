@@ -215,6 +215,8 @@ class EncryptedEquations : MonoBehaviour
 				Operand.GetComponent<TextMesh>().text = Character.ToString();
 				Shape.Display(Operand.Traverse<Renderer>("Shape"));
 				Symbol.Display(Operand.Traverse("SymbolPivot"));
+
+				Operand.Traverse<Transform>("Shape").localPosition = (Shape.Name == "+" && Character == 'E') ? new Vector3(0.05f, -0.05f, 0) : Vector3.zero;
 			}
 
 			public static Operand Generate()
