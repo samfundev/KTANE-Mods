@@ -140,7 +140,7 @@ public class MinesweeperModule : MonoBehaviour
 
 		public GameObject _object = null;
 		public KMSelectable _selectable = null;
-		public KMBombModule _module = null;
+		public KMAudio _audio = null;
 		public SpriteRenderer _renderer = null;
 		public List<Sprite> _sprites = null;
 
@@ -176,13 +176,17 @@ public class MinesweeperModule : MonoBehaviour
 			}
 		}
 
-		public List<Cell> Dig()
+		public List<Cell> AllDug = new List<Cell>(); // This list is used by the dig animation. It's a bit hacky, but it stores any dug cells after a Dig call.
+		public List<Cell> Dig(bool updateSprites = true)
 		{
+			AllDug.Clear();
+
 			List<Cell> Unused = new List<Cell>();
 			if (!Flagged)
 			{
 				Dug = true;
-				UpdateSprite();
+				AllDug.Add(this);
+				if (updateSprites) UpdateSprite();
 				if (!Mine)
 				{
 					if (Number == 0)
@@ -191,7 +195,8 @@ public class MinesweeperModule : MonoBehaviour
 						{
 							if (!cell.Mine && !cell.Dug)
 							{
-								Unused.AddRange(cell.Dig());
+								Unused.AddRange(cell.Dig(updateSprites));
+								AllDug.AddRange(cell.AllDug);
 							}
 						}
 					}
@@ -205,6 +210,17 @@ public class MinesweeperModule : MonoBehaviour
 			return Unused;
 		}
 
+		public IEnumerator AnimatedDig()
+		{
+			Dig(updateSprites: false);
+			foreach (Cell cell in AllDug)
+			{
+				_audio.PlaySoundAtTransform("Pop-" + Random.Range(1, 4).ToString("D2"), _object.transform);
+				cell.UpdateSprite();
+				yield return new WaitForSeconds(0.03f);
+			}
+		}
+
 		public void Click()
 		{
 			_selectable.OnInteract();
@@ -212,13 +228,13 @@ public class MinesweeperModule : MonoBehaviour
 		}
 
 		MSGrid _game;
-		public Cell(MSGrid game, int x, int y, GameObject Object, KMBombModule Module, List<Sprite> Sprites)
+		public Cell(MSGrid game, int x, int y, GameObject Object, KMAudio Audio, List<Sprite> Sprites)
 		{
 			_game = game;
 			_x = x;
 			_y = y;
 			_object = Object;
-			_module = Module;
+			_audio = Audio;
 			_selectable = Object.GetComponent<KMSelectable>();
 			_renderer = Object.transform.Find("Sprite").GetComponent<SpriteRenderer>();
 			_sprites = Sprites;
@@ -376,7 +392,18 @@ public class MinesweeperModule : MonoBehaviour
 		UpdateSelectable();
 	}
 
-	void SolveModule()
+	IEnumerable TimedAnimation(float length)
+	{
+		float startTime = Time.time;
+		float alpha = 0;
+		while (alpha < 1)
+		{
+			alpha = Mathf.Min((Time.time - startTime) / length, 1);
+			yield return alpha;
+		}
+	}
+
+	IEnumerator SolveModule()
 	{
 		foreach (Cell c in Game.Cells)
 		{
@@ -387,8 +414,21 @@ public class MinesweeperModule : MonoBehaviour
 			}
 		}
 
-		Module.HandlePass();
+		Audio.PlaySoundAtTransform("Solve", transform);
 		LogBoard();
+
+		foreach (float alpha in TimedAnimation(1.25f))
+		{
+			var radius = alpha * 7.7f;
+			foreach (Cell cell in Game.Cells)
+			{
+				cell._renderer.color = Color.Lerp(Color.green, Color.white, Mathf.Abs((new Vector2(cell._x, cell._y) - new Vector2(3.5f, 4.5f)).magnitude - radius) / 2);
+			}
+
+			yield return null;
+		}
+
+		Module.HandlePass();
 	}
 
 	void LogBoard()
@@ -460,6 +500,7 @@ public class MinesweeperModule : MonoBehaviour
 
 		if (StartFound)
 		{
+			Audio.PlaySoundAtTransform("Flag-" + Random.Range(1, 9).ToString("D2"), transform);
 			if (cell.Dug)
 			{
 				foreach (Cell c in cell.Around)
@@ -495,6 +536,7 @@ public class MinesweeperModule : MonoBehaviour
 
 		ModeToggle.GetComponent<KMSelectable>().OnInteract = delegate ()
 		{
+			Audio.PlaySoundAtTransform("Toggle-" + (Digging ? 1 : 2).ToString("D2"), transform);
 			Digging = !Digging;
 			targetAlpha = Digging ? 0 : 1;
 			UpdateSelectable();
@@ -536,7 +578,7 @@ public class MinesweeperModule : MonoBehaviour
 
 				Cell.name = x + " " + y;*/
 
-				Cell cell = new Cell(Game, x, y, Cell, Module, Sprites);
+				Cell cell = new Cell(Game, x, y, Cell, Audio, Sprites);
 				Game.Cells.Insert(x + y * (int) GridSize.x, cell);
 				Game.Board[y].Insert(x, cell);
 
@@ -565,7 +607,7 @@ public class MinesweeperModule : MonoBehaviour
 										c._renderer.color = Color.white;
 									}
 
-									cell.Dig();
+									StartCoroutine(cell.AnimatedDig());
 								}
 								else
 								{
@@ -596,7 +638,7 @@ public class MinesweeperModule : MonoBehaviour
 											}
 											else
 											{
-												c.Dig();
+												StartCoroutine(c.AnimatedDig());
 											}
 										}
 									}
@@ -614,12 +656,13 @@ public class MinesweeperModule : MonoBehaviour
 									}
 									else
 									{
-										cell.Dig();
+										StartCoroutine(cell.AnimatedDig());
 									}
 								}
 							}
 							else if (!cell.Dug)
 							{
+								Audio.PlaySoundAtTransform("Flag-" + Random.Range(1, 9).ToString("D2"), transform);
 								cell.Flagged = !cell.Flagged;
 								cell.UpdateSprite();
 							}
@@ -628,7 +671,7 @@ public class MinesweeperModule : MonoBehaviour
 
 					if (Game.Solved)
 					{
-						SolveModule();
+						StartCoroutine(SolveModule());
 					}
 
 					UpdateSelectable();
@@ -949,6 +992,9 @@ public class MinesweeperModule : MonoBehaviour
 				{
 					Changed = true;
 					Used.Add(cell);
+					if (FlagAll)
+						Audio.PlaySoundAtTransform("Flag-" + Random.Range(1, 9).ToString("D2"), transform);
+
 					foreach (Cell adj in cell.Around)
 					{
 						if (!adj.Dug)
@@ -957,7 +1003,8 @@ public class MinesweeperModule : MonoBehaviour
 
 							if (DigAll)
 							{
-								UnusedTemp.AddRange(adj.Dig());
+								yield return adj.AnimatedDig();
+								UnusedTemp.AddRange(adj.AllDug.Where(uncoveredCell => !uncoveredCell.Mine && uncoveredCell.Number != 0));
 							}
 							else if (FlagAll)
 							{
@@ -980,6 +1027,6 @@ public class MinesweeperModule : MonoBehaviour
 			UnusedTemp.Clear();
 		}
 
-		SolveModule();
+		StartCoroutine(SolveModule());
 	}
 }
