@@ -523,8 +523,6 @@ public class MinesweeperModule : MonoBehaviour
 	bool Digging = true;
 	bool Held = false;
 	Coroutine _playClick = null;
-	Vector3[] GuideSizes = new Vector3[2];
-	bool GuidesEnabled = false;
 
 	void Start()
 	{
@@ -543,14 +541,6 @@ public class MinesweeperModule : MonoBehaviour
 
 			return false;
 		};
-
-		// Hide Guides
-		int n = 0;
-		foreach (GameObject guide in Guides)
-		{
-			GuideSizes[n++] = guide.transform.localPosition;
-			guide.transform.localPosition = new Vector3();
-		}
 
 		// Generate the cells
 		int Total = (int) GridSize.x * (int) GridSize.y;
@@ -806,23 +796,11 @@ public class MinesweeperModule : MonoBehaviour
 	GameObject Slider = null;
 	float sliderAlpha = 0;
 	float targetAlpha = 0;
-	float guideAlpha = 0.75f;
-	void Update()
+	public void Update()
 	{
 		sliderAlpha = Mathf.Lerp(sliderAlpha, targetAlpha, 0.1f);
 
 		Slider.transform.localPosition = new Vector3(0, 2, -2.5f + 5f * sliderAlpha);
-
-		if (GuidesEnabled && guideAlpha < 1)
-		{
-			guideAlpha = Mathf.Min(1, guideAlpha + 0.01f);
-
-			int n = 0;
-			foreach (GameObject guide in Guides)
-			{
-				guide.transform.localPosition = Vector3.Lerp(new Vector3(), GuideSizes[n++], guideAlpha);
-			}
-		}
 	}
 
 	private class TPAction
@@ -933,8 +911,7 @@ public class MinesweeperModule : MonoBehaviour
 					}
 				}
 
-				GuidesEnabled = true;
-				foreach (GameObject guide in Guides) guide.SetActive(true);
+				StartCoroutine(TwitchPlaysFormat());
 			}
 			else if (EqualsAny(action.actionType, "interact", "setInteract"))
 			{
@@ -952,7 +929,39 @@ public class MinesweeperModule : MonoBehaviour
 		}
 	}
 
-	IEnumerator TwitchHandleForcedSolve()
+	IEnumerator TwitchPlaysFormat()
+	{
+		Vector3[] GuidePositions = new Vector3[2];
+		Vector3[] GuideScales = new Vector3[2];
+
+		for (int n = 0; n < Guides.Length; n++)
+		{
+			GameObject guide = Guides[n];
+			GuidePositions[n] = guide.transform.localPosition;
+			GuideScales[n] = guide.transform.localScale;
+			guide.SetActive(true);
+		}
+
+		foreach (float alpha in TimedAnimation(1))
+		{
+			float curvedAlpha = -Mathf.Pow(2, -10 * alpha) + 1;
+			for (int n = 0; n < Guides.Length; n++)
+			{
+				GameObject guide = Guides[n];
+
+				Vector3 guidePosition = GuidePositions[n];
+				guide.transform.localPosition = Vector3.Lerp(guidePosition, guidePosition + new Vector3(0, 0, -0.0075f), curvedAlpha);
+				guide.transform.localScale = Vector3.Lerp(Vector3.zero, GuideScales[n], curvedAlpha);
+			}
+
+			Vector3 localPosition = Grid.transform.localPosition;
+			localPosition.z = -0.0075f * curvedAlpha;
+			Grid.transform.localPosition = localPosition;
+			yield return null;
+		}
+	}
+
+	public IEnumerator TwitchHandleForcedSolve()
 	{
 		if (!StartFound)
 		{
