@@ -398,6 +398,8 @@ class SettingsPage : MonoBehaviour
 					dictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(File.ReadAllText(path));
 					dictionary[listing.Key] = obj;
 					File.WriteAllText(path, JsonConvert.SerializeObject(dictionary, Formatting.Indented));
+
+					listing.DefaultValue = obj;
 				};
 			}
 
@@ -827,8 +829,8 @@ class SettingsPage : MonoBehaviour
 		}
 		else
 		{
-			PopScreen();
 			KeyboardInputComplete(KeyboardInput);
+			PopScreen();
 		}
 	}
 
@@ -941,7 +943,8 @@ class NumberInput : SettingsInput
 		set
 		{
 			_currentValue = value;
-			Listing.TypeSelectable.transform.Find("Text").gameObject.GetComponent<TextMesh>().text = _currentValue;
+			if (Listing.TypeSelectable != null)
+				Listing.TypeSelectable.transform.Find("Text").gameObject.GetComponent<TextMesh>().text = _currentValue;
 		}
 	}
 
@@ -990,7 +993,8 @@ class StringInput : SettingsInput
 		set
 		{
 			_currentValue = value;
-			Listing.TypeSelectable.transform.Find("Text").gameObject.GetComponent<TextMesh>().text = _currentValue;
+			if (Listing.TypeSelectable != null)
+				Listing.TypeSelectable.transform.Find("Text").gameObject.GetComponent<TextMesh>().text = _currentValue;
 		}
 	}
 

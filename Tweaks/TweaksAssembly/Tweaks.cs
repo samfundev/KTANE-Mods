@@ -310,6 +310,7 @@ class Tweaks : MonoBehaviour
 	public IEnumerator CheckForBombs()
 	{
 		yield return new WaitUntil(() => (SceneManager.Instance.GameplayState.Bombs?.Count > 0));
+		yield return null;
 		List<Bomb> bombs = SceneManager.Instance.GameplayState.Bombs;
 
 		void wrapInitialBombs()
@@ -444,6 +445,7 @@ class Tweaks : MonoBehaviour
 
 	public IEnumerator SkipGameplayDelay()
 	{
+		yield return null;
 		Time.timeScale = 100;
 		yield return new WaitForSeconds(6);
 		Time.timeScale = 1;

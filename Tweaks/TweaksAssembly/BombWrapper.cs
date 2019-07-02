@@ -214,15 +214,24 @@ class BombWrapper
 
 			// From the object name.
 			string prefix = bombModule.ModuleDisplayName + " #";
-			if (bombModule.gameObject.name.StartsWith(prefix) && !int.TryParse(bombModule.gameObject.name.Substring(prefix.Length), out moduleID))
+			if (moduleID == -1 && bombModule.gameObject.name.StartsWith(prefix) && !int.TryParse(bombModule.gameObject.name.Substring(prefix.Length), out moduleID))
 			{
 				moduleID = -1;
 			}
 		}
 
+		// These component types shouldn't try to get the ID from the logger property. Used below.
+		var blacklistedComponents = new[]
+		{
+			ComponentTypeEnum.Empty,
+			ComponentTypeEnum.Mod,
+			ComponentTypeEnum.NeedyMod,
+			ComponentTypeEnum.Timer,
+		};
+
 		// From the logger property of vanilla components
 		string loggerName = bombComponent.GetValue<object>("logger")?.GetValue<object>("Logger")?.GetValue<string>("Name");
-		if (loggerName != null && !int.TryParse(loggerName.Substring(loggerName.IndexOf('#') + 1), out moduleID))
+		if (moduleID == -1 && !blacklistedComponents.Contains(bombComponent.ComponentType) && loggerName != null && !int.TryParse(loggerName.Substring(loggerName.IndexOf('#') + 1), out moduleID))
 		{
 			moduleID = -1;
 		}
