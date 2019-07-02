@@ -14,7 +14,7 @@ class ModConfig<T>
 
 	readonly string SettingsPath = null;
 
-	private string SerializeSettings(T settings)
+	public string SerializeSettings(T settings)
 	{
 		return JsonConvert.SerializeObject(settings, Formatting.Indented, new StringEnumConverter());
 	}

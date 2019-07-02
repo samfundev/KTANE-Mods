@@ -69,7 +69,7 @@ class Tweaks : MonoBehaviour
 		};
 		watcher.Changed += (object source, FileSystemEventArgs e) =>
 		{
-			if (settings.Equals(modConfig.Settings)) return;
+			if (modConfig.SerializeSettings(settings) == modConfig.SerializeSettings(modConfig.Settings)) return;
 
 			UpdateSettings();
 			UpdateSettingWarning();
@@ -626,42 +626,4 @@ class TweakSettings
 	public bool CaseGenerator = true;
 	public List<string> CaseColors = new List<string>();
 	public HashSet<string> PinnedSettings = new HashSet<string>();
-
-	public override bool Equals(object obj)
-	{
-		return obj is TweakSettings settings &&
-			   FadeTime == settings.FadeTime &&
-			   InstantSkip == settings.InstantSkip &&
-			   SkipGameplayDelay == settings.SkipGameplayDelay &&
-			   BetterCasePicker == settings.BetterCasePicker &&
-			   FixFER == settings.FixFER &&
-			   BombHUD == settings.BombHUD &&
-			   ShowEdgework == settings.ShowEdgework &&
-			   HideTOC.SequenceEqual(settings.HideTOC) &&
-			   Mode == settings.Mode &&
-			   MissionSeed == settings.MissionSeed &&
-			   CaseGenerator == settings.CaseGenerator &&
-			   CaseColors.SequenceEqual(settings.CaseColors) &&
-			   PinnedSettings.SequenceEqual(settings.PinnedSettings);
-	}
-
-	public override int GetHashCode()
-	{
-		var hashCode = -1948346948;
-		hashCode = hashCode * -1521134295 + FadeTime.GetHashCode();
-		hashCode = hashCode * -1521134295 + InstantSkip.GetHashCode();
-		hashCode = hashCode * -1521134295 + SkipGameplayDelay.GetHashCode();
-		hashCode = hashCode * -1521134295 + BetterCasePicker.GetHashCode();
-		hashCode = hashCode * -1521134295 + EnableModsOnlyKey.GetHashCode();
-		hashCode = hashCode * -1521134295 + FixFER.GetHashCode();
-		hashCode = hashCode * -1521134295 + BombHUD.GetHashCode();
-		hashCode = hashCode * -1521134295 + ShowEdgework.GetHashCode();
-		hashCode = hashCode * -1521134295 + HideTOC.GetHashCode();
-		hashCode = hashCode * -1521134295 + Mode.GetHashCode();
-		hashCode = hashCode * -1521134295 + MissionSeed.GetHashCode();
-		hashCode = hashCode * -1521134295 + CaseGenerator.GetHashCode();
-		hashCode = hashCode * -1521134295 + CaseColors.GetHashCode();
-		hashCode = hashCode * -1521134295 + PinnedSettings.GetHashCode();
-		return hashCode;
-	}
 }
