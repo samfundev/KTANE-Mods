@@ -32,7 +32,7 @@ class Tweaks : MonoBehaviour
 	static GameObject SettingWarning;
 	GameObject TweaksCaseGeneratorCase;
 
-	void Awake()
+	public void Awake()
 	{
 		MainThreadQueue.Initialize();
 
@@ -41,8 +41,7 @@ class Tweaks : MonoBehaviour
 		BetterCasePicker.BombCaseGenerator = GetComponentInChildren<BombCaseGenerator>();
 
 		modConfig = new ModConfig<TweakSettings>("TweakSettings");
-		settings = modConfig.Settings;
-		modConfig.Settings = settings; // Write any settings that the user doesn't have in their settings file.
+		UpdateSettings();
 
 		bool changeFadeTime = settings.FadeTime >= 0;
 
@@ -501,14 +500,14 @@ class Tweaks : MonoBehaviour
 		modConfig.Settings = settings; // Write any settings that the user doesn't have in their settings file.
 	}
 
-	void Update() => MainThreadQueue.ProcessQueue();
+	public void Update() => MainThreadQueue.ProcessQueue();
 
 	void UpdateSettingWarning() => MainThreadQueue.Enqueue(() => SettingWarning.SetActive(CurrentState == KMGameInfo.State.Setup && CaseGeneratorSettingCache != settings.CaseGenerator));
 
-	void OnApplicationQuit()
+	/*void OnApplicationQuit()
 	{
-		//Debug.LogFormat("[Tweaks] [OnApplicationQuit] Found output_log: {0}", File.Exists(Path.Combine(Application.dataPath, "output_log.txt")));
-	}
+		Debug.LogFormat("[Tweaks] [OnApplicationQuit] Found output_log: {0}", File.Exists(Path.Combine(Application.dataPath, "output_log.txt")));
+	}*/
 
 	public static void Log(params object[] args) => Debug.Log("[Tweaks] " + args.Select(Convert.ToString).Join(" "));
 
@@ -532,7 +531,7 @@ class Tweaks : MonoBehaviour
 		}
 	}
 
-	static Dictionary<string, object>[] TweaksEditorSettings = new Dictionary<string, object>[]
+	public static Dictionary<string, object>[] TweaksEditorSettings = new Dictionary<string, object>[]
 	{
 		new Dictionary<string, object>
 		{
@@ -555,7 +554,7 @@ class Tweaks : MonoBehaviour
 					new Dictionary<string, object> { { "Key", "FixFER" }, { "Text", "Fix Foreign Exchange Rates" }, { "Description", "Changes the URL that is queried since the old one is no longer operational." } },
 					new Dictionary<string, object> { { "Key", "BombHUD" }, { "Text", "Bomb HUD" }, { "Description", "Adds a HUD in the top right corner showing information about the currently selected bomb." } },
 					new Dictionary<string, object> { { "Key", "ShowEdgework" }, { "Text", "Show Edgework" }, { "Description", "Adds a HUD to the top of the screen showing the edgework for the currently selected bomb." } },
-					new Dictionary<string, object> { { "Key", "MissionSeed" }, { "Text", "Mission Seed" }, { "Description", "Seeds the random numbers for the mission which should make it generate\nconsistently." } },
+					new Dictionary<string, object> { { "Key", "MissionSeed" }, { "Text", "Mission Seed" }, { "Description", "Seeds the random numbers for the mission which should make the bomb\ngenerate consistently." } },
 					new Dictionary<string, object> { { "Key", "CaseGenerator" }, { "Text", "Case Generator" }, { "Description", "Generates a case to best fit the bomb which can be one of the colors defined by CaseColors." } },
 				}
 			}

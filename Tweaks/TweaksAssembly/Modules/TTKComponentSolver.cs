@@ -17,7 +17,7 @@ public class TTKComponentSolver
         initialTime = startTime;
 
 		if (Tweaks.TwitchPlaysActive) return; // Don't modify TTKs if TP is active.
-		if (Tweaks.CurrentMode.Equals(Mode.Zen) && initialTime < 600) initialTime = initialTime * 10; 
+		if (Tweaks.CurrentMode.Equals(Mode.Zen) && initialTime < 600) initialTime *= 10;
         _lock = (MonoBehaviour)_lockField.GetValue(module.GetComponent(_componentType));
         if (SceneManager.Instance.GameplayState.Bombs != null) _lock?.StartCoroutine(ReWriteTTK());
         module.OnActivate = OnActivate;
@@ -32,7 +32,7 @@ public class TTKComponentSolver
     {
         int time = (int)_targetTimeField.GetValue(module.GetComponent(_componentType));
         int timeRemaining = (int)currentBomb.GetTimer().TimeRemaining;
-        if ((Tweaks.CurrentMode.Equals(Mode.Zen) && timeRemaining > time)) return false;
+        if (Tweaks.CurrentMode.Equals(Mode.Zen) && timeRemaining > time) return false;
         if (Tweaks.CurrentMode.Equals(Mode.Zen))
             return !((int)_targetTimeField.GetValue(module.GetComponent(_componentType)) < time) && IsTargetTurnTimeCorrect(turnTime);
         return false;
@@ -46,8 +46,8 @@ public class TTKComponentSolver
         return false;
     }
 
-    private IEnumerator DelayKeyTurn(bool restoreBombTimer, bool causeStrikeIfWrongTime = true, bool bypassSettings = false)
-    {
+    private IEnumerator DelayKeyTurn(bool restoreBombTimer, bool causeStrikeIfWrongTime = true)
+	{
         var passCheck = false;
         Animator keyAnimator = (Animator)_keyAnimatorField.GetValue(module.GetComponent(_componentType));
         KMAudio keyAudio = (KMAudio)_keyAudioField.GetValue(module.GetComponent(_componentType));
@@ -98,7 +98,7 @@ public class TTKComponentSolver
         string serial = QueryWidgets<string>(KMBombInfo.QUERYKEY_GET_SERIAL_NUMBER).First()["serial"];
         TextMesh textMesh = (TextMesh)_displayField.GetValue(module.GetComponent(_componentType));
         _activatedField.SetValue(module.GetComponent(_componentType), true);
-        
+
         if (string.IsNullOrEmpty(_previousSerialNumber) || !_previousSerialNumber.Equals(serial) || _keyTurnTimes.Count == 0)
         {
             if (!string.IsNullOrEmpty(_previousSerialNumber) && _previousSerialNumber.Equals(serial))
@@ -161,7 +161,6 @@ public class TTKComponentSolver
             yield return new WaitForSeconds(2.0f);
         }
     }
-
 
     static TTKComponentSolver()
     {

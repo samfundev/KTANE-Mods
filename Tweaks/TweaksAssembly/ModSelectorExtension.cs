@@ -11,7 +11,7 @@ class ModSelectorExtension : MonoBehaviour
 	public static IDictionary<string, object> ModSelectorAPI = null;
 	public static bool AppAdded = false;
 
-	void Start()
+	public void Start()
 	{
 		Instance = this;
 	}

@@ -4,7 +4,6 @@ using System;
 using System.IO;
 using UnityEngine;
 
-[JsonConverter(typeof(StringEnumConverter))]
 class ModConfig<T>
 {
     public ModConfig(string filename)

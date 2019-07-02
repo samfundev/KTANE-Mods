@@ -31,7 +31,7 @@ class BombStatus : MonoBehaviour
 	private int currentTotalStrikes;
 	internal bool widgetsActivated;
 
-	void Start()
+	public void Start()
 	{
 		Instance = this;
 		GameplayState.OnLightsOnEvent += delegate { widgetsActivated = true; };
@@ -40,7 +40,7 @@ class BombStatus : MonoBehaviour
 		CanvasGroup.alpha = 0;
 	}
 
-	void LateUpdate()
+	public void LateUpdate()
 	{
 		if (currentBomb == null)
 		{

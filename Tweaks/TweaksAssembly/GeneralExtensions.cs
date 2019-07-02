@@ -57,7 +57,7 @@ public static class GeneralExtensions
 			return (T) dictionary[key];
 		}
 
-		return default(T);
+		return default;
 	}
 
 	/// <summary>

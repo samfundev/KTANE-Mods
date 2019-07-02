@@ -30,7 +30,7 @@ class SettingsPage : MonoBehaviour
 	void SetIcon(Component component, string iconName)
 	{
 		Transform iconTransform = component.transform.Find("Icon");
-		Texture iconTexture = Icons.FirstOrDefault(texture => texture.name == iconName);
+		Texture iconTexture = Icons.Find(texture => texture.name == iconName);
 
 		iconTransform.GetComponent<Renderer>().material.SetTexture("_MainTex", iconTexture);
 		iconTransform.gameObject.SetActive(iconTexture != null);
@@ -99,13 +99,14 @@ class SettingsPage : MonoBehaviour
 	public int CurrentPage
 	{
 		get => CurrentScreen.Page;
-		set {
+		set
+		{
 			CurrentScreen.Page = Math.Max(value, 0);
 			UpdateListings();
 		}
 	}
 
-	void OnEnable()
+	public void OnEnable()
 	{
 		// To add and remove selectables we need a reference to the selectable ModSelector reparents us to.
 		// So there is a unused selectable that just gets reparented to get us that reference.
@@ -136,12 +137,14 @@ class SettingsPage : MonoBehaviour
 			return false;
 		};
 
-		ForwardButton.OnInteract = () => {
+		ForwardButton.OnInteract = () =>
+		{
 			CurrentPage += ListingsPerPage;
 			return false;
 		};
 
-		BackwardButton.OnInteract = () => {
+		BackwardButton.OnInteract = () =>
+		{
 			CurrentPage -= ListingsPerPage;
 			return false;
 		};
@@ -312,7 +315,7 @@ class SettingsPage : MonoBehaviour
 				};
 
 				// If we can find a some predefined information, merge the generated info into that.
-				ModSettingsInfo baseInfo = PredefinedSettingsInfo.FirstOrDefault(modSettings => modSettings.Path == Path.GetFileName(file));
+				ModSettingsInfo baseInfo = PredefinedSettingsInfo.Find(modSettings => modSettings.Path == Path.GetFileName(file));
 				SettingsInfo.Add(baseInfo != null ? MergeModSettings(baseInfo, generatedInfo) : generatedInfo);
 			}
 		}
@@ -324,10 +327,10 @@ class SettingsPage : MonoBehaviour
 	{
 		if (predefined.Name == null) predefined.Name = generated.Name;
 		predefined.Path = generated.Path;
-		
+
 		foreach (Listing mergeListing in generated.Listings)
 		{
-			Listing predefinedListing = predefined.Listings.FirstOrDefault(baseListing => baseListing.Key == mergeListing.Key);
+			Listing predefinedListing = predefined.Listings.Find(baseListing => baseListing.Key == mergeListing.Key);
 			if (predefinedListing != null)
 			{
 				if (predefinedListing.Text == null) predefinedListing.Text = mergeListing.Text;
@@ -569,7 +572,7 @@ class SettingsPage : MonoBehaviour
 			Description.gameObject.SetActive(true);
 			Bounds bounds = Text.GetComponent<Renderer>().bounds;
 			Description.position = bounds.center + new Vector3(bounds.extents.x, 0, 0);
-			Description.localPosition = Description.localPosition + new Vector3(0.01f, 0, 0);
+			Description.localPosition += new Vector3(0.01f, 0, 0);
 		}
 
 		string TypeString = listing.Type.ToString();
@@ -675,8 +678,8 @@ class SettingsPage : MonoBehaviour
 
 	string ApplyKeyboardModifiers(string baseKey) => Shifting ? GetShiftKey(baseKey) : CapsLock ? baseKey.ToUpper() : baseKey;
 
-	Dictionary<string, TextMesh> KeyboardTextMeshes = new Dictionary<string, TextMesh>();
-	List<GameObject> Keys = new List<GameObject>();
+	readonly Dictionary<string, TextMesh> KeyboardTextMeshes = new Dictionary<string, TextMesh>();
+	readonly List<GameObject> Keys = new List<GameObject>();
 	void MakeKeyboard()
 	{
 		Keyboard.SetActive(true);
@@ -755,7 +758,7 @@ class SettingsPage : MonoBehaviour
 
 	bool lastModifierState = false;
 	float scrollAmount = 0;
-	void Update()
+	public void Update()
 	{
 		// Handle scrolling up and down the settings
 		scrollAmount += Input.GetAxis("Mouse ScrollWheel") * 5;

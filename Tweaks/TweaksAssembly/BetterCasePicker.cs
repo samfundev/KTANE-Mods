@@ -17,7 +17,7 @@ static class BetterCasePicker
 		if (bombGenerator.BombPrefabOverride == null) // No point in doing anything if they aren't even going to use the ObjectPool.
 		{
 			ObjectPool prefabPool = bombGenerator.BombPrefabPool;
-			
+
 			// This must happen regardless of even BetterCasePicker is enabled so that the game can't try to spawn the fake case. 
 			prefabPool.Objects = prefabPool.Objects.Where(gameobject => gameobject.name != "TweaksCaseGenerator").ToList();
 
@@ -84,7 +84,7 @@ static class BetterCasePicker
 					.ThenByDescending(size => size.y / size.x)
 					.FirstOrDefault();
 
-				if (caseSize != default(Vector2))
+				if (caseSize != default)
 				{
 					if (CaseParent != null) Object.Destroy(CaseParent);
 

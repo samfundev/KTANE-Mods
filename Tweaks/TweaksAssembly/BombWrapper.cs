@@ -200,7 +200,6 @@ class BombWrapper
 		{
 			// Try to find a module ID from a field
 			System.Reflection.FieldInfo idField = ReflectedTypes.GetModuleIDNumber(bombModule, out Component targetComponent);
-
 			if (idField != null)
 			{
 				// Find the module ID from reflection
