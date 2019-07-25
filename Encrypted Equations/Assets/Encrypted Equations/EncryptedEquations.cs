@@ -367,7 +367,7 @@ class EncryptedEquations : MonoBehaviour
 					"Middle Operand:",
 					MiddleOperand.LogMessage.PrefixLines(" - "),
 
-					"Right Operator: " + LeftOperator.LogMessage,
+					"Right Operator: " + RightOperator.LogMessage,
 
 					"Right Operand:",
 					RightOperand.LogMessage.PrefixLines(" - "),
