@@ -308,7 +308,7 @@ class EncryptedEquations : MonoBehaviour
 			get
 			{
 				string parenthesesName = ParenthesesTexture.name;
-				// There are two digits in parenthese in the texture name which if the number is odd it means the parentheses appear on the right.
+				// There are two digits in parentheses in the texture name which if the number is odd it means the parentheses appear on the right.
 				bool rightSideParentheses = int.Parse(parenthesesName.Substring(parenthesesName.Length - 3, 2)) % 2 == 1;
 
 				// The texture name can start with Current or Oppsite, if it's Opposite we have to switch.
@@ -338,6 +338,7 @@ class EncryptedEquations : MonoBehaviour
 			RightOperator.Display(Equation.Traverse("RightOperation"));
 			RightOperand.Display(Equation.Traverse("Right"));
 			Equation.Traverse<Renderer>("Parentheses").material.mainTexture = ParenthesesTexture;
+			Equation.Traverse<Transform>("Parentheses").localScale = Array.IndexOf(Instance.ParenthesesTextures, ParenthesesTexture).EqualsAny(5, 6, 17, 18, 19, 20) ? new Vector3(0.1f, 1, 0.085f) : new Vector3(0.1f, 1, 0.1f);
 		}
 
 		public static Equation Generate()
