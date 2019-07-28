@@ -1,14 +1,16 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public abstract class ModuleLogging : ModuleTweak
 {
-	private static int idCounter = 1;
+	private static Dictionary<string, int> idCounters = new Dictionary<string, int>();
 	public readonly int moduleID;
 	private readonly string logName;
 
 	protected ModuleLogging(BombComponent bombComponent, string logName) : base(bombComponent)
 	{
-		moduleID = idCounter++;
+		if (idCounters.ContainsKey(logName)) idCounters[logName] = 1;
+		moduleID = idCounters[logName]++;
 		this.logName = logName;
 	}
 
