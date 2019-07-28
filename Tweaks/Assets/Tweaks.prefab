@@ -4550,7 +4550,6 @@ MonoBehaviour:
   m_Script: {fileID: -923248402, guid: f9655ca10095c2c45b4f86c01198f02e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  originalTime: 0
 --- !u!114 &114481655518132758
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5069,10 +5068,10 @@ MonoBehaviour:
   m_Padding:
     m_Left: 8
     m_Right: 8
-    m_Top: 4
-    m_Bottom: 4
+    m_Top: 8
+    m_Bottom: 8
   m_ChildAlignment: 4
-  m_Spacing: 4
+  m_Spacing: 8
   m_ChildForceExpandWidth: 1
   m_ChildForceExpandHeight: 1
   m_ChildControlWidth: 1
