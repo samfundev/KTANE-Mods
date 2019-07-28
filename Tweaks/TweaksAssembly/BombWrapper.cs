@@ -137,8 +137,6 @@ class BombWrapper
 		modulesUnactivated = bomb.BombComponents.Count;
 		foreach (BombComponent component in bomb.BombComponents)
 		{
-			component.StartCoroutine(GetModuleInformation(component));
-
 			KMBombModule bombModule = component.GetComponent<KMBombModule>();
 			if (bombModule != null)
 			{
@@ -170,11 +168,14 @@ class BombWrapper
 				}
 			}
 
+			ModuleTweak moduleTweak = null;
 			string moduleType = bombModule != null ? bombModule.ModuleType : component.ComponentType.ToString();
 			if (moduleTweaks.ContainsKey(moduleType))
 			{
-				moduleTweaks[moduleType](component);
+				moduleTweak = moduleTweaks[moduleType](component);
 			}
+
+			component.StartCoroutine(GetModuleInformation(component, moduleTweak));
 
 			if (component.ComponentType == ComponentTypeEnum.Mod)
 			{
@@ -190,7 +191,7 @@ class BombWrapper
 	readonly string[] modules = new string[] { };
 	readonly decimal[][] anchors = new decimal[][] { };
 
-	IEnumerator GetModuleInformation(BombComponent bombComponent)
+	IEnumerator GetModuleInformation(BombComponent bombComponent, ModuleTweak moduleTweak = null)
 	{
 		int moduleID = -1;
 		KMBombModule bombModule = bombComponent.GetComponent<KMBombModule>();
@@ -237,7 +238,11 @@ class BombWrapper
 			moduleID = -1;
 		}
 
-		// TODO: Handle logging implemented by Tweaks
+		// From logging implemented by Tweaks
+		if (moduleTweak is ModuleLogging moduleLogging)
+		{
+			moduleID = moduleLogging.moduleID;
+		}
 
 		if (moduleID != -1)
 		{
