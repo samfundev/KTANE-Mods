@@ -124,12 +124,13 @@ class BombWrapper
 		};
 
 		modules = new string[bomb.Faces.Sum(face => face.Anchors.Count)];
+		anchors = new decimal[bomb.Faces.Sum(face => face.Anchors.Count)][];
 		bombLogInfo = new Dictionary<string, object>()
 		{
 			{ "serial", JsonConvert.DeserializeObject<Dictionary<string, string>>(bomb.WidgetManager.GetWidgetQueryResponses(KMBombInfo.QUERYKEY_GET_SERIAL_NUMBER, null)[0])["serial"] },
 			{ "displayNames", displayNames },
 			{ "ids", ids },
-			{ "case", bomb.gameObject.name.Replace("(Clone)", "") },
+			{ "anchors", anchors },
 			{ "modules", modules }
 		};
 
@@ -187,6 +188,7 @@ class BombWrapper
 	readonly Dictionary<string, List<int>> ids = new Dictionary<string, List<int>>();
 	readonly Dictionary<string, object> bombLogInfo;
 	readonly string[] modules = new string[] { };
+	readonly decimal[][] anchors = new decimal[][] { };
 
 	IEnumerator GetModuleInformation(BombComponent bombComponent)
 	{
@@ -242,26 +244,17 @@ class BombWrapper
 			if (!ids.ContainsKey(moduleType)) ids[moduleType] = new List<int>();
 			ids[moduleType].Add(moduleID);
 		}
-		else
+
+		// Find the index and position of the module's anchor
+		var allAnchors = Bomb.Faces.SelectMany(face => face.Anchors).ToList();
+		if (allAnchors.Count != 0) // Prevents .First() from being a problem later if there was somehow no anchors.
 		{
-			Tweaks.Log(bombComponent.GetModuleDisplayName(), "has no module id.");
-		}
+			Transform moduleAnchor = allAnchors.OrderBy(anchor => (anchor.position - bombComponent.transform.position).magnitude).First();
+			int index = allAnchors.IndexOf(moduleAnchor);
 
-		// Find anchor index
-		int index = 0;
-		foreach (BombFace face in Bomb.Faces)
-		{
-			foreach (Transform anchor in face.Anchors)
-			{
-				if ((anchor.position - bombComponent.transform.position).magnitude < 0.05)
-				{
-					modules[index] = moduleID != -1 ? $"{moduleType} {moduleID}" : $"{moduleType} -";
-
-					break;
-				}
-
-				index++;
-			}
+			modules[index] = moduleID != -1 ? $"{moduleType} {moduleID}" : $"{moduleType} -";
+			var position = Quaternion.Euler(-Bomb.transform.rotation.eulerAngles) * ((moduleAnchor.position - Bomb.transform.position) / Bomb.Scale);
+			anchors[index] = new decimal[] { Math.Round((decimal) position.x, 3), Math.Round((decimal) position.z, 3) }; // Round using a decimal to make the JSON a bit cleaner.
 		}
 
 		modulesUnactivated--;
