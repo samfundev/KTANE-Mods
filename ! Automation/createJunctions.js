@@ -1,5 +1,5 @@
 const fs = require("fs-extra");
-const { join, resolve, dirname, extname } = require("path");
+const { join, relative, dirname, extname } = require("path");
 
 function catchify(promise) {
 	return promise
@@ -73,7 +73,7 @@ process.chdir("..");
 					else await fs.remove(folder);
 				}
 	
-				await fs.symlink(resolve(join("! Source Project", junc)), folder, (await fs.lstat(join("! Source Project", junc))).isDirectory() ? "junction" : "file")
+				await fs.symlink(relative(file, join("! Source Project", junc)), folder, (await fs.lstat(join("! Source Project", junc))).isDirectory() ? "junction" : "file")
 					.catch(console.error)
 					.then(() => console.log(`Created junction for "${folder}"`));
 			}).catch(error => {
