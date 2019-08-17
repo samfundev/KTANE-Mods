@@ -201,7 +201,7 @@ class EncryptedEquations : MonoBehaviour
 			{
 				get
 				{
-					decimal value = Characters[Character](Shape.Value);
+					decimal value = Characters[Character](Shape.Value).RoundThousandths();
 					if (Symbol.Exists) value = Symbol.Operation(value).RoundThousandths();
 					if (Operation != CornerOperation.None) value = CornerOperations[Operation](value).RoundThousandths();
 
