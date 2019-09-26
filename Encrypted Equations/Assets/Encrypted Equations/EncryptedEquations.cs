@@ -608,7 +608,7 @@ class EncryptedEquations : MonoBehaviour
 
 	public readonly string TwitchHelpMessage = "Submit the final value using !{0} submit 1234. Clear the submitted value using !{0} clear.";
 
-	public IEnumerable<KMSelectable> ProcessTwitchCommand(string command)
+	public IEnumerator ProcessTwitchCommand(string command)
 	{
 		List<KMSelectable> buttons = new List<KMSelectable>();
 		string[] split = command.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
@@ -618,7 +618,9 @@ class EncryptedEquations : MonoBehaviour
 
 		if (split.Length == 1 && split[0] == "clear")
 		{
-			return new[] { ClearButton };
+			ClearButton.OnInteract();
+			yield return new WaitForSeconds(0.1f);
+			yield break;
 		}
 
 		buttons.Add(ClearButton);
@@ -629,7 +631,7 @@ class EncryptedEquations : MonoBehaviour
 			{
 				KMSelectable button = Array.Find(Numberpad, selectable => selectable.gameObject.Traverse<TextMesh>("ButtonText").text.ToLowerInvariant()[0] == character);
 				if (button == null)
-					return null;
+					yield break;
 
 				buttons.Add(button);
 			}
@@ -637,16 +639,19 @@ class EncryptedEquations : MonoBehaviour
 
 		buttons.Add(SubmitButton);
 
-		return buttons;
-	}
+		yield return "strike";
+		yield return "solve";
 
-	public IEnumerator TwitchHandleForcedSolve()
-	{
-		foreach (KMSelectable selectable in ProcessTwitchCommand("submit " + (CurrentEquation.ValueUndefined ? "" : CurrentEquation.Value.ToThousandths())))
+		foreach (KMSelectable selectable in buttons)
 		{
 			selectable.OnInteract();
 			yield return new WaitForSeconds(0.1f);
 		}
+	}
+
+	public IEnumerator TwitchHandleForcedSolve()
+	{
+		yield return ProcessTwitchCommand("submit " + (CurrentEquation.ValueUndefined ? "" : CurrentEquation.Value.ToThousandths()));
 	}
 }
 

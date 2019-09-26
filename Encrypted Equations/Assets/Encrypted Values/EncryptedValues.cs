@@ -324,7 +324,7 @@ class EncryptedValues : MonoBehaviour
 
 	public readonly string TwitchHelpMessage = "Submit the final value using !{0} submit 1234";
 
-	public IEnumerable<KMSelectable> ProcessTwitchCommand(string command)
+	public IEnumerator ProcessTwitchCommand(string command)
 	{
 		List<KMSelectable> buttons = new List<KMSelectable>();
 		string[] split = command.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
@@ -340,7 +340,7 @@ class EncryptedValues : MonoBehaviour
 			{
 				KMSelectable button = Array.Find(Numberpad, selectable => selectable.gameObject.Traverse<TextMesh>("ButtonText").text.ToLowerInvariant()[0] == character);
 				if (button == null)
-					return null;
+					yield break;
 
 				buttons.Add(button);
 			}
@@ -348,7 +348,14 @@ class EncryptedValues : MonoBehaviour
 
 		buttons.Add(SubmitButton);
 
-		return buttons;
+		yield return "strike";
+		yield return "solve";
+
+		foreach (KMSelectable selectable in buttons)
+		{
+			selectable.OnInteract();
+			yield return new WaitForSeconds(0.1f);
+		}
 	}
 
 	public IEnumerator TwitchHandleForcedSolve()
@@ -357,15 +364,11 @@ class EncryptedValues : MonoBehaviour
 		{
 			if (isSolved)
 			{
-				yield return new WaitForSeconds(0.1f);
+				yield return true;
 				continue;
 			}
 
-			foreach (KMSelectable selectable in ProcessTwitchCommand("submit " + CurrentOperand.Value.ToThousandths()))
-			{
-				selectable.OnInteract();
-				yield return new WaitForSeconds(0.1f);
-			}
+			yield return ProcessTwitchCommand("submit " + CurrentOperand.Value.ToThousandths());
 		}
 	}
 }
