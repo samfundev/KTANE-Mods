@@ -136,13 +136,14 @@ class EncryptedEquations : MonoBehaviour
 		public Func<decimal, decimal> Operation = value => value;
 		public bool Exists;
 
-		public void Display(GameObject Pivot)
+		public void Display(GameObject Pivot, bool ShiftSymbol)
 		{
 			Pivot.SetActive(Exists);
 			if (!Exists) return;
 
 			Pivot.transform.localEulerAngles = new Vector3(0, 0, Rotation * -90f);
 			Pivot.Traverse<Renderer>("Symbol").material.mainTexture = Instance.SymbolTextures[CharacterIndex];
+			Pivot.Traverse<Transform>("Symbol").localPosition = ShiftSymbol && CharacterIndex != 2 && (CharacterIndex != 1 || Rotation.EqualsAny(0, 2)) ? new Vector3(0, 0.075f, 0) : Vector3.zero;
 		}
 
 		public static SymbolData Generate()
@@ -209,12 +210,12 @@ class EncryptedEquations : MonoBehaviour
 				}
 			}
 
-			public void Display(GameObject Operand)
+			public void Display(GameObject Operand, bool ShiftSymbol)
 			{
 				Operand.Traverse<TextMesh>("CornerOperation").text = Operation == CornerOperation.None ? "" : Operation.ToString()[0].ToString();
 				Operand.GetComponent<TextMesh>().text = Character.ToString();
 				Shape.Display(Operand.Traverse<Renderer>("Shape"));
-				Symbol.Display(Operand.Traverse("SymbolPivot"));
+				Symbol.Display(Operand.Traverse("SymbolPivot"), ShiftSymbol);
 
 				Operand.Traverse<Transform>("Shape").localPosition = (Shape.Name == "+" && Character == 'E') ? new Vector3(0.05f, -0.05f, 0) : Vector3.zero;
 			}
@@ -332,11 +333,12 @@ class EncryptedEquations : MonoBehaviour
 
 		public void Display(GameObject Equation)
 		{
-			LeftOperand.Display(Equation.Traverse("Left"));
+			bool ShiftSymbol = Array.IndexOf(Instance.ParenthesesTextures, ParenthesesTexture).EqualsAny(3, 4, 5, 6, 7, 8, 17, 18, 19, 20);
+			LeftOperand.Display(Equation.Traverse("Left"), ShiftSymbol);
 			LeftOperator.Display(Equation.Traverse("LeftOperation"));
-			MiddleOperand.Display(Equation.Traverse("Middle"));
+			MiddleOperand.Display(Equation.Traverse("Middle"), ShiftSymbol);
 			RightOperator.Display(Equation.Traverse("RightOperation"));
-			RightOperand.Display(Equation.Traverse("Right"));
+			RightOperand.Display(Equation.Traverse("Right"), ShiftSymbol);
 			Equation.Traverse<Renderer>("Parentheses").material.mainTexture = ParenthesesTexture;
 			Equation.Traverse<Transform>("Parentheses").localScale = Array.IndexOf(Instance.ParenthesesTextures, ParenthesesTexture).EqualsAny(5, 6, 17, 18, 19, 20) ? new Vector3(0.1f, 1, 0.085f) : new Vector3(0.1f, 1, 0.1f);
 		}
