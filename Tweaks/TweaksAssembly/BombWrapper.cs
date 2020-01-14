@@ -23,6 +23,8 @@ class BombWrapper
 		timerComponent = bomb.GetTimer();
 		widgetManager = bomb.WidgetManager;
 
+		holdable.OnLetGo += () => BombStatus.Instance.currentBomb = null;
+
 		Color modeColor = ModeColors[Tweaks.CurrentMode];
 		BombStatus.Instance.TimerPrefab.color = modeColor;
 		timerComponent.text.color = modeColor;
@@ -47,16 +49,47 @@ class BombWrapper
 
 				if (Tweaks.CurrentMode == Mode.Time)
 				{
-					if (!Modes.settings.ComponentValues.TryGetValue(Modes.GetModuleID(component), out double ComponentValue))
+					if (
+						!Modes.settings.ComponentValues.TryGetValue(Modes.GetModuleID(component), out double ComponentValue) &&
+						!Modes.DefaultComponentValues.TryGetValue(Modes.GetModuleID(component), out ComponentValue)
+					)
 					{
-						ComponentValue = 6;
+						ComponentValue = 10;
 					}
 
-					Modes.settings.TotalModulesMultiplier.TryGetValue(Modes.GetModuleID(component), out double totalModulesMultiplier);
+					if (
+						!Modes.settings.TotalModulesMultiplier.TryGetValue(Modes.GetModuleID(component), out double totalModulesMultiplier) &&
+						!Modes.DefaultTotalModulesMultiplier.TryGetValue(Modes.GetModuleID(component), out totalModulesMultiplier)
+					)
+					{
+						totalModulesMultiplier = 0;
+					}
 
-					float time = (float) (Mathf.Min(Modes.Multiplier, Modes.settings.TimeModeMaxMultiplier) * (ComponentValue + Bomb.BombComponents.Count * totalModulesMultiplier));
+					var points = ComponentValue + Bomb.BombComponents.Count * totalModulesMultiplier;
+					float finalMultiplier = Mathf.Min(Modes.Multiplier, Modes.settings.TimeModeMaxMultiplier);
+					float time = (float) (points * finalMultiplier * Modes.settings.TimeModePointMultiplier);
+					float finalTime = Math.Max(Modes.settings.TimeModeMinimumTimeGained, time);
 
-					CurrentTimer += Math.Max(Modes.settings.TimeModeMinimumTimeGained, time);
+					// Show the alert
+					string alertText = "";
+					if (Math.Round(totalModulesMultiplier, 3) != 0)
+					{
+						alertText += $"{ComponentValue} + {totalModulesMultiplier.ToString("0.###")} <size=36>x</size> {Bomb.BombComponents.Count} mods = {points.ToString("0")}\n";
+					}
+
+					string multiplierText = Math.Round(Modes.settings.TimeModePointMultiplier, 3) == 1 ? "" : $"<size=36>x</size> {Modes.settings.TimeModePointMultiplier.ToString("0.###")} ";
+					alertText += $"{points.ToString("0")} points <size=36>x</size> {finalMultiplier.ToString("0.#")} {multiplierText}= {(time > 0 ? "+" : "")}{time.FormatTime()}\n";
+
+					if (time < Modes.settings.TimeModeMinimumTimeGained)
+					{
+						alertText += $"Min Time Added = {(finalTime > 0 ? "+" : "")}{finalTime.FormatTime()}\n";
+					}
+
+					alertText += component.GetModuleDisplayName();
+
+					AddAlert(alertText.Replace(' ', ' '), Color.green); // Replace all spaces with nbsp since we don't want the line to wrap.
+
+					CurrentTimer += finalTime;
 
 					Modes.Multiplier += Modes.settings.TimeModeSolveBonus;
 					BombStatus.Instance.UpdateMultiplier();
@@ -70,7 +103,22 @@ class BombWrapper
 			{
 				if (Tweaks.CurrentMode == Mode.Time)
 				{
-					Modes.Multiplier = Math.Max(Modes.Multiplier - Modes.settings.TimeModeMultiplierStrikePenalty, Modes.settings.TimeModeMinMultiplier);
+					float multiplier = Modes.Multiplier - Modes.settings.TimeModeMultiplierStrikePenalty;
+					float finalMultiplier = Math.Max(multiplier, Modes.settings.TimeModeMinMultiplier);
+
+					// Show the alert
+					string alertText = $"TIME LOST = {Modes.settings.TimeModeTimerStrikePenalty.ToString("0.###")} <size=36>x</size> {CurrentTimer.FormatTime()} = {(CurrentTimer * Modes.settings.TimeModeTimerStrikePenalty).FormatTime()}\n";
+					alertText += $"MULTIPIER = {Modes.Multiplier.ToString("0.#")} - {Modes.settings.TimeModeMultiplierStrikePenalty.ToString("0.#")} = {multiplier.ToString("0.#")}\n";
+
+					if (multiplier < Modes.settings.TimeModeMinMultiplier)
+					{
+						alertText += $"REDUCED TO MIN = {finalMultiplier}\n";
+					}
+
+					alertText += component.GetModuleDisplayName();
+					AddAlert(alertText.Replace(' ', ' '), Color.red);
+
+					Modes.Multiplier = finalMultiplier;
 					BombStatus.Instance.UpdateMultiplier();
 					if (CurrentTimer < (Modes.settings.TimeModeMinimumTimeLost / Modes.settings.TimeModeTimerStrikePenalty))
 					{
@@ -265,9 +313,14 @@ class BombWrapper
 		modulesUnactivated--;
 		if (modulesUnactivated == 0)
 		{
-			string[] chunks = JsonConvert.SerializeObject(bombLogInfo).ChunkBy(250).ToArray();
-			Tweaks.Log("LFABombInfo", chunks.Length + "\n" + chunks.Join("\n"));
+			LogJSON("LFABombInfo", bombLogInfo);
 		}
+	}
+
+	void LogJSON(string tag, object json)
+	{
+		string[] chunks = JsonConvert.SerializeObject(json).ChunkBy(250).ToArray();
+		Tweaks.Log(tag, chunks.Length + "\n" + chunks.Join("\n"));
 	}
 
 	void LogChildren(Transform goTransform, int depth = 0)
@@ -277,6 +330,47 @@ class BombWrapper
 		{
 			LogChildren(child, depth + 1);
 		}
+	}
+
+	public static List<RectTransform> Alerts = new List<RectTransform>();
+
+	void AddAlert(string text, Color color)
+	{
+		var alert = UnityEngine.Object.Instantiate(BombStatus.Instance.Alert, BombStatus.Instance.transform, false).GetComponent<RectTransform>();
+		var textComponent = alert.gameObject.Traverse<UnityEngine.UI.Text>("Background", "Text");
+		textComponent.text = text;
+		textComponent.color = color;
+
+		var size = alert.sizeDelta;
+		size.y = textComponent.preferredHeight + 16; // Add 16 to account for margin.
+		alert.sizeDelta = size;
+		alert.gameObject.Traverse<RectTransform>("Background").sizeDelta = size;
+
+		Alerts.Add(alert);
+		BombStatus.Instance.StartCoroutine(AnimateAlert(alert));
+	}
+
+	IEnumerator AnimateAlert(RectTransform alert)
+	{
+		alert.gameObject.SetActive(true);
+
+		float originalHeight = alert.rect.height;
+		foreach (float alpha in 0.75f.TimedAnimation().EaseCubic())
+		{
+			alert.sizeDelta = new Vector2(alert.sizeDelta.x, originalHeight * alpha);
+			yield return null;
+		}
+
+		yield return new WaitForSeconds(5);
+
+		foreach (float alpha in 0.75f.TimedAnimation().EaseCubic())
+		{
+			alert.sizeDelta = new Vector2(alert.sizeDelta.x, originalHeight * (1 - alpha));
+			yield return null;
+		}
+
+		Alerts.Remove(alert);
+		UnityEngine.Object.Destroy(alert.gameObject);
 	}
 
 	private float ZenModeTimePenalty;

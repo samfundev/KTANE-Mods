@@ -96,7 +96,9 @@ public class BombCaseGenerator : MonoBehaviour
 
 		//Generate the crossbars.
 		if (Cross_Bar.GetComponent<ExcludeFromTexturePack>() == null) Cross_Bar.AddComponent<ExcludeFromTexturePack>();
-		Cross_Bar.GetComponent<Renderer>().sharedMaterial.color = MakeCaseColor(Tweaks.settings.CaseColors);
+		var renderer = Cross_Bar.GetComponent<Renderer>();
+		renderer.material = new Material(renderer.sharedMaterial);
+		renderer.sharedMaterial.color = MakeCaseColor(Tweaks.settings.CaseColors);
 
 		for (int i = 0; i <= size.x; i++)
 		{

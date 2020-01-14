@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,16 +9,15 @@ class BombStatus : MonoBehaviour
 {
 	public static BombStatus Instance;
 
-    public GameObject HUD = null;
-    public GameObject Edgework = null;
+	public GameObject HUD = null;
+	public GameObject Alert = null;
 
-    public Text TimerPrefab = null;
+	public Text TimerPrefab = null;
 	public Text TimerShadowPrefab = null;
 	public Text StrikesPrefab = null;
 	public Text SolvesPrefab = null;
 	public Text NeediesPrefab = null;
 	public Text ConfidencePrefab = null;
-	public Text EdgeworkPrefab = null;
 
 	public BombWrapper currentBomb = null;
 
@@ -36,16 +34,18 @@ class BombStatus : MonoBehaviour
 		Instance = this;
 		GameplayState.OnLightsOnEvent += delegate { widgetsActivated = true; };
 
+		Alert = transform.Find("Alert").gameObject;
+		Alert.SetActive(false);
+
 		CanvasGroup = GetComponent<CanvasGroup>();
 		CanvasGroup.alpha = 0;
+
 	}
 
 	public void LateUpdate()
 	{
 		if (currentBomb == null)
 		{
-			WidgetResponses.Clear();
-
 			currentBomb = Array.Find(Tweaks.bombWrappers, x => x.holdable.HoldState == FloatingHoldable.HoldStateEnum.Held);
 			if (currentBomb != null)
 			{
@@ -55,18 +55,35 @@ class BombStatus : MonoBehaviour
 				int needies = currentBomb.Bomb.BombComponents.Count(bombComponent => bombComponent.GetComponent<NeedyComponent>() != null);
 				NeediesPrefab.gameObject.SetActive(needies > 0);
 				NeediesPrefab.text = needies.ToString();
+
+				if (Tweaks.settings.ShowEdgework && !Tweaks.TwitchPlaysActiveCache)
+					SetupEdgeworkCameras();
+			}
+			else
+			{
+				foreach (GameObject edgeworkCamera in edgeworkCameras)
+					Destroy(edgeworkCamera);
 			}
 		}
 
-		bool enabled = currentBomb != null && !Tweaks.TwitchPlaysActive;
+		bool enabled = currentBomb != null && (Tweaks.settings.BombHUD || BombWrapper.Alerts.Count != 0) && !Tweaks.TwitchPlaysActiveCache;
 		CanvasGroup.alpha = Math.Min(Math.Max(CanvasGroup.alpha + (enabled ? 1 : -1) * 0.1f, 0), 1);
 		if (!enabled) return;
 
-		string formattedTime = currentBomb.GetFullFormattedTime;
-		TimerPrefab.text = formattedTime;
-		TimerShadowPrefab.text = Regex.Replace(formattedTime, @"\d", "8");
-		UpdateConfidence();
-		if (Tweaks.settings.ShowEdgework) UpdateWidgets();
+		if (Tweaks.settings.BombHUD)
+		{
+			string formattedTime = currentBomb.GetFullFormattedTime;
+			TimerPrefab.text = formattedTime;
+			TimerShadowPrefab.text = formattedTime.Select(character => character == ':' ? character : '8').Join("");
+			UpdateConfidence();
+		}
+
+		float y = Tweaks.settings.BombHUD ? 173 : 0;
+		foreach (RectTransform alert in BombWrapper.Alerts)
+		{
+			alert.anchoredPosition = new Vector3(0, -y);
+			y += alert.rect.height;
+		}
 	}
 
 	private IEnumerator UpdateStrikesCoroutine(bool delay)
@@ -77,11 +94,11 @@ class BombStatus : MonoBehaviour
 			// Necessary since the bomb doesn't update its internal counter until all its OnStrike handlers are finished
 			yield return 0;
 		}
-		if (currentBomb == null || Tweaks.CurrentMode == Mode.Time) yield break;
+		if (currentBomb == null || Tweaks.CurrentModeCache == Mode.Time) yield break;
 		currentStrikes = currentBomb.StrikeCount;
 		currentTotalStrikes = currentBomb.StrikeLimit;
 		string strikesText = currentStrikes.ToString().PadLeft(currentTotalStrikes.ToString().Length, '0');
-		StrikesPrefab.text = Tweaks.CurrentMode != Mode.Zen ? $"{strikesText}<size=25>/{currentTotalStrikes}</size>" : strikesText;
+		StrikesPrefab.text = Tweaks.CurrentModeCache != Mode.Zen ? $"{strikesText}<size=25>/{currentTotalStrikes}</size>" : strikesText;
 	}
 
 	public void UpdateStrikes(bool delay = false)
@@ -100,7 +117,7 @@ class BombStatus : MonoBehaviour
 
 	public void UpdateMultiplier()
 	{
-		if (Tweaks.CurrentMode == Mode.Time)
+		if (Tweaks.CurrentModeCache == Mode.Time)
 		{
 			string conf = "<size=36>x</size>" + string.Format("{0:0.0}", Math.Min(Modes.Multiplier, Modes.settings.TimeModeMaxMultiplier));
 			StrikesPrefab.text = conf;
@@ -118,122 +135,130 @@ class BombStatus : MonoBehaviour
 	{
 		get
 		{
-            float remaining = currentBomb.CurrentTimer;
+			float remaining = currentBomb.CurrentTimer;
 
-			return Tweaks.CurrentMode == Mode.Time ? remaining / (Modes.settings.TimeModeStartingTime * 60) - 1 : (float) currentSolves / currentTotalModules - (currentBomb.bombStartingTimer - remaining / currentBomb.timerComponent.GetRate()) / currentBomb.bombStartingTimer;
+			return Tweaks.CurrentModeCache == Mode.Time ? remaining / (Modes.settings.TimeModeStartingTime * 60) - 1 : (float) currentSolves / currentTotalModules - (currentBomb.bombStartingTimer - remaining / currentBomb.timerComponent.GetRate()) / currentBomb.bombStartingTimer;
 		}
 	}
 
-	// Edgework
-	public IEnumerable<Dictionary<string, T>> QueryWidgets<T>(string queryKey, string queryInfo = null)
+	readonly List<GameObject> edgeworkCameras = new List<GameObject>();
+	void SetupEdgeworkCameras()
 	{
-		return currentBomb.widgetManager.GetWidgetQueryResponses(queryKey, queryInfo).Select(str => Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, T>>(str));
-	}
+		foreach (GameObject edgeworkCamera in edgeworkCameras)
+			Destroy(edgeworkCamera);
 
-	private Dictionary<string, string> WidgetResponses = new Dictionary<string, string>();
-
-	private void UpdateWidgets()
-	{
-		var ind = KMBombInfo.QUERYKEY_GET_INDICATOR;
-		const string tf = "twofactor";
-		const string man = "manufacture";
-		const string day = "day";
-		const string time = "time";
-		var newResponses = new Dictionary<string, string>
+		// Create widget cameras
+		var widgets = currentBomb.Bomb.WidgetManager.GetWidgets();
+		var widgetTypes = new[] { "BatteryWidget", "IndicatorWidget", "EncryptedIndicator", "NumberInd", "PortWidget", "DayTimeWidget", "TwoFactorWidget", "MultipleWidgets", null, "SerialNumber", "RuleSeedWidget" };
+		widgets.Sort((w1, w2) =>
 		{
-			{ ind, QueryWidgets<string>(ind).Select(x => x.Values).Join() },
-			{ tf, QueryWidgets<string>(tf).Select(x => x["twofactor_key"]).Join() },
-			{ man, QueryWidgets<string>(man).Select(x => x.Values).Join() },
-			{ day, QueryWidgets<string>(day).Select(x => x.Values).Join() },
-			{ time, QueryWidgets<string>(time).Select(x => x.Values).Join() }
-		};
-		if (!widgetsActivated)
-			EdgeworkPrefab.text = null;
-		if (widgetsActivated && (WidgetResponses.Count < 1 || !newResponses.SequenceEqual(WidgetResponses)))
-		{
-			WidgetResponses = new Dictionary<string, string>(newResponses);
-			EdgeworkPrefab.text = EdgeworkText;
-		}
-	}
+			var i1 = widgetTypes.IndexOf(wt => wt != null && w1.GetComponent(wt) != null);
+			if (i1 == -1)
+				i1 = Array.IndexOf(widgetTypes, null);
+			var i2 = widgetTypes.IndexOf(wt => wt != null && w2.GetComponent(wt) != null);
+			if (i2 == -1)
+				i2 = Array.IndexOf(widgetTypes, null);
 
-	public string EdgeworkText
-	{
-		get
-		{
-			if (currentBomb == null) return null;
+			if (i1 < i2)
+				return -1;
+			if (i1 > i2)
+				return 1;
 
-			List<string> edgework = new List<string>();
-			Dictionary<string, string> portNames = new Dictionary<string, string>()
+			switch (w1)
 			{
-				{ "RJ45", "RJ" },
-				{ "StereoRCA", "RCA" },
-				{ "ComponentVideo", "Component" },
-				{ "CompositeVideo", "Composite" }
-			};
+				case BatteryWidget batteries:
+					return batteries.GetNumberOfBatteries().CompareTo(((BatteryWidget) w2).GetNumberOfBatteries());
 
-			//Move vanilla indicators here to combine all indicators in the same entry
-			var indicators = QueryWidgets<string>(KMBombInfo.QUERYKEY_GET_INDICATOR).Where(x => !x.ContainsKey("display"));
-			var coloredIndicators = QueryWidgets<string>(KMBombInfo.QUERYKEY_GET_INDICATOR + "Color");
-			foreach (Dictionary<string, string> indicator in coloredIndicators)
-			{
-				foreach (Dictionary<string, string> vanillaIndicator in indicators)
-				{
-					if ((indicator["label"] != vanillaIndicator["label"]) ||
-						(vanillaIndicator["on"] != (indicator["color"] == "Black" ? "False" : "True")) ||
-						vanillaIndicator.ContainsKey("color")) continue;
-					//Prefix colors for Multiple Widgets. ToLowerInvariant to match number indicators.
-					//Also includes "Black" and "White" due to those colors being sent by the widget.
-					vanillaIndicator["on"] = $"({indicator["color"].ToLowerInvariant()}) ";
-				}
+				case IndicatorWidget indicator:
+					return indicator.Label.CompareTo(((IndicatorWidget) w2).Label);
+
+				case PortWidget port:
+					var port2 = (PortWidget) w2;
+					return (
+						port.IsPortPresent(PortWidget.PortType.Parallel) || port.IsPortPresent(PortWidget.PortType.Serial) ? 0 :
+						port.IsPortPresent(PortWidget.PortType.DVI) || port.IsPortPresent(PortWidget.PortType.PS2) || port.IsPortPresent(PortWidget.PortType.RJ45) || port.IsPortPresent(PortWidget.PortType.StereoRCA) ? 1 : 2
+					).CompareTo(
+						port2.IsPortPresent(PortWidget.PortType.Parallel) || port2.IsPortPresent(PortWidget.PortType.Serial) ? 0 :
+						port2.IsPortPresent(PortWidget.PortType.DVI) || port2.IsPortPresent(PortWidget.PortType.PS2) || port2.IsPortPresent(PortWidget.PortType.RJ45) || port2.IsPortPresent(PortWidget.PortType.StereoRCA) ? 1 : 2
+					);
+				default: return w1.name.CompareTo(w2.name);
 			}
+		});
 
-			var batteries = QueryWidgets<int>(KMBombInfo.QUERYKEY_GET_BATTERIES);
-			edgework.Add(string.Format("{0}B {1}H", batteries.Sum(x => x["numbatteries"]), batteries.Count()));
+		const float availableWidth = 0.6666667f;
+		const float availableHeight = .08f;
 
-			//Support for Encrypted Indicators, Number Indicators, and Multiple Widgets
-			edgework.Add(
-				indicators
-					.OrderBy(x => x["label"])
-					.Select(x => (x["on"] == "False" ? "" : x["on"] == "True" ? "*" : x["on"]) + (x.ContainsKey("display") ? x.ContainsKey("color") ? $"{x["display"]} ({x["color"]})" : x["display"] : x["label"]))
-					.Join()
-			);
+		// Find out how tall the widgets would be if we arrange them in one row
+		var widgetWidths = widgets.Select(w => (float) w.SizeX / w.SizeZ * Screen.height / Screen.width).ToArray();
+		var totalWidth = widgetWidths.Sum();
+		var widgetMiddles = new float[widgetWidths.Length];
+		for (int i = 0; i < widgetWidths.Length; i++)
+			widgetMiddles[i] = (i == 0 ? 0 : widgetMiddles[i - 1] + widgetWidths[i - 1] / 2) + widgetWidths[i] / 2;
+		var cutOffPoints = new int[] { widgetWidths.Length };
+		var rowHeight = Mathf.Min(availableWidth / totalWidth, availableHeight);
 
-			edgework.Add(
-				QueryWidgets<List<string>>(KMBombInfo.QUERYKEY_GET_PORTS)
-					.Select(x => x["presentPorts"]
-						.Select(port => portNames.ContainsKey(port) ? portNames[port] : port)
-						.OrderBy(y => y)
-						.Join(", ")
-					)
-					.Select(x => x?.Length == 0 ? "[Empty]" : $"[{x}]")
-					.Join(" ")
-			);
+		// See if we can make them bigger by wrapping them into multiple rows
+		while (true)
+		{
+			var n = cutOffPoints.Length + 1;
+			var newCutOffPoints = new int[n];
+			for (int i = 0; i < n; i++)
+			{
+				newCutOffPoints[i] = widgetMiddles.IndexOf(w => w > (i + 1) * totalWidth / n);
+				if (newCutOffPoints[i] == -1)
+					newCutOffPoints[i] = widgetWidths.Length;
+			}
+			var rowWidths = Enumerable.Range(0, n).Select(i => widgetWidths.Skip(i == 0 ? 0 : newCutOffPoints[i - 1]).Take(newCutOffPoints[i] - (i == 0 ? 0 : newCutOffPoints[i - 1])).Sum()).ToArray();
+			var newRowHeight = Mathf.Min(availableWidth / rowWidths.Max(), availableHeight / n);
+			if (newRowHeight <= rowHeight)
+				break;
+			cutOffPoints = newCutOffPoints;
+			rowHeight = newRowHeight;
+		}
 
-			//New "Daytime" widget, designed for league usage to help limit bomb inconsistencies
-			//Also includes two other widgets, for fun
-			edgework.Add(QueryWidgets<string>("manufacture").Select(x => x["month"] + " - " + x["year"]).Join());
+		// Move all lights off layer 2 to prevent them from affecting the widgets
+		foreach (Light light in FindObjectsOfType<Light>())
+		{
+			light.cullingMask &= ~(1 << 2);
+		}
 
-			edgework.Add(
-				QueryWidgets<string>("day")
-					.Select(x => $"{x["day"]} ({x["daycolor"]}) {(x["monthcolor"] == "0" ? $"{x["month"]}-{x["date"]} (Orange-Cyan)" : $"{x["date"]}-{x["month"]} (Cyan-Orange)")}")
-					.Join()
-			);
+		for (int i = 0; i < widgets.Count; i++)
+		{
+			// Setup the camera, using layer 2
+			var cameraObject = new GameObject();
+			edgeworkCameras.Add(cameraObject);
+			var camera = cameraObject.AddComponent<Camera>();
+			var row = cutOffPoints.IndexOf(ix => ix > i);
+			var totalWidthInThisRow = widgetWidths.Skip(row == 0 ? 0 : cutOffPoints[row - 1]).Take(cutOffPoints[row] - (row == 0 ? 0 : cutOffPoints[row - 1])).Sum() * rowHeight;
+			var widthBeforeThis = widgetWidths.Skip(row == 0 ? 0 : cutOffPoints[row - 1]).Take(i - (row == 0 ? 0 : cutOffPoints[row - 1])).Sum() * rowHeight;
+			camera.rect = new Rect(.5f - totalWidthInThisRow / 2 + widthBeforeThis, 1 - (row + 1) * rowHeight, widgetWidths[i] * rowHeight, rowHeight);
+			camera.aspect = (float) widgets[i].SizeX / widgets[i].SizeZ;
+			camera.depth = 99;
+			camera.fieldOfView = 3.25f;
+			camera.transform.SetParent(widgets[i].transform, false);
+			camera.transform.localPosition = new Vector3(.001f, 2.26f / widgets[i].SizeX * widgets[i].SizeZ, 0);
+			var rotate = widgets[i] is PortWidget || (widgets[i] is ModWidget mw && mw.name == "NumberInd(Clone)");
+			camera.transform.localEulerAngles = new Vector3(90, rotate ? 180 : 0, 0);
+			var lossyScale = camera.transform.lossyScale;
+			camera.nearClipPlane = 1f * lossyScale.y;
+			camera.farClipPlane = 3f / widgets[i].SizeX * widgets[i].SizeZ * lossyScale.y;
+			camera.cullingMask = 1 << 2;
+			camera.clearFlags = CameraClearFlags.Depth;
+			camera.gameObject.SetActive(true);
 
-			edgework.Add(QueryWidgets<string>("time").Select(x => {
-				var str1 = x["time"].Substring(0, 2);
-				var str2 = x["time"].Substring(2, 2);
-				var str3 = x["am"] == "True" ? "am" : x["pm"] == "True" ? "pm" : "";
-				if ((str3 == "am" || str3 == "pm") && int.Parse(str1) < 10) str1 = str1.Substring(1, 1);
-				return str1 + ":" + str2 + str3;
-			}).Join(", "));
+			// Move the widget’s GameObjects to Layer 2
+			foreach (var obj in widgets[i].gameObject.GetComponentsInChildren<Transform>(true))
+				if (obj.gameObject.name != "LightGlow")
+					obj.gameObject.layer = 2;
 
-			edgework.Add(QueryWidgets<int>("twofactor").Select(x => x["twofactor_key"]).Join());
-
-			edgework.Add(QueryWidgets<string>(KMBombInfo.QUERYKEY_GET_SERIAL_NUMBER).First()["serial"]);
-
-			string edgeworkString = edgework.Where(str => str != "").Join(" // ");
-
-			return edgeworkString;
+			// Add a light source
+			var light = camera.gameObject.AddComponent<Light>();
+			light.type = LightType.Spot;
+			light.cullingMask = 1 << 2;
+			light.range = (camera.transform.localPosition.y + 0.05f) * lossyScale.z;
+			light.spotAngle = 7.25f;
+			light.intensity = 75;
+			light.enabled = true;
 		}
 	}
 }

@@ -18,19 +18,24 @@ class Tweaks : MonoBehaviour
 {
 	public static ModConfig<TweakSettings> modConfig;
 	public static TweakSettings settings;
+	public static TweakSettings userSettings; // This stores exactly what the user has in their settings file unlike the settings variable which includes overrides.
 	public static bool CaseGeneratorSettingCache; // The CaseGenerator setting is cached until the user returns to the setup room to fix bugs related to the largest case size being cached.
 
 	public static bool TwitchPlaysActive => GameObject.Find("TwitchPlays_Info") != null;
 	public static Mode CurrentMode => TwitchPlaysActive ? Mode.Normal : settings.Mode;
+	public static bool TwitchPlaysActiveCache;
+	public static Mode CurrentModeCache;
 
 	public static KMGameInfo GameInfo;
 	[HideInInspector]
 	public KMGameInfo.State CurrentState;
 
 	private readonly HashSet<TableOfContentsMetaData> ModToCMetaData = new HashSet<TableOfContentsMetaData>();
-
 	static GameObject SettingWarning;
 	GameObject TweaksCaseGeneratorCase;
+
+	GameObject AdvantageousWarning;
+	bool AdvantageousFeaturesEnabled => settings.BombHUD || settings.ShowEdgework || CurrentMode != Mode.Normal || settings.MissionSeed != -1;
 
 	public void Awake()
 	{
@@ -38,6 +43,7 @@ class Tweaks : MonoBehaviour
 
 		GameInfo = GetComponent<KMGameInfo>();
 		SettingWarning = transform.Find("UI").Find("SettingWarning").gameObject;
+		AdvantageousWarning = transform.Find("UI").Find("AdvantageousWarning").gameObject;
 		BetterCasePicker.BombCaseGenerator = GetComponentInChildren<BombCaseGenerator>();
 
 		modConfig = new ModConfig<TweakSettings>("TweakSettings");
@@ -56,6 +62,7 @@ class Tweaks : MonoBehaviour
 		}
 
 		UpdateSettingWarning();
+		AdvantageousWarning.SetActive(false);
 
 		// Setup API/properties other mods to interact with
 		GameObject infoObject = new GameObject("Tweaks_Info", typeof(TweaksProperties));
@@ -68,7 +75,7 @@ class Tweaks : MonoBehaviour
 		};
 		watcher.Changed += (object source, FileSystemEventArgs e) =>
 		{
-			if (modConfig.SerializeSettings(settings) == modConfig.SerializeSettings(modConfig.Settings)) return;
+			if (modConfig.SerializeSettings(userSettings) == modConfig.SerializeSettings(modConfig.Settings)) return;
 
 			UpdateSettings();
 			UpdateSettingWarning();
@@ -131,6 +138,13 @@ class Tweaks : MonoBehaviour
 
 					ReflectedTypes.CurrencyAPIEndpointField?.SetValue(null, settings.FixFER ? "http://api.exchangeratesapi.io" : "http://api.fixer.io");
 
+					if (
+						AdvantageousFeaturesEnabled &&
+						GameplayState.MissionToLoad != Assets.Scripts.Missions.FreeplayMissionGenerator.FREEPLAY_MISSION_ID &&
+						GameplayState.MissionToLoad != ModMission.CUSTOM_MISSION_ID
+					)
+						StartCoroutine(ShowAdvantageousWarning());
+
 					break;
 				case "gameplayScene":
 					if (changeFadeTime)
@@ -151,7 +165,7 @@ class Tweaks : MonoBehaviour
 
 			if (state == KMGameInfo.State.Gameplay)
 			{
-				bool disableRecords = settings.BombHUD || settings.ShowEdgework || CurrentMode != Mode.Normal || settings.MissionSeed != -1;
+				bool disableRecords = AdvantageousFeaturesEnabled;
 
 				Assets.Scripts.Stats.StatsManager.Instance.DisableStatChanges =
 				Assets.Scripts.Records.RecordManager.Instance.DisableBestRecords = disableRecords;
@@ -159,9 +173,11 @@ class Tweaks : MonoBehaviour
 
 				BetterCasePicker.HandleCaseGeneration();
 
+				TwitchPlaysActiveCache = TwitchPlaysActive;
+				CurrentModeCache = CurrentMode;
+
 				BombStatus.Instance.widgetsActivated = false;
 				BombStatus.Instance.HUD.SetActive(settings.BombHUD);
-				BombStatus.Instance.Edgework.SetActive(settings.ShowEdgework);
 				BombStatus.Instance.ConfidencePrefab.gameObject.SetActive(CurrentMode != Mode.Zen);
 				BombStatus.Instance.StrikesPrefab.color = CurrentMode == Mode.Time ? Color.yellow : Color.red;
 
@@ -220,7 +236,7 @@ class Tweaks : MonoBehaviour
 					}
 
 				var newToCs = ModToCMetaData.Where(metaData => !settings.HideTOC.Any(pattern => Localization.GetLocalizedString(metaData.DisplayNameTerm).Like(pattern)));
-				modified |= (newToCs.Count() != ModMissionToCs.Count || !newToCs.All(ModMissionToCs.Contains));
+				modified |= newToCs.Count() != ModMissionToCs.Count || !newToCs.All(ModMissionToCs.Contains);
 				ModMissionToCs.Clear();
 				ModMissionToCs.AddRange(newToCs);
 
@@ -321,7 +337,6 @@ class Tweaks : MonoBehaviour
 				Bomb bomb = bombs[i];
 				BombWrapper bombWrapper = new BombWrapper(bomb);
 				bombWrappers[i] = bombWrapper;
-				bombWrapper.holdable.OnLetGo += () => BombStatus.Instance.currentBomb = null;
 
 				if (CurrentMode == Mode.Time) bombWrapper.CurrentTimer = Modes.settings.TimeModeStartingTime * 60;
 				else if (CurrentMode == Mode.Zen) bombWrapper.CurrentTimer = 0.001f;
@@ -367,7 +382,6 @@ class Tweaks : MonoBehaviour
 					{
 						BombWrapper bombWrapper = new BombWrapper(currentBomb.GetComponent<Bomb>());
 						bombWrappers[0] = bombWrapper;
-						bombWrapper.holdable.OnLetGo += () => BombStatus.Instance.currentBomb = null;
 
 						if (globalTimerDisabled || firstBomb)
 						{
@@ -404,11 +418,13 @@ class Tweaks : MonoBehaviour
 		{
 			portalRoom = FindObjectOfType(ReflectedTypes.PortalRoomType);
 		}
+
 		bool lastState = false;
 		IEnumerator portalEmergencyRoutine = null;
 		while (CurrentState == KMGameInfo.State.Gameplay)
 		{
-			bool targetState = CurrentMode != Mode.Zen && bombWrappers.Any((BombWrapper bombWrapper) => !bombWrapper.Bomb.IsSolved() && bombWrapper.CurrentTimer < 60f);
+			bool targetState = CurrentModeCache != Mode.Zen;
+			targetState &= bombWrappers.Any((BombWrapper bombWrapper) => bombWrapper.CurrentTimer < 60f && !bombWrapper.Bomb.IsSolved());
 			if (targetState != lastState)
 			{
 				foreach (Assets.Scripts.Props.EmergencyLight emergencyLight in FindObjectsOfType<Assets.Scripts.Props.EmergencyLight>())
@@ -448,6 +464,47 @@ class Tweaks : MonoBehaviour
 		Time.timeScale = 100;
 		yield return new WaitForSeconds(6);
 		Time.timeScale = 1;
+	}
+
+	IEnumerator ShowAdvantageousWarning()
+	{
+		AdvantageousWarning.SetActive(true);
+
+		StartCoroutine(FlashAdvantageousWarning());
+
+		var canvasGroup = AdvantageousWarning.GetComponent<CanvasGroup>();
+		foreach (float alpha in (0.75f).TimedAnimation().EaseCubic())
+		{
+			canvasGroup.alpha = alpha;
+			yield return null;
+		}
+
+		var startTime = Time.time;
+		while ((Time.time - startTime < 4 || CurrentState == KMGameInfo.State.Transitioning) && CurrentState != KMGameInfo.State.Setup)
+			yield return null;
+
+		foreach (float alpha in (0.75f).TimedAnimation().EaseCubic())
+		{
+			canvasGroup.alpha = 1 - alpha;
+			yield return null;
+		}
+
+		AdvantageousWarning.SetActive(false);
+	}
+
+	IEnumerator FlashAdvantageousWarning()
+	{
+		var startTime = Time.time;
+		var textComponent = AdvantageousWarning.Traverse<UnityEngine.UI.Text>("WarningText");
+		while (AdvantageousWarning.activeSelf)
+		{
+			float alpha = Time.time - startTime;
+			float scaledAlpha = (Mathf.Cos(alpha / 3 * 2 * Mathf.PI - Mathf.PI) + 1) / 2; // Goes smoothly between 0 and 1.
+
+			textComponent.color = Color.Lerp(Color.white, Color.red, scaledAlpha);
+
+			yield return null;
+		}
 	}
 
 	static float originalTime = 300;
@@ -494,15 +551,28 @@ class Tweaks : MonoBehaviour
 		}
 	}
 
-	public static void UpdateSettings()
+	public static void UpdateSettings(bool readSettings = true)
 	{
+		if (readSettings)
+			userSettings = modConfig.Settings;
+
+		modConfig.Settings = userSettings; // Write any settings that the user doesn't have in their settings file.
+
+		// Apply overrides
 		settings = modConfig.Settings;
-		modConfig.Settings = settings; // Write any settings that the user doesn't have in their settings file.
+
+		if (settings.DisableAdvantageous)
+		{
+			settings.BombHUD = false;
+			settings.MissionSeed = -1;
+			settings.Mode = Mode.Normal;
+			settings.ShowEdgework = false;
+		}
 	}
 
 	public void Update() => MainThreadQueue.ProcessQueue();
 
-	void UpdateSettingWarning() => MainThreadQueue.Enqueue(() => SettingWarning.SetActive(CurrentState == KMGameInfo.State.Setup && CaseGeneratorSettingCache != settings.CaseGenerator));
+	void UpdateSettingWarning() => MainThreadQueue.Enqueue(() => { if (SettingWarning != null) SettingWarning.SetActive(CurrentState == KMGameInfo.State.Setup && CaseGeneratorSettingCache != settings.CaseGenerator); });
 
 	/*void OnApplicationQuit()
 	{
@@ -554,6 +624,7 @@ class Tweaks : MonoBehaviour
 					new Dictionary<string, object> { { "Key", "FixFER" }, { "Text", "Fix Foreign Exchange Rates" }, { "Description", "Changes the URL that is queried since the old one is no longer operational." } },
 					new Dictionary<string, object> { { "Key", "BombHUD" }, { "Text", "Bomb HUD" }, { "Description", "Adds a HUD in the top right corner showing information about the currently selected bomb." } },
 					new Dictionary<string, object> { { "Key", "ShowEdgework" }, { "Text", "Show Edgework" }, { "Description", "Adds a HUD to the top of the screen showing the edgework for the currently selected bomb." } },
+					new Dictionary<string, object> { { "Key", "DisableAdvantageous" }, { "Text", "Disable Advantageous Features" }, { "Description", "Disables features like the Bomb HUD, Show Edgework, etc." } },
 					new Dictionary<string, object> { { "Key", "MissionSeed" }, { "Text", "Mission Seed" }, { "Description", "Seeds the random numbers for the mission which should make the bomb\ngenerate consistently." } },
 					new Dictionary<string, object> { { "Key", "CaseGenerator" }, { "Text", "Case Generator" }, { "Description", "Generates a case to best fit the bomb which can be one of the colors defined by CaseColors." } },
 				}
@@ -585,6 +656,7 @@ class Tweaks : MonoBehaviour
 					new Dictionary<string, object> { { "Key", "TimeModeTimerStrikePenalty" }, { "Text", "Timer Strike Penalty" }, { "Description", "The factor the time is reduced by when getting a strike." } },
 					new Dictionary<string, object> { { "Key", "TimeModeMinimumTimeLost" }, { "Text", "Min Time Lost" }, { "Description", "Lowest amount of time that you can lose when you get a strike." } },
 					new Dictionary<string, object> { { "Key", "TimeModeMinimumTimeGained" }, { "Text", "Min Time Gained" }, { "Description", "Lowest amount of time you can gain when you solve a module." } },
+					new Dictionary<string, object> { { "Key", "TimeModePointMultiplier" }, { "Text", "Point Multiplier" }, { "Description", "The multiplier for the number of points you get for solving a module." } },
 				}
 			}
 		}
@@ -619,6 +691,7 @@ class TweakSettings
 	public bool FixFER = false;
 	public bool BombHUD = false;
 	public bool ShowEdgework = false;
+	public bool DisableAdvantageous = false;
 	public List<string> HideTOC = new List<string>();
 	public Mode Mode = Mode.Normal;
 	public int MissionSeed = -1;

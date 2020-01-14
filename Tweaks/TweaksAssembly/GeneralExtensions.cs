@@ -3,11 +3,15 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 using System;
+using UnityEngine;
 
 public static class GeneralExtensions
 {
 	public static string FormatTime(this float seconds)
 	{
+		bool wasNegative = seconds < 0;
+		seconds = Math.Abs(seconds);
+
 		bool addMilliseconds = seconds < 60;
 		int[] timeLengths = { 86400, 3600, 60, 1 };
 		List<int> timeParts = new List<int>();
@@ -29,10 +33,10 @@ public static class GeneralExtensions
 			}
 		}
 
-		string formatedTime = string.Join(":", timeParts.Select((time, i) => timeParts.Count > 2 && i == 0 ? time.ToString() : time.ToString("00")).ToArray());
+		string formatedTime = string.Join(":", timeParts.Select((time, i) => timeParts.Count > 2 && i == 0 ? time.ToString() : time.ToString().PadLeft(2, '0')).ToArray());
 		if (addMilliseconds) formatedTime += ((int) (seconds * 100)).ToString(@"\.00");
 
-		return formatedTime;
+		return (wasNegative ? "-" : "") + formatedTime;
 	}
 
 	public static string Join<T>(this IEnumerable<T> values, string separator = " ")
@@ -61,6 +65,25 @@ public static class GeneralExtensions
 	}
 
 	/// <summary>
+	///     Returns the index of the first element in this <paramref name="source"/> satisfying the specified <paramref
+	///     name="predicate"/>. If no such elements are found, returns <c>-1</c>.</summary>
+	public static int IndexOf<T>(this IEnumerable<T> source, Func<T, bool> predicate)
+	{
+		if (source == null)
+			throw new ArgumentNullException(nameof(source));
+		if (predicate == null)
+			throw new ArgumentNullException(nameof(predicate));
+		int index = 0;
+		foreach (var v in source)
+		{
+			if (predicate(v))
+				return index;
+			index++;
+		}
+		return -1;
+	}
+
+	/// <summary>
 	/// Compares the string against a given pattern.
 	/// </summary>
 	/// <param name="str">The string.</param>
@@ -81,7 +104,33 @@ public static class GeneralExtensions
             yield return str.Substring(i, Math.Min(maxChunkSize, str.Length - i));
     }
 
-    public static void EnsureModHighlightable(this KMSelectable selectable)
+	public static IEnumerable<float> TimedAnimation(this float length)
+	{
+		float startTime = Time.time;
+		float alpha = 0;
+		while (alpha < 1)
+		{
+			alpha = Mathf.Min((Time.time - startTime) / length, 1);
+			yield return alpha;
+		}
+	}
+
+	public static IEnumerable<float> EaseCubic(this IEnumerable<float> enumerable) => enumerable.Select(alpha => 3 * alpha * alpha - 2 * alpha * alpha * alpha);
+
+	public static GameObject Traverse(this GameObject currentObject, params string[] names)
+	{
+		Transform currentTransform = currentObject.transform;
+		foreach (string name in names)
+		{
+			currentTransform = currentTransform.Find(name);
+		}
+
+		return currentTransform.gameObject;
+	}
+
+	public static T Traverse<T>(this GameObject currentObject, params string[] names) => currentObject.Traverse(names).GetComponent<T>();
+
+	public static void EnsureModHighlightable(this KMSelectable selectable)
 	{
 		KMHighlightable highlightable = selectable.Highlight;
 		if (highlightable != null)

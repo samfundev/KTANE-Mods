@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using Assets.Scripts.Missions;
+using Newtonsoft.Json.Linq;
+using UnityEngine.Networking;
 
 public enum Mode
 {
@@ -17,6 +20,9 @@ static class Modes
 	public static float Multiplier = settings.TimeModeStartingMultiplier;
     public static float timePenalty = 1.0f;
     public static float initialTime;
+
+	public static Dictionary<string, double> DefaultComponentValues = new Dictionary<string, double>();
+	public static Dictionary<string, double> DefaultTotalModulesMultiplier = new Dictionary<string, double>();
 
 	#pragma warning disable 649
 	struct ModuleInfo
@@ -51,6 +57,43 @@ static class Modes
 
 		return null;
 	}
+
+	public static IEnumerator LoadDefaultSettings()
+	{
+		UnityWebRequest www = UnityWebRequest.Get("https://spreadsheets.google.com/feeds/list/16lz2mCqRWxq__qnamgvlD0XwTuva4jIDW1VPWX49hzM/1/public/values?alt=json");
+
+		yield return www.SendWebRequest();
+
+		if (!www.isNetworkError && !www.isHttpError)
+		{
+			foreach (var entry in JObject.Parse(www.downloadHandler.text)["feed"]["entry"])
+			{
+				bool score = !string.IsNullOrEmpty(entry["gsx$score"]["$t"]?.Value<string>());
+				bool multiplier = !string.IsNullOrEmpty(entry["gsx$bossmodulepointspermodule"]["$t"]?.Value<string>());
+
+				if (entry["gsx$_cn6ca"] == null)
+				{
+					if (score || multiplier)
+						Tweaks.Log("An entry on the spreadsheet is missing it's module ID. You should contact the spreadsheet maintainers about this.");
+
+					continue;
+				}
+
+				string moduleID = entry["gsx$_cn6ca"].Value<string>("$t");
+				if (string.IsNullOrEmpty(moduleID) || moduleID == "ModuleID")
+					continue;
+
+				if (score)
+					DefaultComponentValues[moduleID] = entry["gsx$score"].Value<double>("$t");
+				if (multiplier)
+					DefaultTotalModulesMultiplier[moduleID] = entry["gsx$bossmodulepointspermodule"].Value<double>("$t");
+			}
+		}
+		else
+		{
+			Tweaks.Log("Failed to load the default time mode values.");
+		}
+	}
 }
 
 class ModeSettings
@@ -70,6 +113,7 @@ class ModeSettings
 	public float TimeModeTimerStrikePenalty = 0.25f;
 	public float TimeModeMinimumTimeLost = 15;
 	public float TimeModeMinimumTimeGained = 20;
+	public float TimeModePointMultiplier = 1;
     public Dictionary<string, double> ComponentValues = new Dictionary<string, double>();
 	public Dictionary<string, double> TotalModulesMultiplier = new Dictionary<string, double>();
 }

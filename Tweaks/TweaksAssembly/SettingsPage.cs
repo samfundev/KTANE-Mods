@@ -6,6 +6,7 @@ using UnityEngine;
 using Newtonsoft.Json;
 using System.Text.RegularExpressions;
 using System.Reflection;
+using System.Collections;
 
 // TODO: Can we do something about the lag spike when reading settings for the first time?
 // TODO: Consider wrapping the longer settings and making the listings twice as tall
@@ -20,6 +21,7 @@ class SettingsPage : MonoBehaviour
 	public GameObject ListingTemplate = null;
 	public KMSelectable Key = null;
 	public GameObject Keyboard = null;
+	public TextMesh AlertTextMesh = null;
 
 	public KMSelectable PinButton = null;
 	public KMSelectable BackwardButton = null;
@@ -207,17 +209,17 @@ class SettingsPage : MonoBehaviour
 
 		foreach (FieldInfo fieldInfo in SettingFields)
 		{
-			foreach (Dictionary<string, object> test in (IEnumerable<Dictionary<string, object>>) fieldInfo.GetValue(null))
+			foreach (Dictionary<string, object> settingsField in (IEnumerable<Dictionary<string, object>>) fieldInfo.GetValue(null))
 			{
 				try
 				{
 					ModSettingsInfo modSettingsInfo = new ModSettingsInfo()
 					{
-						Path = test.GetKeySafe<string>("Filename"),
-						Name = test.GetKeySafe<string>("Name"),
+						Path = settingsField.GetKeySafe<string>("Filename"),
+						Name = settingsField.GetKeySafe<string>("Name"),
 					};
 
-					var modListings = test.GetKeySafe<List<Dictionary<string, object>>>("Listings");
+					var modListings = settingsField.GetKeySafe<List<Dictionary<string, object>>>("Listings");
 					if (modListings != null)
 					{
 						modSettingsInfo.Listings = modListings.Select(modListing =>
@@ -365,11 +367,15 @@ class SettingsPage : MonoBehaviour
 					if (listing.Type != ListingType.Submenu) return;
 
 					listing.Pinned = !listing.Pinned;
-					if (listing.Pinned) Tweaks.settings.PinnedSettings.Add(fileName);
-					else Tweaks.settings.PinnedSettings.Remove(fileName);
-					Tweaks.modConfig.Settings = Tweaks.settings;
+					if (listing.Pinned) Tweaks.userSettings.PinnedSettings.Add(fileName);
+					else Tweaks.userSettings.PinnedSettings.Remove(fileName);
+					Tweaks.modConfig.Settings = Tweaks.userSettings;
 
 					UpdateScreen();
+				}
+				else if (!File.Exists(info.Path))
+				{
+					ShowAlert("The file for those settings is missing and cannot be opened.");
 				}
 				else
 				{
@@ -410,6 +416,24 @@ class SettingsPage : MonoBehaviour
 		}
 
 		UpdateListings();
+	}
+
+	Coroutine alertCoroutine;
+	void ShowAlert(string text)
+	{
+		AlertTextMesh.text = text;
+
+		if (alertCoroutine != null)
+			StopCoroutine(alertCoroutine);
+
+		alertCoroutine = StartCoroutine(AlertRoutine());
+	}
+
+	IEnumerator AlertRoutine()
+	{
+		AlertTextMesh.gameObject.SetActive(true);
+		yield return new WaitForSeconds(5);
+		AlertTextMesh.gameObject.SetActive(false);
 	}
 
 	public void UpdateListings()
@@ -827,6 +851,7 @@ class SettingsPage : MonoBehaviour
 
 		if (newState)
 		{
+			AlertTextMesh.gameObject.SetActive(false);
 			PushScreen();
 			SetupSelectables(Keyboard.GetComponentsInChildren<KMSelectable>().ToList());
 		}

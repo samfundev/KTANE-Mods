@@ -62,7 +62,7 @@ public class PropertiesBehaviour : MonoBehaviour, IDictionary<string, object>
 		{
 			if (!_properties.ContainsKey(key))
 			{
-				throw new NotImplementedException("You can't add items to this Dictionary.");
+				throw new Exception("You can't add items to this Dictionary.");
 			}
 			Property property = _properties[key];
 			if (!property.CanSet())
