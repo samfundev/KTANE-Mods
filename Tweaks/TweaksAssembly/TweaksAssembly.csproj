@@ -95,6 +95,7 @@
     <Compile Include="BetterCasePicker.cs" />
     <Compile Include="BombCaseGenerator.cs" />
     <Compile Include="BombStatus.cs" />
+    <Compile Include="DemandBasedLoading.cs" />
     <Compile Include="GeneralExtensions.cs" />
     <Compile Include="MainThreadQueue.cs" />
     <Compile Include="Modules\ModuleLogging.cs" />

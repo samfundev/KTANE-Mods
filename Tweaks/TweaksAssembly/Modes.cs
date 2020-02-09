@@ -48,9 +48,6 @@ static class Modes
 					return needyModule.ModuleType;
 
 				break;
-			case ComponentTypeEnum.Empty:
-			case ComponentTypeEnum.Timer:
-				break;
 			default:
 				return bombComponent.ComponentType.ToString();
 		}

@@ -41,12 +41,30 @@ class BombWrapper
 			bomb.NumStrikesToLose++;
 		}
 
+		float realTimeStart = Time.unscaledTime;
 		foreach (BombComponent component in Bomb.BombComponents)
 		{
+			Dictionary<string, object> makeEventInfo(string type)
+			{
+				Dictionary<string, object> eventInfo = new Dictionary<string, object>()
+				{
+					{ "type", type },
+					{ "moduleID", Modes.GetModuleID(component) },
+					{ "bombTime", CurrentTimer },
+					{ "realTime", Time.unscaledTime - realTimeStart },
+				};
+
+				if (componentIDs.TryGetValue(component, out int loggingID))
+					eventInfo["loggingID"] = loggingID;
+
+				return eventInfo;
+			}
+
 			component.OnPass += delegate
 			{
 				BombStatus.Instance.UpdateSolves();
 
+				var eventInfo = makeEventInfo("PASS");
 				if (Tweaks.CurrentMode == Mode.Time)
 				{
 					if (
@@ -85,6 +103,8 @@ class BombWrapper
 						alertText += $"Min Time Added = {(finalTime > 0 ? "+" : "")}{finalTime.FormatTime()}\n";
 					}
 
+					eventInfo["timeMode"] = alertText.TrimEnd('\n').Replace("<size=36>x</size>", "×"); // Build the logging information for time mode.
+
 					alertText += component.GetModuleDisplayName();
 
 					AddAlert(alertText.Replace(' ', ' '), Color.green); // Replace all spaces with nbsp since we don't want the line to wrap.
@@ -95,12 +115,15 @@ class BombWrapper
 					BombStatus.Instance.UpdateMultiplier();
 				}
 
+				LogJSON("LFAEvent", eventInfo);
+
 				return false;
 			};
 
 			var OnStrike = component.OnStrike;
 			component.OnStrike = (BombComponent source) =>
 			{
+				var eventInfo = makeEventInfo("STRIKE");
 				if (Tweaks.CurrentMode == Mode.Time)
 				{
 					float multiplier = Modes.Multiplier - Modes.settings.TimeModeMultiplierStrikePenalty;
@@ -114,6 +137,8 @@ class BombWrapper
 					{
 						alertText += $"REDUCED TO MIN = {finalMultiplier}\n";
 					}
+
+					eventInfo["timeMode"] = alertText.TrimEnd('\n').Replace("<size=36>x</size>", "×"); // Build the logging information for time mode.
 
 					alertText += component.GetModuleDisplayName();
 					AddAlert(alertText.Replace(' ', ' '), Color.red);
@@ -154,6 +179,8 @@ class BombWrapper
 				}
 
 				BombStatus.Instance.UpdateStrikes();
+
+				LogJSON("LFAEvent", eventInfo);
 
 				return false;
 			};
@@ -239,11 +266,13 @@ class BombWrapper
 	readonly string[] modules = new string[] { };
 	readonly decimal[][] anchors = new decimal[][] { };
 
+	readonly Dictionary<BombComponent, int> componentIDs = new Dictionary<BombComponent, int>();
+
 	IEnumerator GetModuleInformation(BombComponent bombComponent, ModuleTweak moduleTweak = null)
 	{
 		int moduleID = -1;
 		KMBombModule bombModule = bombComponent.GetComponent<KMBombModule>();
-		string moduleType = bombModule != null ? bombModule.ModuleType : bombComponent.ComponentType.ToString();
+		string moduleType = Modes.GetModuleID(bombComponent);
 
 		displayNames[moduleType] = bombComponent.GetModuleDisplayName();
 
@@ -296,6 +325,7 @@ class BombWrapper
 		{
 			if (!ids.ContainsKey(moduleType)) ids[moduleType] = new List<int>();
 			ids[moduleType].Add(moduleID);
+			componentIDs[bombComponent] = moduleID;
 		}
 
 		// Find the index and position of the module's anchor

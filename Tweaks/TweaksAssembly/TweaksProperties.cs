@@ -2,25 +2,25 @@
 {
 	public TweaksProperties()
 	{
-		AddProperty("Mode", new Property(() => Tweaks.settings.Mode, value =>
+		AddProperty("Mode", new Property(() => Tweaks.userSettings.Mode, value =>
 		{
-			Tweaks.settings.Mode = (Mode) value;
-			Tweaks.modConfig.Settings = Tweaks.settings;
+			Tweaks.userSettings.Mode = (Mode) value;
+			Tweaks.UpdateSettings(false);
 			StartCoroutine(Tweaks.ModifyFreeplayDevice(false));
 		}));
-        AddProperty("TimeMode", new Property(() => Tweaks.settings.Mode.Equals(Mode.Time), value => {
-			Tweaks.settings.Mode = (bool) value ? Mode.Time : Mode.Normal;
-			Tweaks.modConfig.Settings = Tweaks.settings;
+        AddProperty("TimeMode", new Property(() => Tweaks.userSettings.Mode.Equals(Mode.Time), value => {
+			Tweaks.userSettings.Mode = (bool) value ? Mode.Time : Mode.Normal;
+			Tweaks.UpdateSettings(false);
 			StartCoroutine(Tweaks.ModifyFreeplayDevice(false));
 		}));
-        AddProperty("ZenMode", new Property(() => Tweaks.settings.Mode.Equals(Mode.Zen), value => {
-			Tweaks.settings.Mode = (bool) value ? Mode.Zen : Mode.Normal;
-			Tweaks.modConfig.Settings = Tweaks.settings;
+        AddProperty("ZenMode", new Property(() => Tweaks.userSettings.Mode.Equals(Mode.Zen), value => {
+			Tweaks.userSettings.Mode = (bool) value ? Mode.Zen : Mode.Normal;
+			Tweaks.UpdateSettings(false);
 			StartCoroutine(Tweaks.ModifyFreeplayDevice(false));
 		}));
-		AddProperty("SteadyMode", new Property(() => Tweaks.settings.Mode.Equals(Mode.Steady), value => {
-			Tweaks.settings.Mode = (bool) value ? Mode.Steady : Mode.Normal;
-			Tweaks.modConfig.Settings = Tweaks.settings;
+		AddProperty("SteadyMode", new Property(() => Tweaks.userSettings.Mode.Equals(Mode.Steady), value => {
+			Tweaks.userSettings.Mode = (bool) value ? Mode.Steady : Mode.Normal;
+			Tweaks.UpdateSettings(false);
 			StartCoroutine(Tweaks.ModifyFreeplayDevice(false));
 		}));
 		AddProperty("TimeModeStartingTime", new Property(() => Modes.settings.TimeModeStartingTime, value =>

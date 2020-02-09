@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using Assets.Scripts.Progression;
 using Assets.Scripts.Settings;
@@ -16,10 +17,13 @@ using Assets.Scripts.Services.Steam;
 [RequireComponent(typeof(KMGameInfo))]
 class Tweaks : MonoBehaviour
 {
+	public static Tweaks Instance;
+
 	public static ModConfig<TweakSettings> modConfig;
 	public static TweakSettings settings;
 	public static TweakSettings userSettings; // This stores exactly what the user has in their settings file unlike the settings variable which includes overrides.
 	public static bool CaseGeneratorSettingCache; // The CaseGenerator setting is cached until the user returns to the setup room to fix bugs related to the largest case size being cached.
+	public static bool DemandBasedSettingCache; // The DemandBasedModLoading setting is cached until the user enters the Mod Manager so the demand based mods can either be loaded or unloaded.
 
 	public static bool TwitchPlaysActive => GameObject.Find("TwitchPlays_Info") != null;
 	public static Mode CurrentMode => TwitchPlaysActive ? Mode.Normal : settings.Mode;
@@ -39,15 +43,21 @@ class Tweaks : MonoBehaviour
 
 	public void Awake()
 	{
+		Instance = this;
+
 		MainThreadQueue.Initialize();
 
 		GameInfo = GetComponent<KMGameInfo>();
-		SettingWarning = transform.Find("UI").Find("SettingWarning").gameObject;
-		AdvantageousWarning = transform.Find("UI").Find("AdvantageousWarning").gameObject;
+		SettingWarning = gameObject.Traverse("UI", "SettingWarning");
+		AdvantageousWarning = gameObject.Traverse("UI", "AdvantageousWarning");
 		BetterCasePicker.BombCaseGenerator = GetComponentInChildren<BombCaseGenerator>();
 
 		modConfig = new ModConfig<TweakSettings>("TweakSettings");
 		UpdateSettings();
+		StartCoroutine(Modes.LoadDefaultSettings());
+
+		DemandBasedLoading.EverLoadedModules = !settings.DemandBasedModLoading;
+		DemandBasedSettingCache = settings.DemandBasedModLoading;
 
 		bool changeFadeTime = settings.FadeTime >= 0;
 
@@ -160,6 +170,11 @@ class Tweaks : MonoBehaviour
 		// Handle state changes
 		GameInfo.OnStateChange += (KMGameInfo.State state) =>
 		{
+			if (CurrentState == KMGameInfo.State.Setup && state == KMGameInfo.State.Transitioning)
+			{
+				DemandBasedLoading.DisabledModsCount = 0;
+			}
+
 			CurrentState = state;
 			watcher.EnableRaisingEvents = state == KMGameInfo.State.Setup;
 
@@ -171,6 +186,7 @@ class Tweaks : MonoBehaviour
 				Assets.Scripts.Records.RecordManager.Instance.DisableBestRecords = disableRecords;
 				if (disableRecords) SteamFilterService.TargetMissionID = GameplayState.MissionToLoad;
 
+				BetterCasePicker.RestoreGameCommands();
 				BetterCasePicker.HandleCaseGeneration();
 
 				TwitchPlaysActiveCache = TwitchPlaysActive;
@@ -245,6 +261,8 @@ class Tweaks : MonoBehaviour
 					SetupState.LastBombBinderTOCIndex = 0;
 					SetupState.LastBombBinderTOCPage = 0;
 				}
+
+				DemandBasedLoading.HandleTransitioning();
 			}
 		};
 	}
@@ -570,9 +588,28 @@ class Tweaks : MonoBehaviour
 		}
 	}
 
-	public void Update() => MainThreadQueue.ProcessQueue();
+	public void Update()
+	{
+		MainThreadQueue.ProcessQueue();
 
-	void UpdateSettingWarning() => MainThreadQueue.Enqueue(() => { if (SettingWarning != null) SettingWarning.SetActive(CurrentState == KMGameInfo.State.Setup && CaseGeneratorSettingCache != settings.CaseGenerator); });
+		if (CurrentState == KMGameInfo.State.Setup && (CaseGeneratorSettingCache != settings.CaseGenerator || DemandBasedSettingCache != settings.DemandBasedModLoading || DemandBasedLoading.DisabledModsCount != 0) && Input.GetKeyDown(KeyCode.Tab))
+		{
+			StartCoroutine(DemandBasedLoading.EnterAndLeaveModManager());
+		}
+	}
+
+	public void UpdateSettingWarning() => MainThreadQueue.Enqueue(() => {
+		if (SettingWarning == null)
+			return;
+
+		bool demandSettingChanged = DemandBasedSettingCache != settings.DemandBasedModLoading;
+		bool demandModsDisabled = DemandBasedLoading.DisabledModsCount != 0;
+
+		SettingWarning.Traverse("CaseGenerator").SetActive(CurrentState == KMGameInfo.State.Setup && CaseGeneratorSettingCache != settings.CaseGenerator);
+		SettingWarning.Traverse("DemandBasedModLoading").SetActive(CurrentState == KMGameInfo.State.Setup && (demandSettingChanged || demandModsDisabled));
+
+		SettingWarning.Traverse<Text>("DemandBasedModLoading", "WarningText").text = $"The { (demandSettingChanged ? "change to the setting \"DemandBasedModLoading\"" : "") + (demandSettingChanged && demandModsDisabled ? " and " : "") + (demandModsDisabled ? $"{DemandBasedLoading.DisabledModsCount} mods that were automatically disabled" : "") } will only take effect once you enter the Mod Manager. <i>Press \"TAB\" to do that automatically!</i>";
+	});
 
 	/*void OnApplicationQuit()
 	{
@@ -627,6 +664,11 @@ class Tweaks : MonoBehaviour
 					new Dictionary<string, object> { { "Key", "DisableAdvantageous" }, { "Text", "Disable Advantageous Features" }, { "Description", "Disables features like the Bomb HUD, Show Edgework, etc." } },
 					new Dictionary<string, object> { { "Key", "MissionSeed" }, { "Text", "Mission Seed" }, { "Description", "Seeds the random numbers for the mission which should make the bomb\ngenerate consistently." } },
 					new Dictionary<string, object> { { "Key", "CaseGenerator" }, { "Text", "Case Generator" }, { "Description", "Generates a case to best fit the bomb which can be one of the colors defined by CaseColors." } },
+
+					new Dictionary<string, object> { { "Text", "Demand Based Mod Loading" }, { "Type", "Section" } },
+					new Dictionary<string, object> { { "Key", "DemandBasedModLoading" }, { "Text", "Demand Based Mod Loading" }, { "Description", "Load only the modules on a bomb instead of loading all of them when starting up." } },
+					new Dictionary<string, object> { { "Key", "DisableDemandBasedMods" }, { "Text", "Disable Demand Based Mods" }, { "Description", "Disables mods that can be loaded on demand so they don't load when the game starts." } },
+					new Dictionary<string, object> { { "Key", "DemandModLimit" }, { "Text", "Demand Mod Limit" }, { "Description", "Sets the limit of how many mods will be kept loaded after the bomb\nis over. Negative numbers will keep all mods loaded." } },
 				}
 			}
 		},
@@ -688,6 +730,9 @@ class TweakSettings
 	public bool SkipGameplayDelay = false;
 	public bool BetterCasePicker = true;
 	public bool EnableModsOnlyKey = false;
+	public bool DemandBasedModLoading = false;
+	public bool DisableDemandBasedMods = false;
+	public int DemandModLimit = -1;
 	public bool FixFER = false;
 	public bool BombHUD = false;
 	public bool ShowEdgework = false;
