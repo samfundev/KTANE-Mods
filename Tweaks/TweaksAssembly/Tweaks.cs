@@ -229,6 +229,12 @@ class Tweaks : MonoBehaviour
 				GetComponentInChildren<ModSelectorExtension>().FindAPI();
 
 				GameplayState.BombSeedToUse = -1;
+
+				foreach (BombWrapper wrapper in bombWrappers)
+				{
+					Events.BombEvents.OnBombDetonated -= wrapper.OnDetonate;
+					Events.BombEvents.OnBombSolved -= wrapper.OnSolve;
+				}
 			}
 			else if (state == KMGameInfo.State.Transitioning)
 			{
@@ -345,6 +351,12 @@ class Tweaks : MonoBehaviour
 		yield return new WaitUntil(() => (SceneManager.Instance.GameplayState.Bombs?.Count > 0));
 		yield return null;
 		List<Bomb> bombs = SceneManager.Instance.GameplayState.Bombs;
+
+		LogJSON("LFAEvent", new Dictionary<string, object>()
+		{
+			{ "type", "ROUND_START" },
+			{ "mission", Localization.GetLocalizedString(SceneManager.Instance.GameplayState.Mission.DisplayNameTerm) },
+		});
 
 		void wrapInitialBombs()
 		{
@@ -608,7 +620,7 @@ class Tweaks : MonoBehaviour
 		SettingWarning.Traverse("CaseGenerator").SetActive(CurrentState == KMGameInfo.State.Setup && CaseGeneratorSettingCache != settings.CaseGenerator);
 		SettingWarning.Traverse("DemandBasedModLoading").SetActive(CurrentState == KMGameInfo.State.Setup && (demandSettingChanged || demandModsDisabled));
 
-		SettingWarning.Traverse<Text>("DemandBasedModLoading", "WarningText").text = $"The { (demandSettingChanged ? "change to the setting \"DemandBasedModLoading\"" : "") + (demandSettingChanged && demandModsDisabled ? " and " : "") + (demandModsDisabled ? $"{DemandBasedLoading.DisabledModsCount} mods that were automatically disabled" : "") } will only take effect once you enter the Mod Manager. <i>Press \"TAB\" to do that automatically!</i>";
+		SettingWarning.Traverse<Text>("DemandBasedModLoading", "WarningText").text = $"The { (demandSettingChanged ? "change to the setting \"DemandBasedModLoading\"" : "") + (demandSettingChanged && demandModsDisabled ? " and " : "") + (demandModsDisabled ? $"{DemandBasedLoading.DisabledModsCount} mod{(DemandBasedLoading.DisabledModsCount == 0 ? "" : "s")} that were automatically disabled" : "") } will only take effect once you enter the Mod Manager. <i>Press \"TAB\" to do that automatically!</i>";
 	});
 
 	/*void OnApplicationQuit()
@@ -617,6 +629,12 @@ class Tweaks : MonoBehaviour
 	}*/
 
 	public static void Log(params object[] args) => Debug.Log("[Tweaks] " + args.Select(Convert.ToString).Join(" "));
+
+	public static void LogJSON(string tag, object json)
+	{
+		string[] chunks = Newtonsoft.Json.JsonConvert.SerializeObject(json).ChunkBy(250).ToArray();
+		Log(tag, chunks.Length + "\n" + chunks.Join("\n"));
+	}
 
 	static void ExecOnDescendants(GameObject gameObj, Action<GameObject> func)
 	{
@@ -664,6 +682,8 @@ class Tweaks : MonoBehaviour
 					new Dictionary<string, object> { { "Key", "DisableAdvantageous" }, { "Text", "Disable Advantageous Features" }, { "Description", "Disables features like the Bomb HUD, Show Edgework, etc." } },
 					new Dictionary<string, object> { { "Key", "MissionSeed" }, { "Text", "Mission Seed" }, { "Description", "Seeds the random numbers for the mission which should make the bomb\ngenerate consistently." } },
 					new Dictionary<string, object> { { "Key", "CaseGenerator" }, { "Text", "Case Generator" }, { "Description", "Generates a case to best fit the bomb which can be one of the colors defined by CaseColors." } },
+					new Dictionary<string, object> { { "Key", "ModuleTweaks" }, { "Text", "Module Tweaks" }, { "Description", "Controls all module related tweaks like fixing status light positions." } },
+
 
 					new Dictionary<string, object> { { "Text", "Demand Based Mod Loading" }, { "Type", "Section" } },
 					new Dictionary<string, object> { { "Key", "DemandBasedModLoading" }, { "Text", "Demand Based Mod Loading" }, { "Description", "Load only the modules on a bomb instead of loading all of them when starting up." } },
@@ -741,6 +761,7 @@ class TweakSettings
 	public Mode Mode = Mode.Normal;
 	public int MissionSeed = -1;
 	public bool CaseGenerator = true;
+	public bool ModuleTweaks = true;
 	public List<string> CaseColors = new List<string>();
 	public HashSet<string> PinnedSettings = new HashSet<string>();
 }

@@ -5,6 +5,7 @@ using System.Collections;
 using Newtonsoft.Json;
 using UnityEngine;
 using Assets.Scripts.Missions;
+using Events;
 
 class BombWrapper
 {
@@ -15,6 +16,8 @@ class BombWrapper
 		{ Mode.Time, new Color(1, 0.5f, 0) },
 		{ Mode.Steady, new Color(0, 0.8f, 0) }
 	};
+
+	float realTimeStart;
 
 	public BombWrapper(Bomb bomb)
 	{
@@ -41,7 +44,10 @@ class BombWrapper
 			bomb.NumStrikesToLose++;
 		}
 
-		float realTimeStart = Time.unscaledTime;
+		realTimeStart = Time.unscaledTime;
+		BombEvents.OnBombDetonated += OnDetonate;
+		BombEvents.OnBombSolved += OnSolve;
+
 		foreach (BombComponent component in Bomb.BombComponents)
 		{
 			Dictionary<string, object> makeEventInfo(string type)
@@ -115,7 +121,7 @@ class BombWrapper
 					BombStatus.Instance.UpdateMultiplier();
 				}
 
-				LogJSON("LFAEvent", eventInfo);
+				Tweaks.LogJSON("LFAEvent", eventInfo);
 
 				return false;
 			};
@@ -180,7 +186,7 @@ class BombWrapper
 
 				BombStatus.Instance.UpdateStrikes();
 
-				LogJSON("LFAEvent", eventInfo);
+				Tweaks.LogJSON("LFAEvent", eventInfo);
 
 				return false;
 			};
@@ -213,7 +219,7 @@ class BombWrapper
 		foreach (BombComponent component in bomb.BombComponents)
 		{
 			KMBombModule bombModule = component.GetComponent<KMBombModule>();
-			if (bombModule != null)
+			if (bombModule != null && (bombModule.ModuleType == "TurnTheKey" || Tweaks.settings.ModuleTweaks))
 			{
 				switch (bombModule.ModuleType)
 				{
@@ -245,7 +251,7 @@ class BombWrapper
 
 			ModuleTweak moduleTweak = null;
 			string moduleType = bombModule != null ? bombModule.ModuleType : component.ComponentType.ToString();
-			if (moduleTweaks.ContainsKey(moduleType))
+			if (moduleTweaks.ContainsKey(moduleType) && (moduleType != "WordScrambleModule" || Tweaks.settings.ModuleTweaks))
 			{
 				moduleTweak = moduleTweaks[moduleType](component);
 			}
@@ -343,14 +349,44 @@ class BombWrapper
 		modulesUnactivated--;
 		if (modulesUnactivated == 0)
 		{
-			LogJSON("LFABombInfo", bombLogInfo);
+			Tweaks.LogJSON("LFABombInfo", bombLogInfo);
 		}
 	}
 
-	void LogJSON(string tag, object json)
+	public void OnDetonate()
 	{
-		string[] chunks = JsonConvert.SerializeObject(json).ChunkBy(250).ToArray();
-		Tweaks.Log(tag, chunks.Length + "\n" + chunks.Join("\n"));
+		if (Bomb.HasDetonated)
+			return;
+
+		BombEvents.OnBombDetonated -= OnDetonate;
+
+		Tweaks.LogJSON("LFAEvent", new Dictionary<string, object>()
+		{
+			{ "type", "BOMB_DETONATE" },
+			{ "serial", bombLogInfo["serial"] },
+			{ "bombTime", CurrentTimer },
+			{ "realTime", Time.unscaledTime - realTimeStart },
+			{ "solves", Bomb.GetSolvedComponentCount() },
+			{ "strikes", Bomb.NumStrikes + (Bomb.NumStrikes == Bomb.NumStrikesToLose - 1 ? 1 : 0) },
+		});
+	}
+
+	public void OnSolve()
+	{
+		if (!Bomb.IsSolved())
+			return;
+
+		BombEvents.OnBombSolved -= OnSolve;
+
+		Tweaks.LogJSON("LFAEvent", new Dictionary<string, object>()
+		{
+			{ "type", "BOMB_SOLVE" },
+			{ "serial", bombLogInfo["serial"] },
+			{ "bombTime", CurrentTimer },
+			{ "realTime", Time.unscaledTime - realTimeStart },
+			{ "solves", Bomb.GetSolvedComponentCount() },
+			{ "strikes", Bomb.NumStrikes },
+		});
 	}
 
 	void LogChildren(Transform goTransform, int depth = 0)

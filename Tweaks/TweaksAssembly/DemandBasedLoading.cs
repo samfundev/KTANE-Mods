@@ -33,6 +33,10 @@ static class DemandBasedLoading
 			Tweaks.Instance.StartCoroutine(CheckForModManagerState());
 		}
 
+		// Unload any service objects as they shouldn't be needed outside the gameplay room.
+		foreach (Mod mod in manuallyLoadedMods.Values)
+			mod.RemoveServiceObjects();
+
 		// Unload mods if we're we're over the limit
 		while (loadOrder.Count > Tweaks.settings.DemandModLimit && Tweaks.settings.DemandModLimit >= 0)
 		{
@@ -40,7 +44,6 @@ static class DemandBasedLoading
 			loadOrder.Remove(steamID);
 
 			Mod mod = manuallyLoadedMods[steamID];
-			mod.RemoveServiceObjects();
 			mod.Unload();
 
 			foreach (var loadedObject in loadedObjects[steamID])
@@ -178,9 +181,9 @@ static class DemandBasedLoading
 			// Guess common paths
 			foreach (var path in new[]
 			{
-			@"Program Files (x86)\Steam",
-			@"Program Files\Steam",
-		})
+				@"Program Files (x86)\Steam",
+				@"Program Files\Steam",
+			})
 			{
 				foreach (var drive in Directory.GetLogicalDrives())
 				{
@@ -193,9 +196,9 @@ static class DemandBasedLoading
 
 			foreach (var path in new[]
 			{
-			"~/Library/Application Support/Steam",
-			"~/.steam/steam",
-		})
+				"~/Library/Application Support/Steam",
+				"~/.steam/steam",
+			})
 			{
 				if (Directory.Exists(path))
 				{
@@ -397,6 +400,13 @@ static class DemandBasedLoading
 
 				if (realModule != null)
 				{
+					foreach (ModService original in mod.GetModObjects<ModService>())
+					{
+						GameObject gameObject = Instantiate(original).gameObject;
+						gameObject.transform.parent = ModManager.Instance.transform;
+						mod.AddServiceObject(gameObject);
+					}
+
 					BombComponent bombComponent = realModule.GetComponent<BombComponent>();
 
 					realModule.transform.parent = bomb.visualTransform.transform;
