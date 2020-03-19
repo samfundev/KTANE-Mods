@@ -3,9 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text.RegularExpressions;
-using UnityEngine;
 using EdgeworkConfigurator;
+using UnityEngine;
 using Random = UnityEngine.Random;
 
 public class FakeBombInfo : MonoBehaviour
@@ -82,18 +81,18 @@ public class FakeBombInfo : MonoBehaviour
         if (timeLeft < 60)
         {
             if (timeLeft < 10) time += "0";
-            time += (int)timeLeft;
+            time += (int) timeLeft;
             time += ".";
-			int s = ((int)(timeLeft * 100)) % 100;
+            int s = ((int) (timeLeft * 100)) % 100;
 			if (s < 10) time += "0";
             time += s;
         }
         else
         {
             if (timeLeft < 600) time += "0";
-            time += (int)timeLeft / 60;
+            time += (int) timeLeft / 60;
             time += ":";
-            int s = (int)timeLeft % 60;
+            int s = (int) timeLeft % 60;
             if (s < 10) time += "0";
             time += s;
         }
@@ -140,7 +139,7 @@ public class FakeBombInfo : MonoBehaviour
         List<string> moduleList = new List<string>();
         foreach (KeyValuePair<KMBombModule, bool> m in modules)
         {
-            if(m.Value) moduleList.Add(m.Key.ModuleDisplayName);
+            if (m.Value) moduleList.Add(m.Key.ModuleDisplayName);
         }
         return moduleList;
     }
@@ -293,7 +292,7 @@ public class FakeBombInfo : MonoBehaviour
                                 }
                                 else
                                 {
-                                    widgets.Add(BatteryWidget.CreateComponent(BatteryWidget, (int)widgetConfig.BatteryType));
+                                    widgets.Add(BatteryWidget.CreateComponent(BatteryWidget, (int) widgetConfig.BatteryType));
                                 }
                             }
                             break;
@@ -446,7 +445,7 @@ public class TestHarness : MonoBehaviour
 
 	public int StrikeCount = 3;
 	public int TimeLimit = 600;
-	[Range(1,22)] public int BombSize = 1;
+    [Range(1, 22)] public int BombSize = 1;
 	public bool FrontFaceOnly = false;
 
     public EdgeworkConfiguration EdgeworkConfiguration;
@@ -501,7 +500,7 @@ public class TestHarness : MonoBehaviour
 
 		fakeInfo.SetupEdgework(EdgeworkConfiguration);
 
-        fakeInfo.ActivateLights += delegate()
+        fakeInfo.ActivateLights += delegate ()
         {
             TurnLightsOn();
             fakeInfo.OnLightsOn();
@@ -533,11 +532,11 @@ public class TestHarness : MonoBehaviour
 
 	Component LogReplaceBombInfoError(FieldInfo f, MonoBehaviour s)
 	{
-		Component component = (Component)f.GetValue(s);
+        Component component = (Component) f.GetValue(s);
 		if (component == null)
 		{
 			var obj = s.transform;
-			LogErrorAtTransform(obj,string.Format("component of type {0}", f.FieldType.Name));
+            LogErrorAtTransform(obj, string.Format("component of type {0}", f.FieldType.Name));
 		}
 		return component;
 	}
@@ -553,7 +552,7 @@ public class TestHarness : MonoBehaviour
             {
                 if (f.FieldType == typeof(KMGameInfo))
                 {
-                    KMGameInfo component = (KMGameInfo)LogReplaceBombInfoError(f, s);
+                    KMGameInfo component = (KMGameInfo) LogReplaceBombInfoError(f, s);
 					if (component == null || !components.Add(component)) continue;
 
 					component.OnLightsChange += new KMGameInfo.KMLightsChangeDelegate(fakeInfo.OnLightsChange);
@@ -562,7 +561,7 @@ public class TestHarness : MonoBehaviour
                 }
                 if (f.FieldType == typeof(KMGameCommands))
                 {
-                    KMGameCommands component = (KMGameCommands)LogReplaceBombInfoError(f, s);
+                    KMGameCommands component = (KMGameCommands) LogReplaceBombInfoError(f, s);
 					if (component == null || !components.Add(component)) continue;
 
 					component.OnCauseStrike += new KMGameCommands.KMCauseStrikeDelegate(fakeInfo.HandleStrike);
@@ -630,8 +629,8 @@ public class TestHarness : MonoBehaviour
 		anchors[timerFace].Remove(anchor);
 		module.SetParent(anchor, false);
 
-		if(parent != null) module.SetParent(parent, true);
-		if(prepareTwitchPlays) PrepareTwitchPlaysModule(module);
+        if (parent != null) module.SetParent(parent, true);
+        if (prepareTwitchPlays) PrepareTwitchPlaysModule(module);
 
 		return anchor;
 	}
@@ -930,7 +929,7 @@ public class TestHarness : MonoBehaviour
 		widgetsTransform.SetParent(_bomb);
 
 		SerialNumber sn = widgets.FirstOrDefault(x => x.GetType() == typeof(SerialNumber)) as SerialNumber;
-		if(sn == null) throw new Exception("Could not locate the serial number widget. Cannot continue");
+        if (sn == null) throw new Exception("Could not locate the serial number widget. Cannot continue");
 		widgets = widgets.Where(x => x.GetType() != typeof(SerialNumber)).OrderBy(x => Random.value).ToList();
 		widgets.Insert(0, sn);
 
@@ -982,6 +981,8 @@ public class TestHarness : MonoBehaviour
 
     void Handlers(KMBombInfo component)
     {
+        if (component == null)
+            return;
         component.TimeHandler += new KMBombInfo.GetTimeHandler(fakeInfo.GetTime);
         component.FormattedTimeHandler += new KMBombInfo.GetFormattedTimeHandler(fakeInfo.GetFormattedTime);
         component.StrikesHandler += new KMBombInfo.GetStrikesHandler(fakeInfo.GetStrikes);
@@ -1030,7 +1031,7 @@ public class TestHarness : MonoBehaviour
 	            if (kvp.Value) return false;
 
 				Debug.Log("Module Passed");
-				if(statuslight != null) statuslight.SetPass();
+                if (statuslight != null) statuslight.SetPass();
 
                 fakeInfo.modules.Remove(kvp);
                 fakeInfo.modules.Add(new KeyValuePair<KMBombModule, bool>(mod, true));
@@ -1043,7 +1044,7 @@ public class TestHarness : MonoBehaviour
             modules[i].OnStrike = delegate ()
             {
                 Debug.Log("Strike");
-				if(statuslight != null) statuslight.FlashStrike();
+                if (statuslight != null) statuslight.FlashStrike();
                 fakeInfo.HandleStrike(modules[j].ModuleDisplayName);
                 return false;
             };
@@ -1097,7 +1098,7 @@ public class TestHarness : MonoBehaviour
         {
             kmAudio.HandlePlaySoundAtTransform += PlaySoundHandler;
 			kmAudio.HandlePlaySoundAtTransformWithRef += PlaySoundHandler;
-	        kmAudio.HandlePlayGameSoundAtTransform += (effect,t) => PlaySoundEffectHandler(effect,t);
+            kmAudio.HandlePlayGameSoundAtTransform += (effect, t) => PlaySoundEffectHandler(effect, t);
 			kmAudio.HandlePlayGameSoundAtTransformWithRef += PlaySoundEffectHandler;
         }
 
@@ -1140,7 +1141,7 @@ public class TestHarness : MonoBehaviour
 
 	private KMAudio.KMAudioRef PlaySoundHandler(string clipName, Transform t, bool loop)
 	{
-		KMAudio.KMAudioRef audioRef = new KMAudio.KMAudioRef {StopSound = () => { }};
+        KMAudio.KMAudioRef audioRef = new KMAudio.KMAudioRef { StopSound = () => { } };
 
 		AudioClip clip = AudioClips == null ? null : AudioClips.FirstOrDefault(a => a.name == clipName);
 
@@ -1184,7 +1185,7 @@ public class TestHarness : MonoBehaviour
 			{
 				source.PlayOneShot(clip);
 			}
-			audioRef.StopSound = () => { if(source.loop) source.Stop(); };
+            audioRef.StopSound = () => { if (source.loop) source.Stop(); };
 		}
 
 		return audioRef;
@@ -1257,7 +1258,8 @@ public class TestHarness : MonoBehaviour
             int layerMask = 1 << 11;
             bool rayCastHitSomething = Physics.Raycast(ray, out hit, 1000, layerMask);
 
-			if (rayCastHitSomething && !_interacting) {
+            if (rayCastHitSomething && !_interacting)
+            {
                 TestSelectableArea hitArea = hit.collider.GetComponent<TestSelectableArea>();
                 if (hitArea != null)
                 {
@@ -1458,7 +1460,8 @@ public class TestHarness : MonoBehaviour
 		        if (testSelectable != null) continue;
 		        testSelectable = selectable.gameObject.AddComponent<TestSelectable>();
 
-				selectable.OnUpdateChildren += select => {
+                selectable.OnUpdateChildren += select =>
+                {
 					AddHighlightables();
 					AddSelectables();
 
