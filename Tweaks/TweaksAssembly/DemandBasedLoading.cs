@@ -443,6 +443,10 @@ static class DemandBasedLoading
 
 					Application.logMessageReceived += logRecieved;
 				}
+				else
+				{
+					Tweaks.Log($"Unable to get the real module for {ModuleID} ({SteamID}). This shouldn't happen, please contact the developer.");
+				}
 			}
 		}
 

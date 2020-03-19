@@ -620,7 +620,7 @@ class Tweaks : MonoBehaviour
 		SettingWarning.Traverse("CaseGenerator").SetActive(CurrentState == KMGameInfo.State.Setup && CaseGeneratorSettingCache != settings.CaseGenerator);
 		SettingWarning.Traverse("DemandBasedModLoading").SetActive(CurrentState == KMGameInfo.State.Setup && (demandSettingChanged || demandModsDisabled));
 
-		SettingWarning.Traverse<Text>("DemandBasedModLoading", "WarningText").text = $"The { (demandSettingChanged ? "change to the setting \"DemandBasedModLoading\"" : "") + (demandSettingChanged && demandModsDisabled ? " and " : "") + (demandModsDisabled ? $"{DemandBasedLoading.DisabledModsCount} mod{(DemandBasedLoading.DisabledModsCount == 0 ? "" : "s")} that were automatically disabled" : "") } will only take effect once you enter the Mod Manager. <i>Press \"TAB\" to do that automatically!</i>";
+		SettingWarning.Traverse<Text>("DemandBasedModLoading", "WarningText").text = $"The { (demandSettingChanged ? "change to the setting \"DemandBasedModLoading\"" : "") + (demandSettingChanged && demandModsDisabled ? " and " : "") + (demandModsDisabled ? $"{DemandBasedLoading.DisabledModsCount} mod{(DemandBasedLoading.DisabledModsCount == 1 ? "" : "s")} that were automatically disabled" : "") } will only take effect once you enter the Mod Manager. <i>Press \"TAB\" to do that automatically!</i>";
 	});
 
 	/*void OnApplicationQuit()

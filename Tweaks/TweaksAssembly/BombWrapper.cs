@@ -212,7 +212,8 @@ class BombWrapper
 			{ "displayNames", displayNames },
 			{ "ids", ids },
 			{ "anchors", anchors },
-			{ "modules", modules }
+			{ "modules", modules },
+			{ "timestamp", DateTime.Now.ToString("O") }
 		};
 
 		modulesUnactivated = bomb.BombComponents.Count;

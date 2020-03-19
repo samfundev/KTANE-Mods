@@ -20,11 +20,11 @@ public class BombCaseGenerator : MonoBehaviour
 
     public float offset = 0.22f;
 
-    public GameObject GenerateCase(Vector2 size)
+    public GameObject GenerateCase(Vector2 size, Transform parent)
     {
         float halfX = size.x / 2;
 		float halfY = size.y / 2;
-        GameObject bomb = Instantiate(Empty_Bomb);
+        GameObject bomb = Instantiate(Empty_Bomb, parent);
         bomb.name = size.x + "x" + size.y + " Casing (" + (size.x * size.y * 2 - 1) + " modules)";
         Casing casing = bomb.GetComponent<Casing>();
         Transform visual_transform = casing.Visual;

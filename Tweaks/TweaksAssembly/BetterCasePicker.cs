@@ -115,8 +115,7 @@ static class BetterCasePicker
 
 			if (caseSize != default)
 			{
-				var caseGameObject = BombCaseGenerator.GenerateCase(caseSize);
-				caseGameObject.transform.parent = CaseParent.transform;
+				var caseGameObject = BombCaseGenerator.GenerateCase(caseSize, CaseParent.transform);
 
 				bombcases.Add(caseGameObject, (int) (caseSize.x * caseSize.y * (frontFaceOnly ? 1 : 2)));
 

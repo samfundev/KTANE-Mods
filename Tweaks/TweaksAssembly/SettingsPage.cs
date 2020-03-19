@@ -397,10 +397,13 @@ class SettingsPage : MonoBehaviour
 
 		foreach (Listing listing in info.Listings)
 		{
-			if (listing.Type != ListingType.Section)
+			if (listing.Type != ListingType.Section && listing.Key != null)
 			{
 				var path = info.Path;
 				var dictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(File.ReadAllText(path));
+				if (!dictionary.ContainsKey(listing.Key))
+					continue;
+
 				listing.DefaultValue = dictionary[listing.Key];
 				listing.Action = obj =>
 				{
