@@ -12,6 +12,7 @@ using Assets.Scripts.BombBinder;
 using Assets.Scripts.Mods.Mission;
 using Assets.Scripts.Leaderboards;
 using Assets.Scripts.Services.Steam;
+using Assets.Scripts.Props;
 
 [RequireComponent(typeof(KMService))]
 [RequireComponent(typeof(KMGameInfo))]
@@ -358,6 +359,10 @@ class Tweaks : MonoBehaviour
 			{ "mission", Localization.GetLocalizedString(SceneManager.Instance.GameplayState.Mission.DisplayNameTerm) },
 		});
 
+		var snoozeButton = FindObjectOfType<AlarmClock>()?.SnoozeButton;
+		if (snoozeButton != null)
+			FixKeypadButtons(snoozeButton);
+
 		void wrapInitialBombs()
 		{
 			Array.Resize(ref bombWrappers, bombs.Count);
@@ -578,6 +583,18 @@ class Tweaks : MonoBehaviour
 				Modes.settings.TimeModeStartingTime = freeplayDevice.CurrentSettings.Time / 60;
 				Modes.modConfig.Settings = Modes.settings;
 			};
+		}
+	}
+
+	internal static void FixKeypadButtons(params KeypadButton[] buttons) => FixKeypadButtons((IEnumerable<KeypadButton>) buttons);
+	internal static void FixKeypadButtons(IEnumerable<KeypadButton> buttons)
+	{
+		foreach (var button in buttons)
+		{
+			if (button.ButtonHeightOverride == 0)
+			{
+				button.ButtonHeightOverride = (float) ReflectedTypes.KeypadButtonHeightField.GetValue(button);
+			}
 		}
 	}
 
