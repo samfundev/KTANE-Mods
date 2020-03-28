@@ -201,7 +201,7 @@ class BombWrapper
 			{ "WordScrambleModule", bombComponent => new WordScramblePatch(bombComponent) },
 
 			{ "Wires", bombComponent => new WiresLogging(bombComponent) },
-			{ "Keypad", bombComponent => new KeypadLogging(bombComponent) },
+			{ "Keypad", bombComponent => new KeypadLogging(bombComponent) }
 		};
 
 		modules = new string[bomb.Faces.Sum(face => face.Anchors.Count)];
@@ -259,9 +259,27 @@ class BombWrapper
 
 			component.StartCoroutine(GetModuleInformation(component, moduleTweak));
 
-			if (component.ComponentType == ComponentTypeEnum.Mod)
+			if (component.ComponentType == ComponentTypeEnum.Mod || component.ComponentType == ComponentTypeEnum.NeedyMod)
 			{
 				ReflectedTypes.FindModeBoolean(component);
+			}
+			else if (Tweaks.settings.ModuleTweaks)
+			{
+				switch (component.ComponentType)
+				{
+					case ComponentTypeEnum.Keypad:
+						Tweaks.FixKeypadButtons(((KeypadComponent) component).buttons);
+						break;
+					case ComponentTypeEnum.Simon:
+						Tweaks.FixKeypadButtons(((SimonComponent) component).buttons);
+						break;
+					case ComponentTypeEnum.Password:
+						Tweaks.FixKeypadButtons(component.GetComponentsInChildren<KeypadButton>());
+						break;
+					case ComponentTypeEnum.NeedyVentGas:
+						Tweaks.FixKeypadButtons(((NeedyVentComponent) component).YesButton, ((NeedyVentComponent) component).NoButton);
+						break;
+				}
 			}
 		}
 	}

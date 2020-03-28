@@ -40,6 +40,9 @@ static class ReflectedTypes
 	public static FieldInfo TocsField;
 
 	public static FieldInfo IsInteractingField;
+
+	public static FieldInfo KeypadButtonHeightField = typeof(KeypadButton).GetField("buttonHeight", BindingFlags.NonPublic | BindingFlags.Instance);
+
 	static readonly Dictionary<MonoBehaviour, ModuleFields> CachedFields = new Dictionary<MonoBehaviour, ModuleFields>();
 
 	class ModuleFields
