@@ -73,7 +73,7 @@ process.chdir("..");
 					else await fs.remove(folder);
 				}
 	
-				await fs.symlink(relative(file, join("! Source Project", junc)), folder, (await fs.lstat(join("! Source Project", junc))).isDirectory() ? "junction" : "file")
+				await fs.symlink(relative(join(folder, ".."), join("! Source Project", junc)), folder, (await fs.lstat(join("! Source Project", junc))).isDirectory() ? "junction" : "file")
 					.catch(console.error)
 					.then(() => console.log(`Created junction for "${folder}"`));
 			}).catch(error => {
