@@ -42,6 +42,7 @@ class ModConfig<T>
             }
             catch(Exception e)
             {
+				Debug.LogFormat("An exception has occured while attempting to read the settings from {0}\nDefault settings will be used for the type of {1}.", SettingsPath, typeof(T).ToString());
 				Debug.LogException(e);
                 return Activator.CreateInstance<T>();
             }
@@ -53,7 +54,15 @@ class ModConfig<T>
             {
 				lock (settingsFileLock)
 				{
-					File.WriteAllText(SettingsPath, SerializeSettings(value));
+					try
+					{
+						File.WriteAllText(SettingsPath, SerializeSettings(value));
+					}
+					catch (Exception e)
+					{
+						Debug.LogFormat("Failed to write to {0}", SettingsPath);
+						Debug.LogException(e);
+					}
 				}
 			}
         }
