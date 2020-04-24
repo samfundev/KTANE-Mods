@@ -259,10 +259,11 @@ public class MinesweeperModule : MonoBehaviour
 				}
 			}
 
-			if (StartFound)
-			{
-				Children.Add(ModeToggle.GetComponent<KMSelectable>());
-			}
+		}
+
+		if (StartFound)
+		{
+			Children.Add(ModeToggle.GetComponent<KMSelectable>());
 		}
 
 		foreach (KMSelectable selectable in GetComponentsInChildren<KMSelectable>().Except(new KMSelectable[] { ModuleSelectable }))
@@ -271,7 +272,7 @@ public class MinesweeperModule : MonoBehaviour
 		}
 
 		ModuleSelectable.Children = Children.ToArray();
-		ModuleSelectable.UpdateChildren(Game.Solved ? ModuleSelectable : null);
+		ModuleSelectable.UpdateChildren(null);
 	}
 
 	// Helper functions.
@@ -429,6 +430,7 @@ public class MinesweeperModule : MonoBehaviour
 		}
 
 		Module.HandlePass();
+		UpdateSelectable();
 	}
 
 	void LogBoard()
