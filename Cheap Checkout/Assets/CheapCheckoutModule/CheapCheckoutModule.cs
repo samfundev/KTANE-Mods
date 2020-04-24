@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Random = UnityEngine.Random;
+using System.Globalization;
 
 public class CheapCheckoutModule : MonoBehaviour
 {
@@ -693,7 +694,7 @@ public class CheapCheckoutModule : MonoBehaviour
         {
 			if (split[0] == "submit") {
 				decimal price;
-				if (decimal.TryParse(split[1], out price) && decimal.Round(price, 2) == price && price < 200)
+				if (decimal.TryParse(split[1], NumberStyles.Number & ~NumberStyles.AllowThousands, NumberFormatInfo.CurrentInfo, out price) && decimal.Round(price, 2) == price && price < 200)
 				{
 					yield return null;
 
