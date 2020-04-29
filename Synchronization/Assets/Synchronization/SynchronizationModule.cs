@@ -668,7 +668,13 @@ public class SynchronizationModule : MonoBehaviour
 
 			yield return null;
 			foreach (IEnumerator routine in commandRoutines)
-				yield return routine;
+			{
+				do
+				{
+					yield return routine.Current;
+				}
+				while (routine.MoveNext());
+			}
 
 			yield break;
 		}
