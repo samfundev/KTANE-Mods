@@ -839,95 +839,100 @@ public class MinesweeperModule : MonoBehaviour
 	{
 		return targets.Contains(obj);
 	}
-	
-	#pragma warning disable 414
-	private string TwitchHelpMessage = "Dig the initial color with !{0} dig blue. Dig the cell in column 1 row 2 with !{0} dig 1 2. Flag the cell on column 3 row 4 with !{0} flag 3 4. Add \"hold\" to the end of a command to hold down on a cell. You can use negative numbers to count from the end of that row/column. Chain commands with a semicolon.";
-	#pragma warning restore 414
+
+	public readonly string TwitchHelpMessage = "Dig the initial color with !{0} dig blue. Dig the cell in column 1 row 2 with !{0} dig 1 2. Flag the cell on column 3 row 4 with !{0} flag 3 4. Add \"hold\" to the end of a command to hold down on a cell. You can use negative numbers to count from the end of that row/column. Chain commands with a semicolon.";
+
 	public IEnumerator ProcessTwitchCommand(string command)
 	{
-		List<TPAction> actions = new List<TPAction>();
-		
-		string[] commands = command.ToLowerInvariant().Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-		foreach (string cmd in commands)
+		string[] chainedCommands = command.Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries);
+		if (chainedCommands.Length > 1)
 		{
-			string[] split = cmd.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-			bool digging = EqualsAny(split[0], "dig", "d");
-			if (StartFound)
+			var commandRoutines = chainedCommands.Select(ProcessTwitchCommand).ToArray();
+			var invalidCommand = Array.Find(commandRoutines, routine => !routine.MoveNext());
+			if (invalidCommand != null)
 			{
-				bool holding = EqualsAny(split.Last(), "hold", "holding", "h");
-				if (EqualsAny(split.Length, 3, 4) && EqualsAny(split[0], "dig", "flag", "d", "f"))
-				{
-					if (holding != (split.Length == 4)) yield break;
-
-					int x;
-					int y;
-					if (int.TryParse(split[1], out x) && int.TryParse(split[2], out y))
-					{
-						if (x < 0) x += 9;
-						if (y < 0) y += 11;
-						Cell cell = Game.GetCell(x - 1, y - 1);
-						if (cell == null) yield break;
-
-						actions.Add(new TPAction(cell, digging, holding));
-					}
-				}
-				else if (EqualsAny(split.Length, 2, 3))
-				{
-					if (holding != (split.Length == 3)) yield break;
-
-					int x;
-					int y;
-					if (int.TryParse(split[0], out x) && int.TryParse(split[1], out y))
-					{
-						if (x < 0) x += 9;
-						if (y < 0) y += 11;
-						Cell cell = Game.GetCell(x - 1, y - 1);
-						if (cell == null) yield break;
-
-						actions.Add(new TPAction(cell, holding));
-					}
-				}
+				yield return "sendtochaterror The command \"" + chainedCommands[Array.IndexOf(commandRoutines, invalidCommand)] + "\" is invalid.";
+				yield break;
 			}
-			else if (split.Length == 2 && digging && Colors.Keys.Contains(split[1]))
+
+			yield return null;
+			foreach (IEnumerator routine in commandRoutines)
 			{
-				actions.Add(new TPAction(split[1]));
+				do
+				{
+					yield return routine.Current;
+				}
+				while (routine.MoveNext());
 			}
-		}
-		
-		if (actions.Count != commands.Length)
-		{
+
 			yield break;
 		}
 
-		yield return null;
-		foreach (TPAction action in actions)
+		string[] split = command.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+		bool digging = EqualsAny(split[0], "dig", "d");
+		if (StartFound)
 		{
-			if (action.actionType == "digColor")
+			bool holding = EqualsAny(split.Last(), "hold", "holding", "h");
+			if (EqualsAny(split.Length, 3, 4) && EqualsAny(split[0], "dig", "flag", "d", "f"))
 			{
-				foreach (Cell cell in Game.Cells)
+				if (holding != (split.Length == 4)) yield break;
+
+				int x;
+				int y;
+				if (int.TryParse(split[1], out x) && int.TryParse(split[2], out y))
 				{
-					if (cell.Color == action._color)
+					if (x < 0) x += 9;
+					if (y < 0) y += 11;
+					Cell cell = Game.GetCell(x - 1, y - 1);
+					if (cell == null) yield break;
+
+					yield return null;
+					if (digging != Digging)
 					{
-						cell.Click();
+						ModeToggle.GetComponent<KMSelectable>().OnInteract();
 						yield return new WaitForSeconds(0.1f);
 					}
-				}
 
-				StartCoroutine(TwitchPlaysFormat());
-			}
-			else if (EqualsAny(action.actionType, "interact", "setInteract"))
-			{
-				if (action.actionType == "setInteract" && action._digging != Digging)
-				{
-					ModeToggle.GetComponent<KMSelectable>().OnInteract();
+					cell._selectable.OnInteract();
+					if (holding) yield return new WaitForSeconds(0.3f);
+					cell._selectable.OnInteractEnded();
 					yield return new WaitForSeconds(0.1f);
 				}
-
-				action._cell._selectable.OnInteract();
-				if (action._held) yield return new WaitForSeconds(0.3f);
-				action._cell._selectable.OnInteractEnded();
-				yield return new WaitForSeconds(0.1f);
 			}
+			else if (EqualsAny(split.Length, 2, 3))
+			{
+				if (holding != (split.Length == 3)) yield break;
+
+				int x;
+				int y;
+				if (int.TryParse(split[0], out x) && int.TryParse(split[1], out y))
+				{
+					if (x < 0) x += 9;
+					if (y < 0) y += 11;
+					Cell cell = Game.GetCell(x - 1, y - 1);
+					if (cell == null) yield break;
+
+					yield return null;
+					cell._selectable.OnInteract();
+					if (holding) yield return new WaitForSeconds(0.3f);
+					cell._selectable.OnInteractEnded();
+					yield return new WaitForSeconds(0.1f);
+				}
+			}
+		}
+		else if (split.Length == 2 && digging && Colors.Keys.Contains(split[1]))
+		{
+			yield return null;
+			foreach (Cell cell in Game.Cells)
+			{
+				if (cell.Color == split[1])
+				{
+					cell.Click();
+					yield return new WaitForSeconds(0.1f);
+				}
+			}
+
+			StartCoroutine(TwitchPlaysFormat());
 		}
 	}
 
