@@ -52,7 +52,7 @@ static class ReflectedTypes
 	//Combination of FindTimeMode, FindZenMode, and their related properties in Twitch Plays
 	static readonly BindingFlags modeFieldFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static;
 	public static void FindModeBoolean(MonoBehaviour KMModule)
-    {
+	{
 		ModuleFields fields;
 
 		if (!CachedFields.ContainsKey(KMModule))
@@ -73,39 +73,41 @@ static class ReflectedTypes
 			fields = CachedFields[KMModule];
 
 		if (fields.ZenModeBool != null && fields.ZenModeBool.FieldType == typeof(bool))
-            fields.ZenModeBool.SetValue(KMModule.GetComponentInChildren(fields.ZenModeBool.ReflectedType), Tweaks.CurrentMode == Mode.Zen);
+			fields.ZenModeBool.SetValue(KMModule.GetComponentInChildren(fields.ZenModeBool.ReflectedType), Tweaks.CurrentMode == Mode.Zen);
 
-        if (fields.TimeModeBool != null && fields.TimeModeBool.FieldType == typeof(bool))
-            fields.TimeModeBool.SetValue(KMModule.GetComponentInChildren(fields.TimeModeBool.ReflectedType), Tweaks.CurrentMode == Mode.Time);
-    }
+		if (fields.TimeModeBool != null && fields.TimeModeBool.FieldType == typeof(bool))
+			fields.TimeModeBool.SetValue(KMModule.GetComponentInChildren(fields.TimeModeBool.ReflectedType), Tweaks.CurrentMode == Mode.Time);
+	}
 
-    public static IEnumerable<FieldInfo> GetAllFields(Type t, BindingFlags bindingFlags)
-    {
-        if (t == null)
-            return Enumerable.Empty<FieldInfo>();
+	public static IEnumerable<FieldInfo> GetAllFields(Type t, BindingFlags bindingFlags)
+	{
+		if (t == null)
+			return Enumerable.Empty<FieldInfo>();
 
-        BindingFlags flags = bindingFlags |
-                             BindingFlags.DeclaredOnly;
-        return t.GetFields(flags).Concat(GetAllFields(t.BaseType, bindingFlags));
-    }
+		BindingFlags flags = bindingFlags |
+							 BindingFlags.DeclaredOnly;
+		return t.GetFields(flags).Concat(GetAllFields(t.BaseType, bindingFlags));
+	}
 
-    public static FieldInfo GetModuleIDNumber(MonoBehaviour KMModule, out Component targetComponent)
-    {
-        foreach (Component component in KMModule.GetComponents<Component>())
-        {
-            foreach (FieldInfo fieldInfo in GetAllFields(component.GetType(), BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
-            {
-                if (fieldInfo.FieldType == typeof(int) && (fieldInfo.Name.EndsWith("moduleid", StringComparison.InvariantCultureIgnoreCase) || string.Equals(fieldInfo.Name, "thisloggingid", StringComparison.InvariantCultureIgnoreCase)))
-                {
-                    targetComponent = component;
-                    return fieldInfo;
-                }
-            }
-        }
+	public static FieldInfo GetModuleIDNumber(MonoBehaviour KMModule, out Component targetComponent)
+	{
+		foreach (Component component in KMModule.GetComponents<Component>())
+		{
+			if (component == null)
+				continue;
+			foreach (FieldInfo fieldInfo in GetAllFields(component.GetType(), BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+			{
+				if (fieldInfo.FieldType == typeof(int) && (fieldInfo.Name.EndsWith("moduleid", StringComparison.InvariantCultureIgnoreCase) || string.Equals(fieldInfo.Name, "thisloggingid", StringComparison.InvariantCultureIgnoreCase)))
+				{
+					targetComponent = component;
+					return fieldInfo;
+				}
+			}
+		}
 
-        targetComponent = null;
-        return null;
-    }
+		targetComponent = null;
+		return null;
+	}
 
 	public static void UpdateTypes()
 	{
