@@ -4,9 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-/* 
- * This file originally came from Multiple Bombs, Written by Lupo511
- */
+// This file originally came from Multiple Bombs, written by Lupo511.
 
 public class PropertiesBehaviour : MonoBehaviour, IDictionary<string, object>
 {

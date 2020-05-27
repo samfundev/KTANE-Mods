@@ -42,7 +42,7 @@ class BombWrapper : MonoBehaviour
 			Modes.initialTime = timerComponent.TimeRemaining;
 
 			//This was in the original code to make sure the bomb didn't explode on the first strike
-			bomb.NumStrikesToLose++;
+			Bomb.NumStrikesToLose++;
 		}
 
 		realTimeStart = Time.unscaledTime;
@@ -99,11 +99,11 @@ class BombWrapper : MonoBehaviour
 					string alertText = "";
 					if (Math.Round(totalModulesMultiplier, 3) != 0)
 					{
-						alertText += $"{ComponentValue} + {totalModulesMultiplier.ToString("0.###")} <size=36>x</size> {Bomb.BombComponents.Count} mods = {points.ToString("0")}\n";
+						alertText += $"{ComponentValue} + {totalModulesMultiplier:0.###} <size=36>x</size> {Bomb.BombComponents.Count} mods = {points:0}\n";
 					}
 
-					string multiplierText = Math.Round(Modes.settings.TimeModePointMultiplier, 3) == 1 ? "" : $"<size=36>x</size> {Modes.settings.TimeModePointMultiplier.ToString("0.###")} ";
-					alertText += $"{points.ToString("0")} points <size=36>x</size> {finalMultiplier.ToString("0.#")} {multiplierText}= {(time > 0 ? "+" : "")}{time.FormatTime()}\n";
+					string multiplierText = Math.Round(Modes.settings.TimeModePointMultiplier, 3) == 1 ? "" : $"<size=36>x</size> {Modes.settings.TimeModePointMultiplier:0.###} ";
+					alertText += $"{points:0} points <size=36>x</size> {finalMultiplier:0.#} {multiplierText}= {(time > 0 ? "+" : "")}{time.FormatTime()}\n";
 
 					if (time < Modes.settings.TimeModeMinimumTimeGained)
 					{
@@ -137,8 +137,8 @@ class BombWrapper : MonoBehaviour
 					float finalMultiplier = Math.Max(multiplier, Modes.settings.TimeModeMinMultiplier);
 
 					// Show the alert
-					string alertText = $"TIME LOST = {Modes.settings.TimeModeTimerStrikePenalty.ToString("0.###")} <size=36>x</size> {CurrentTimer.FormatTime()} = {(CurrentTimer * Modes.settings.TimeModeTimerStrikePenalty).FormatTime()}\n";
-					alertText += $"MULTIPIER = {Modes.Multiplier.ToString("0.#")} - {Modes.settings.TimeModeMultiplierStrikePenalty.ToString("0.#")} = {multiplier.ToString("0.#")}\n";
+					string alertText = $"TIME LOST = {Modes.settings.TimeModeTimerStrikePenalty:0.###} <size=36>x</size> {CurrentTimer.FormatTime()} = {(CurrentTimer * Modes.settings.TimeModeTimerStrikePenalty).FormatTime()}\n";
+					alertText += $"MULTIPIER = {Modes.Multiplier:0.#} - {Modes.settings.TimeModeMultiplierStrikePenalty:0.#} = {multiplier:0.#}\n";
 
 					if (multiplier < Modes.settings.TimeModeMinMultiplier)
 					{
@@ -170,7 +170,7 @@ class BombWrapper : MonoBehaviour
 				// These mode modifications need to happen after the game handles the strike since they change the timer rate.
 				if (Tweaks.CurrentMode == Mode.Zen)
 				{
-					bomb.NumStrikesToLose++;
+					Bomb.NumStrikesToLose++;
 
 					ZenModeTimerRate = Mathf.Max(ZenModeTimerRate - Mathf.Abs(Modes.settings.ZenModeTimerSpeedUp), -Mathf.Abs(Modes.settings.ZenModeTimerMaxSpeed));
 					timerComponent.SetRateModifier(ZenModeTimerRate);
@@ -182,7 +182,7 @@ class BombWrapper : MonoBehaviour
 				if (Tweaks.CurrentMode == Mode.Steady)
 				{
 					timerComponent.SetRateModifier(1);
-					CurrentTimer -= Modes.settings.SteadyModeFixedPenalty * 60 - Modes.settings.SteadyModePercentPenalty * bombStartingTimer;
+					CurrentTimer -= Modes.settings.SteadyModeFixedPenalty * 60 - Modes.settings.SteadyModePercentPenalty * BombStartingTimer;
 				}
 
 				BombStatus.Instance.UpdateStrikes();
@@ -204,11 +204,11 @@ class BombWrapper : MonoBehaviour
 			{ "Keypad", bombComponent => new KeypadLogging(bombComponent) }
 		};
 
-		modules = new string[bomb.Faces.Sum(face => face.Anchors.Count)];
-		anchors = new decimal[bomb.Faces.Sum(face => face.Anchors.Count)][];
+		modules = new string[Bomb.Faces.Sum(face => face.Anchors.Count)];
+		anchors = new decimal[Bomb.Faces.Sum(face => face.Anchors.Count)][];
 		bombLogInfo = new Dictionary<string, object>()
 		{
-			{ "serial", JsonConvert.DeserializeObject<Dictionary<string, string>>(bomb.WidgetManager.GetWidgetQueryResponses(KMBombInfo.QUERYKEY_GET_SERIAL_NUMBER, null)[0])["serial"] },
+			{ "serial", JsonConvert.DeserializeObject<Dictionary<string, string>>(Bomb.WidgetManager.GetWidgetQueryResponses(KMBombInfo.QUERYKEY_GET_SERIAL_NUMBER, null)[0])["serial"] },
 			{ "displayNames", displayNames },
 			{ "ids", ids },
 			{ "anchors", anchors },
@@ -216,18 +216,18 @@ class BombWrapper : MonoBehaviour
 			{ "timestamp", DateTime.Now.ToString("O") }
 		};
 
-		modulesUnactivated = bomb.BombComponents.Count;
-		foreach (BombComponent component in bomb.BombComponents)
+		modulesUnactivated = Bomb.BombComponents.Count;
+		foreach (BombComponent component in Bomb.BombComponents)
 		{
 			KMBombModule bombModule = component.GetComponent<KMBombModule>();
 			if (bombModule != null && (bombModule.ModuleType == "TurnTheKey" || Tweaks.settings.ModuleTweaks))
 			{
 				switch (bombModule.ModuleType)
 				{
-					//TTK is our favorite Zen mode compatible module
-					//Of course, everything here is repurposed from Twitch Plays.
+					// TTK is our favorite Zen mode compatible module
+					// Of course, everything here is repurposed from Twitch Plays.
 					case "TurnTheKey":
-						new TTKComponentSolver(bombModule, bomb, Tweaks.CurrentMode.Equals(Mode.Zen) ? Modes.initialTime : timerComponent.TimeRemaining);
+						new TTKComponentSolver(bombModule, Bomb, Tweaks.CurrentMode.Equals(Mode.Zen) ? Modes.initialTime : timerComponent.TimeRemaining);
 						break;
 
 					// Correct some mispositioned objects in older modules
@@ -308,9 +308,9 @@ class BombWrapper : MonoBehaviour
 	int modulesUnactivated = 0;
 	readonly Dictionary<string, string> displayNames = new Dictionary<string, string>();
 	readonly Dictionary<string, List<int>> ids = new Dictionary<string, List<int>>();
-	readonly Dictionary<string, object> bombLogInfo;
-	readonly string[] modules = new string[] { };
-	readonly decimal[][] anchors = new decimal[][] { };
+	Dictionary<string, object> bombLogInfo;
+	string[] modules = new string[] { };
+	decimal[][] anchors = new decimal[][] { };
 
 	readonly Dictionary<BombComponent, int> componentIDs = new Dictionary<BombComponent, int>();
 
@@ -442,7 +442,7 @@ class BombWrapper : MonoBehaviour
 
 	void AddAlert(string text, Color color)
 	{
-		var alert = UnityEngine.Object.Instantiate(BombStatus.Instance.Alert, BombStatus.Instance.transform, false).GetComponent<RectTransform>();
+		var alert = Instantiate(BombStatus.Instance.Alert, BombStatus.Instance.transform, false).GetComponent<RectTransform>();
 		var textComponent = alert.gameObject.Traverse<UnityEngine.UI.Text>("Background", "Text");
 		textComponent.text = text;
 		textComponent.color = color;
@@ -512,9 +512,9 @@ class BombWrapper : MonoBehaviour
 	public TimerComponent timerComponent = null;
 	public WidgetManager widgetManager = null;
 
-	public int bombSolvableModules { get => Bomb.GetSolvableComponentCount(); }
-	public int bombSolvedModules { get => Bomb.GetSolvedComponentCount(); }
-	public float bombStartingTimer { get => timerComponent.TimeElapsed + timerComponent.TimeRemaining; }
+	public int BombSolvableModules => Bomb.GetSolvableComponentCount();
+	public int BombSolvedModules => Bomb.GetSolvedComponentCount();
+	public float BombStartingTimer => timerComponent.TimeElapsed + timerComponent.TimeRemaining;
 
 	public float CurrentTimerElapsed => timerComponent.TimeElapsed;
 
@@ -530,21 +530,15 @@ class BombWrapper : MonoBehaviour
 
 	public string CurrentTimerFormatted => timerComponent.GetFormattedTime(CurrentTimer, true);
 
-	public string StartingTimerFormatted => timerComponent.GetFormattedTime(bombStartingTimer, true);
+	public string StartingTimerFormatted => timerComponent.GetFormattedTime(BombStartingTimer, true);
 
 	public string GetFullFormattedTime => Math.Max(CurrentTimer, 0).FormatTime();
 
-	public string GetFullStartingTime => Math.Max(bombStartingTimer, 0).FormatTime();
+	public string GetFullStartingTime => Math.Max(BombStartingTimer, 0).FormatTime();
 
-	public int StrikeCount
-	{
-		get => Bomb.NumStrikes;
-	}
+	public int StrikeCount => Bomb.NumStrikes;
 
-	public int StrikeLimit
-	{
-		get => Bomb.NumStrikesToLose;
-	}
+	public int StrikeLimit => Bomb.NumStrikesToLose;
 
-	public int NumberModules => bombSolvableModules;
+	public int NumberModules => BombSolvableModules;
 }

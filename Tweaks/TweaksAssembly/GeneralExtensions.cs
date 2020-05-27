@@ -50,10 +50,10 @@ public static class GeneralExtensions
 		return stringBuilder.ToString();
 	}
 
-    public static IEnumerable<T> Shuffle<T>(this IEnumerable<T> source)
-    {
-        return source.OrderBy(_ => UnityEngine.Random.value);
-    }
+	public static IEnumerable<T> Shuffle<T>(this IEnumerable<T> source)
+	{
+		return source.OrderBy(_ => UnityEngine.Random.value);
+	}
 
 	public static T GetKeySafe<T>(this Dictionary<string, object> dictionary, string key) {
 		if (dictionary.ContainsKey(key))
@@ -97,12 +97,12 @@ public static class GeneralExtensions
 		).IsMatch(str);
 	}
 
-    // https://stackoverflow.com/a/1450889/8213163
-    public static IEnumerable<string> ChunkBy(this string str, int maxChunkSize)
-    {
-        for (int i = 0; i < str.Length; i += maxChunkSize)
-            yield return str.Substring(i, Math.Min(maxChunkSize, str.Length - i));
-    }
+	// https://stackoverflow.com/a/1450889/8213163
+	public static IEnumerable<string> ChunkBy(this string str, int maxChunkSize)
+	{
+		for (int i = 0; i < str.Length; i += maxChunkSize)
+			yield return str.Substring(i, Math.Min(maxChunkSize, str.Length - i));
+	}
 
 	public static IEnumerable<float> TimedAnimation(this float length)
 	{

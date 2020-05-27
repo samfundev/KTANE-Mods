@@ -117,8 +117,8 @@ class BombStatus : MonoBehaviour
 	public void UpdateSolves()
 	{
 		if (currentBomb == null) return;
-		currentSolves = currentBomb.bombSolvedModules;
-		currentTotalModules = currentBomb.bombSolvableModules;
+		currentSolves = currentBomb.BombSolvedModules;
+		currentTotalModules = currentBomb.BombSolvableModules;
 		string solves = currentSolves.ToString().PadLeft(currentTotalModules.ToString().Length, '0');
 		SolvesPrefab.text = $"{solves}<size=25>/{currentTotalModules}</size>";
 	}
@@ -145,7 +145,7 @@ class BombStatus : MonoBehaviour
 		{
 			float remaining = currentBomb.CurrentTimer;
 
-			return Tweaks.CurrentModeCache == Mode.Time ? remaining / (Modes.settings.TimeModeStartingTime * 60) - 1 : (float) currentSolves / currentTotalModules - (currentBomb.bombStartingTimer - remaining / currentBomb.timerComponent.GetRate()) / currentBomb.bombStartingTimer;
+			return Tweaks.CurrentModeCache == Mode.Time ? remaining / (Modes.settings.TimeModeStartingTime * 60) - 1 : (float) currentSolves / currentTotalModules - (currentBomb.BombStartingTimer - remaining / currentBomb.timerComponent.GetRate()) / currentBomb.BombStartingTimer;
 		}
 	}
 

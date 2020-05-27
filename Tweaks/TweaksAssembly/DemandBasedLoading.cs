@@ -13,10 +13,10 @@ static class DemandBasedLoading
 {
 	public static bool EverLoadedModules;
 	public static int DisabledModsCount;
-	static List<string> fakedModules = new List<string>();
+	static readonly List<string> fakedModules = new List<string>();
 	static string modWorkshopPath;
-	static List<int> loadOrder = new List<int>();
-	static Dictionary<int, UnityEngine.Object[]> loadedObjects = new Dictionary<int, UnityEngine.Object[]>();
+	static readonly List<int> loadOrder = new List<int>();
+	static readonly Dictionary<int, UnityEngine.Object[]> loadedObjects = new Dictionary<int, UnityEngine.Object[]>();
 	static readonly List<BombComponent> emptyTimerFaceComponents = new List<BombComponent>();
 
 	public static void HandleTransitioning()

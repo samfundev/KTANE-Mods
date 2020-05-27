@@ -172,19 +172,23 @@ class Tweaks : MonoBehaviour
 		// Handle state changes
 		GameInfo.OnStateChange += (KMGameInfo.State state) =>
 		{
-			if (CurrentState == KMGameInfo.State.Setup && state == KMGameInfo.State.Transitioning)
+			// Transitioning away from another state
+			if (state == KMGameInfo.State.Transitioning)
 			{
-				DemandBasedLoading.DisabledModsCount = 0;
-			}
+				if (CurrentState == KMGameInfo.State.Setup)
+				{
+					DemandBasedLoading.DisabledModsCount = 0;
+				}
 
-			if (CurrentState == KMGameInfo.State.Gameplay && state == KMGameInfo.State.Transitioning)
-			{
-				BetterCasePicker.BombGenerator = null;
-			}
+				if (CurrentState == KMGameInfo.State.Gameplay)
+				{
+					BetterCasePicker.BombGenerator = null;
+				}
 
-			if (CurrentState != KMGameInfo.State.Gameplay && state == KMGameInfo.State.Transitioning)
-			{
-				DemandBasedLoading.HandleTransitioning();
+				if (CurrentState != KMGameInfo.State.Gameplay)
+				{
+					DemandBasedLoading.HandleTransitioning();
+				}
 			}
 
 			CurrentState = state;
@@ -219,18 +223,15 @@ class Tweaks : MonoBehaviour
 				if (ReflectedTypes.LoadedModsField.GetValue(ModManager.Instance) is Dictionary<string, Mod> loadedMods)
 				{
 					Mod tweaksMod = loadedMods.Values.FirstOrDefault(mod => mod.ModID == "Tweaks");
-					if (tweaksMod != null)
+					if (tweaksMod != null && CaseGeneratorSettingCache != settings.CaseGenerator)
 					{
-						if (CaseGeneratorSettingCache != settings.CaseGenerator)
-						{
-							if (settings.CaseGenerator)
-								tweaksMod.ModObjects.Add(TweaksCaseGeneratorCase);
-							else
-								tweaksMod.ModObjects.Remove(TweaksCaseGeneratorCase);
+						if (settings.CaseGenerator)
+							tweaksMod.ModObjects.Add(TweaksCaseGeneratorCase);
+						else
+							tweaksMod.ModObjects.Remove(TweaksCaseGeneratorCase);
 
-							CaseGeneratorSettingCache = settings.CaseGenerator;
-							UpdateSettingWarning();
-						}
+						CaseGeneratorSettingCache = settings.CaseGenerator;
+						UpdateSettingWarning();
 					}
 				}
 
@@ -240,8 +241,6 @@ class Tweaks : MonoBehaviour
 				TweaksAPI.SetTPProperties(!TwitchPlaysActive);
 
 				GameplayState.BombSeedToUse = -1;
-
-				{
 			}
 			else if (state == KMGameInfo.State.Transitioning)
 			{
@@ -382,7 +381,7 @@ class Tweaks : MonoBehaviour
 			}
 		}
 
-		if (CurrentMode == Mode.Zen)
+		if (CurrentModeCache == Mode.Zen)
 		{
 			GameplayMusicController gameplayMusic = MusicManager.Instance.GameplayMusicController;
 			gameplayMusic.StopMusic();
@@ -470,7 +469,7 @@ class Tweaks : MonoBehaviour
 			targetState &= bombWrappers.Any((BombWrapper bombWrapper) => bombWrapper.CurrentTimer < 60f && !bombWrapper.Bomb.IsSolved());
 			if (targetState != lastState)
 			{
-				foreach (Assets.Scripts.Props.EmergencyLight emergencyLight in FindObjectsOfType<Assets.Scripts.Props.EmergencyLight>())
+				foreach (EmergencyLight emergencyLight in FindObjectsOfType<EmergencyLight>())
 				{
 					if (targetState)
 					{
@@ -538,7 +537,7 @@ class Tweaks : MonoBehaviour
 	IEnumerator FlashAdvantageousWarning()
 	{
 		var startTime = Time.time;
-		var textComponent = AdvantageousWarning.Traverse<UnityEngine.UI.Text>("WarningText");
+		var textComponent = AdvantageousWarning.Traverse<Text>("WarningText");
 		while (AdvantageousWarning.activeSelf)
 		{
 			float alpha = Time.time - startTime;
@@ -562,7 +561,7 @@ class Tweaks : MonoBehaviour
 			{
 				string gameObjName = gameObj.name;
 				if (gameObjName == "FreeplayLabel" || gameObjName == "Free Play Label")
-					gameObj.GetComponent<TMPro.TextMeshPro>().text = CurrentMode == Mode.Normal ? Localization.GetLocalizedString($"FreeplayDevice/label_free{(gameObjName == "FreeplayLabel" ? "playInnerTitle" : "PlayCover")}") : $"{CurrentMode.ToString()} mode";
+					gameObj.GetComponent<TMPro.TextMeshPro>().text = CurrentMode == Mode.Normal ? Localization.GetLocalizedString($"FreeplayDevice/label_free{(gameObjName == "FreeplayLabel" ? "playInnerTitle" : "PlayCover")}") : $"{CurrentMode} mode";
 			});
 
 			freeplayDevice.CurrentSettings.Time = CurrentMode == Mode.Time ? Modes.settings.TimeModeStartingTime * 60 : originalTime;
@@ -635,7 +634,8 @@ class Tweaks : MonoBehaviour
 		}
 	}
 
-	public void UpdateSettingWarning() => MainThreadQueue.Enqueue(() => {
+	public void UpdateSettingWarning() => MainThreadQueue.Enqueue(() =>
+	{
 		if (SettingWarning == null)
 			return;
 
@@ -695,7 +695,7 @@ class Tweaks : MonoBehaviour
 
 	void LogChildren(Transform goTransform, int depth = 0)
 	{
-		Log($"{new string('\t', depth)}{goTransform.name} - {goTransform.localPosition.ToString("N6")}");
+		Log($"{new string('\t', depth)}{goTransform.name} - {goTransform.localPosition:N6}");
 		foreach (Transform child in goTransform)
 		{
 			LogChildren(child, depth + 1);
