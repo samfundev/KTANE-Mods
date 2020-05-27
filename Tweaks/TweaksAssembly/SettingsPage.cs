@@ -26,6 +26,7 @@ class SettingsPage : MonoBehaviour
 	public KMSelectable PinButton = null;
 	public KMSelectable BackwardButton = null;
 	public KMSelectable ForwardButton = null;
+	public KMSelectable BackButton = null;
 
 	public List<Texture> Icons = new List<Texture>();
 
@@ -148,6 +149,12 @@ class SettingsPage : MonoBehaviour
 		BackwardButton.OnInteract = () =>
 		{
 			CurrentPage -= ListingsPerPage;
+			return false;
+		};
+
+		BackButton.OnInteract = () =>
+		{
+			OnCancel();
 			return false;
 		};
 	}
@@ -458,6 +465,7 @@ class SettingsPage : MonoBehaviour
 		selectables.Insert(0, PinButton);
 		selectables.Insert(1, BackwardButton);
 		selectables.Insert(2, ForwardButton);
+		selectables.Add(BackButton);
 
 		SetupSelectables(selectables, true);
 	}
@@ -1009,7 +1017,7 @@ class NumberInput : SettingsInput
 				}
 				break;
 			default:
-				throw new Exception($"Unexpected type \"{Listing.DefaultValue.GetType()}\". Please contact the developer.");
+				throw new Exception($"Unexpected type \"{Listing.DefaultValue.GetType()}\". Please contact the developer of Tweaks.");
 		}
 	}
 }

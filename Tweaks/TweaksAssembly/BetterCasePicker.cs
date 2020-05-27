@@ -12,11 +12,12 @@ static class BetterCasePicker
 
 	public static void HandleCaseGeneration()
 	{
-		// The game sets the seed to 33 for some reason, so we have to set the seed so it doesn't pick the same values every time.
-		Random.InitState((int) System.DateTime.Now.Ticks);
+		Tweaks.FixRNGSeed();
 
 		BombGenerator bombGenerator = Object.FindObjectOfType<BombGenerator>();
 		BombGenerator = bombGenerator;
+		DemandBasedLoading.AttachWatcher();
+
 		if (bombGenerator.BombPrefabOverride == null) // No point in doing anything if they aren't even going to use the ObjectPool.
 		{
 			ObjectPool prefabPool = bombGenerator.BombPrefabPool;

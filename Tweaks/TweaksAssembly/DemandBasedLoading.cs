@@ -17,6 +17,7 @@ static class DemandBasedLoading
 	static string modWorkshopPath;
 	static List<int> loadOrder = new List<int>();
 	static Dictionary<int, UnityEngine.Object[]> loadedObjects = new Dictionary<int, UnityEngine.Object[]>();
+	static readonly List<BombComponent> emptyTimerFaceComponents = new List<BombComponent>();
 
 	public static void HandleTransitioning()
 	{
@@ -38,7 +39,15 @@ static class DemandBasedLoading
 			mod.RemoveServiceObjects();
 
 		// Unload mods if we're we're over the limit
-		while (loadOrder.Count > Tweaks.settings.DemandModLimit && Tweaks.settings.DemandModLimit >= 0)
+		UnloadTo(Tweaks.settings.DemandModLimit);
+
+		// Clear list so the components don't carry over between rounds
+		emptyTimerFaceComponents.Clear();
+	}
+
+	private static void UnloadTo(int limit)
+	{
+		while (loadOrder.Count > limit && limit >= 0)
 		{
 			var steamID = loadOrder[0];
 			loadOrder.Remove(steamID);
@@ -62,6 +71,12 @@ static class DemandBasedLoading
 			loadedObjects.Remove(steamID);
 			manuallyLoadedMods.Remove(steamID);
 		}
+
+		// Remove any now null keys so that objects aren't kept around
+		foreach (var key in ReflectedTypes.CachedFields.Where(pair => pair.Key == null).Select(pair => pair.Key).ToArray())
+		{
+			ReflectedTypes.CachedFields.Remove(key);
+		}
 	}
 
 	public static IEnumerator EnterAndLeaveModManager()
@@ -70,6 +85,16 @@ static class DemandBasedLoading
 		Tweaks.Instance.UpdateSettingWarning();
 		yield return new WaitUntil(() => SceneManager.Instance?.ModManagerState != null && MenuManager.Instance?.CurrentScreen?.GetType() == typeof(ModManagerMainMenuScreen));
 		ModManagerScreenManager.Instance.OpenModLoadingScreenAndReturnToGame();
+	}
+
+	public static void AttachWatcher()
+	{
+		if (!Tweaks.DemandBasedSettingCache)
+			return;
+
+		var emptyGameObject = BetterCasePicker.BombGenerator.emptyComponentPrefab.gameObject;
+		if (emptyGameObject.GetComponent<EmptyComponentWatcher>() == null)
+			emptyGameObject.AddComponent<EmptyComponentWatcher>();
 	}
 
 	static IEnumerator CheckForModManagerState()
@@ -87,13 +112,12 @@ static class DemandBasedLoading
 				foreach (string fakedModuleID in fakedModules)
 					loadedBombComponents.Remove(fakedModuleID);
 				fakedModules.Clear();
+
+				UnloadTo(0);
 			}
 
 			EverLoadedModules = !Tweaks.settings.DemandBasedModLoading;
 			Tweaks.DemandBasedSettingCache = Tweaks.settings.DemandBasedModLoading;
-
-			if (!EverLoadedModules)
-				HandleTransitioning();
 		}
 	}
 
@@ -114,6 +138,7 @@ static class DemandBasedLoading
 
 	static readonly KtaneModule[] TranslatedModules = new[]
 	{
+		// Translated Vanilla
 		new KtaneModule
 		{
 			Name = "The Button Translated",
@@ -148,6 +173,24 @@ static class DemandBasedLoading
 			ModuleID = "VentGasTranslated",
 			Type = "Needy",
 			SteamID = 850186070
+		},
+
+		// Russian Adjacent Letters
+		new KtaneModule
+		{
+			Name = "Adjacent Letters (Russian)",
+			ModuleID = "AdjacentLettersModule_Rus",
+			Type = "Regular",
+			SteamID = 806188270
+		},
+
+		// Polish Colour Flash
+		new KtaneModule
+		{
+			Name = "Colour Flash PL",
+			ModuleID = "ColourFlashPL",
+			Type = "Regular",
+			SteamID = 2030249636
 		},
 	};
 
@@ -237,6 +280,7 @@ static class DemandBasedLoading
 			var loadedBombComponents = ModManager.Instance.GetValue<Dictionary<string, BombComponent>>("loadedBombComponents");
 
 			var json = JsonConvert.DeserializeObject<WebsiteJSON>(request.downloadHandler.text);
+			var cantLoad = new List<string>();
 			foreach (KtaneModule module in json.KtaneModules.Concat(TranslatedModules))
 			{
 				if (module.SteamID == null || !(module.Type == "Regular" || module.Type == "Needy"))
@@ -245,7 +289,7 @@ static class DemandBasedLoading
 				var modPath = Path.Combine(modWorkshopPath, module.SteamID.ToString());
 				if (!Directory.Exists(modPath))
 				{
-					Tweaks.Log($"Can't load {module.ModuleID} ({module.SteamID})");
+					cantLoad.Add($"{module.ModuleID} ({module.SteamID})");
 					continue;
 				}
 
@@ -292,6 +336,9 @@ static class DemandBasedLoading
 				fakedModules.Add(module.ModuleID);
 			}
 
+			if (cantLoad.Count > 0)
+				Tweaks.Log($"Can't load: {cantLoad.Join(", ")}".ChunkBy(250).Join("\n"));
+
 			ModSettingsManager.Instance.ModSettings.DisabledModPaths = disabledMods.ToArray();
 			ModSettingsManager.Instance.SaveModSettings();
 		}
@@ -303,6 +350,28 @@ static class DemandBasedLoading
 
 	public static Selectable renderSelectable;
 
+	public static BombFace.ComponentSpawnPoint? GetComponentSpawnPoint(Vector3 position, Bomb bomb, out BombFace bombFace)
+	{
+		float minimum = float.MaxValue;
+		BombFace.ComponentSpawnPoint? item = null;
+		bombFace = null;
+		foreach (BombFace face in bomb.Faces)
+		{
+			foreach (var spawnPoint in face.ComponentSpawnPoints.Concat(face.TimerSpawnPoints))
+			{
+				float distance = (spawnPoint.Transform.position - position).magnitude;
+				if (distance < minimum)
+				{
+					minimum = distance;
+					item = spawnPoint;
+					bombFace = face;
+				}
+			}
+		}
+
+		return item;
+	}
+
 	class FakeModule : MonoBehaviour
 	{
 		GameObject realModule;
@@ -310,28 +379,6 @@ static class DemandBasedLoading
 		BombFace timerFace;
 
 		public static readonly Dictionary<string, Mod> loadedMods = ModManager.Instance.GetValue<Dictionary<string, Mod>>("loadedMods");
-
-		public BombFace.ComponentSpawnPoint? GetComponentSpawnPoint(Vector3 position, out BombFace bombFace)
-		{
-			float minimum = float.MaxValue;
-			BombFace.ComponentSpawnPoint? item = null;
-			bombFace = null;
-			foreach (BombFace face in bomb.Faces)
-			{
-				foreach (var spawnPoint in face.ComponentSpawnPoints.Concat(face.TimerSpawnPoints))
-				{
-					float distance = (spawnPoint.Transform.position - position).magnitude;
-					if (distance < minimum)
-					{
-						minimum = distance;
-						item = spawnPoint;
-						bombFace = face;
-					}
-				}
-			}
-
-			return item;
-		}
 
 		public void Awake()
 		{
@@ -384,18 +431,22 @@ static class DemandBasedLoading
 
 			if (mod != null)
 			{
-				realModule = null;
+				List<string> moduleIDs = new List<string>();
 				foreach (KMBombModule kmbombModule in mod.GetModObjects<KMBombModule>())
 				{
 					string moduleType = kmbombModule.ModuleType;
 					if (moduleType == ModuleID)
 						realModule = Instantiate(kmbombModule.gameObject);
+
+					moduleIDs.Add(moduleType);
 				}
 				foreach (KMNeedyModule kmneedyModule in mod.GetModObjects<KMNeedyModule>())
 				{
-					string moduleType2 = kmneedyModule.ModuleType;
-					if (moduleType2 == ModuleID)
+					string moduleType = kmneedyModule.ModuleType;
+					if (moduleType == ModuleID)
 						realModule = Instantiate(kmneedyModule.gameObject);
+
+					moduleIDs.Add(moduleType);
 				}
 
 				if (realModule != null)
@@ -413,45 +464,63 @@ static class DemandBasedLoading
 					realModule.transform.localScale = Vector3.one;
 
 					// Update backing
-					var backing = GetComponentSpawnPoint(transform.position, out _)?.Backing;
+					var backing = GetComponentSpawnPoint(transform.position, bomb, out _)?.Backing;
 					if (bombComponent.RequiresDeepBackingGeometry && backing != null)
 					{
 						backing.CurrentBacking = BombComponentBacking.BackingType.Deep;
 					}
 
 					// Look for a log message so we can remove the fake module from the Bomb's BombComponent list as soon as possible.
-					void logRecieved(string logString, string _, LogType type)
+					OnInstantiation(() =>
 					{
-						if (!(logString.StartsWith("[BombGenerator] Instantiated ") && type == LogType.Log))
-							return;
-
-						Application.logMessageReceived -= logRecieved;
-
 						bomb.BombComponents.Add(bombComponent);
 						bomb.BombComponents.Remove(GetComponent<BombComponent>());
 
 						if (bombComponent.RequiresTimerVisibility)
 						{
-							GetComponentSpawnPoint(bomb.GetTimer().transform.position, out timerFace);
+							GetComponentSpawnPoint(bomb.GetTimer().transform.position, bomb, out timerFace);
 							var bombFace = GetComponent<Selectable>().Parent.GetComponent<BombFace>();
 							if (timerFace != bombFace)
 							{
 								bomb.visualTransform.gameObject.AddComponent<ExcludeFromStaticBatch>();
 							}
 						}
-					}
-
-					Application.logMessageReceived += logRecieved;
+					});
 				}
 				else
 				{
-					Tweaks.Log($"Unable to get the real module for {ModuleID} ({SteamID}). This shouldn't happen, please contact the developer.");
+					Tweaks.Log($"Unable to get the real module for {ModuleID} ({SteamID}). IDs found: {moduleIDs.Select(id => $"\"{id}\"").Join(", ")}. This shouldn't happen, please contact the developer of Tweaks.");
+
+					OnInstantiation(() => bomb.BombComponents.Remove(GetComponent<BombComponent>()));
+
+					LeaderboardController.DisableLeaderboards();
 				}
 			}
 		}
 
+		private void OnInstantiation(Action callback)
+		{
+			void logRecieved(string logString, string _, LogType type)
+			{
+				if (!(logString.StartsWith("[BombGenerator] Instantiated ") && type == LogType.Log))
+					return;
+
+				Application.logMessageReceived -= logRecieved;
+
+				callback();
+			}
+
+			Application.logMessageReceived += logRecieved;
+		}
+
 		public void Start()
 		{
+			if (realModule == null)
+			{
+				Destroy(gameObject);
+				return;
+			}
+
 			BombComponent bombComponent = realModule.GetComponent<BombComponent>();
 
 			if (bombComponent.RequiresTimerVisibility)
@@ -468,6 +537,7 @@ static class DemandBasedLoading
 						.Where(child => child != null)
 						.Select(child => child.GetComponent<BombComponent>())
 						.Where(component => !component.RequiresTimerVisibility)
+						.Concat(emptyTimerFaceComponents)
 						.Shuffle()
 						.FirstOrDefault();
 
@@ -484,14 +554,21 @@ static class DemandBasedLoading
 						swapTarget.transform.position = myPosition;
 						swapTarget.transform.rotation = myRotation;
 
-						var swapIndex = Array.IndexOf(timerFaceSelectable.Children, swapTarget.GetComponent<Selectable>());
-						var myIndex = Array.IndexOf(GetComponent<Selectable>().Parent.Children, GetComponent<Selectable>());
+						if (emptyTimerFaceComponents.Contains(swapTarget))
+						{
+							emptyTimerFaceComponents.Remove(swapTarget);
+						}
+						else
+						{
+							var swapIndex = Array.IndexOf(timerFaceSelectable.Children, swapTarget.GetComponent<Selectable>());
+							var myIndex = Array.IndexOf(GetComponent<Selectable>().Parent.Children, GetComponent<Selectable>());
 
-						timerFaceSelectable.Children[swapIndex] = GetComponent<Selectable>();
-						GetComponent<Selectable>().Parent.Children[myIndex] = swapTarget.GetComponent<Selectable>();
+							timerFaceSelectable.Children[swapIndex] = GetComponent<Selectable>();
+							GetComponent<Selectable>().Parent.Children[myIndex] = swapTarget.GetComponent<Selectable>();
 
-						GetComponent<Selectable>().Parent = timerFaceSelectable;
-						swapTarget.GetComponent<Selectable>().Parent = myFaceSelectable;
+							GetComponent<Selectable>().Parent = timerFaceSelectable;
+							swapTarget.GetComponent<Selectable>().Parent = myFaceSelectable;
+						}
 
 						renderSelectable = realModule.GetComponent<Selectable>();
 					}
@@ -521,6 +598,24 @@ static class DemandBasedLoading
 			}
 
 			Destroy(gameObject);
+		}
+	}
+
+	class EmptyComponentWatcher : MonoBehaviour
+	{
+		public void Awake()
+		{
+			if (!Tweaks.DemandBasedSettingCache)
+				return;
+
+			var bomb = BetterCasePicker.BombGenerator.GetValue<Bomb>("bomb");
+			GetComponentSpawnPoint(bomb.GetTimer().transform.position, bomb, out BombFace timerFace);
+			GetComponentSpawnPoint(transform.position, bomb, out BombFace ourFace);
+
+			if (timerFace == ourFace)
+				emptyTimerFaceComponents.Add(GetComponent<BombComponent>());
+
+			Destroy(this);
 		}
 	}
 }

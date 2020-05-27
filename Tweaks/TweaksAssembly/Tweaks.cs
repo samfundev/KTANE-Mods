@@ -10,8 +10,6 @@ using Assets.Scripts.Progression;
 using Assets.Scripts.Settings;
 using Assets.Scripts.BombBinder;
 using Assets.Scripts.Mods.Mission;
-using Assets.Scripts.Leaderboards;
-using Assets.Scripts.Services.Steam;
 using Assets.Scripts.Props;
 
 [RequireComponent(typeof(KMService))]
@@ -33,7 +31,7 @@ class Tweaks : MonoBehaviour
 
 	public static KMGameInfo GameInfo;
 	[HideInInspector]
-	public KMGameInfo.State CurrentState;
+	public static KMGameInfo.State CurrentState = KMGameInfo.State.Transitioning;
 
 	private readonly HashSet<TableOfContentsMetaData> ModToCMetaData = new HashSet<TableOfContentsMetaData>();
 	static GameObject SettingWarning;
@@ -51,6 +49,7 @@ class Tweaks : MonoBehaviour
 		GameInfo = GetComponent<KMGameInfo>();
 		SettingWarning = gameObject.Traverse("UI", "SettingWarning");
 		AdvantageousWarning = gameObject.Traverse("UI", "AdvantageousWarning");
+		Tips.TipMessage = gameObject.Traverse("UI", "TipMessage");
 		BetterCasePicker.BombCaseGenerator = GetComponentInChildren<BombCaseGenerator>();
 
 		modConfig = new ModConfig<TweakSettings>("TweakSettings");
@@ -79,6 +78,8 @@ class Tweaks : MonoBehaviour
 		GameObject infoObject = new GameObject("Tweaks_Info", typeof(TweaksProperties));
 		infoObject.transform.parent = gameObject.transform;
 
+		TweaksAPI.Setup();
+
 		// Watch the TweakSettings file for Time Mode state being changed in the office.
 		FileSystemWatcher watcher = new FileSystemWatcher(Path.Combine(Application.persistentDataPath, "Modsettings"), "TweakSettings.json")
 		{
@@ -94,8 +95,8 @@ class Tweaks : MonoBehaviour
 			MainThreadQueue.Enqueue(() => StartCoroutine(ModifyFreeplayDevice(false)));
 		};
 
-		// Setup our "service" to block the leaderboard submission requests
-		ReflectedTypes.InstanceField.SetValue(null, new SteamFilterService());
+		// Setup the leaderboard controller to block the leaderboard submission requests.
+		LeaderboardController.Install();
 
 		// Create a fake case with a bunch of anchors to trick the game when using CaseGenerator.
 		TweaksCaseGeneratorCase = new GameObject("TweaksCaseGenerator");
@@ -176,16 +177,23 @@ class Tweaks : MonoBehaviour
 				DemandBasedLoading.DisabledModsCount = 0;
 			}
 
+			if (CurrentState == KMGameInfo.State.Gameplay && state == KMGameInfo.State.Transitioning)
+			{
+				BetterCasePicker.BombGenerator = null;
+			}
+
+			if (CurrentState != KMGameInfo.State.Gameplay && state == KMGameInfo.State.Transitioning)
+			{
+				DemandBasedLoading.HandleTransitioning();
+			}
+
 			CurrentState = state;
 			watcher.EnableRaisingEvents = state == KMGameInfo.State.Setup;
 
 			if (state == KMGameInfo.State.Gameplay)
 			{
-				bool disableRecords = AdvantageousFeaturesEnabled;
-
-				Assets.Scripts.Stats.StatsManager.Instance.DisableStatChanges =
-				Assets.Scripts.Records.RecordManager.Instance.DisableBestRecords = disableRecords;
-				if (disableRecords) SteamFilterService.TargetMissionID = GameplayState.MissionToLoad;
+				if (AdvantageousFeaturesEnabled)
+					LeaderboardController.DisableLeaderboards();
 
 				BetterCasePicker.RestoreGameCommands();
 				BetterCasePicker.HandleCaseGeneration();
@@ -226,16 +234,14 @@ class Tweaks : MonoBehaviour
 					}
 				}
 
+				StartCoroutine(Tips.ShowTip());
 				StartCoroutine(ModifyFreeplayDevice(true));
 				GetComponentInChildren<ModSelectorExtension>().FindAPI();
+				TweaksAPI.SetTPProperties(!TwitchPlaysActive);
 
 				GameplayState.BombSeedToUse = -1;
 
-				foreach (BombWrapper wrapper in bombWrappers)
 				{
-					Events.BombEvents.OnBombDetonated -= wrapper.OnDetonate;
-					Events.BombEvents.OnBombSolved -= wrapper.OnSolve;
-				}
 			}
 			else if (state == KMGameInfo.State.Transitioning)
 			{
@@ -268,8 +274,6 @@ class Tweaks : MonoBehaviour
 					SetupState.LastBombBinderTOCIndex = 0;
 					SetupState.LastBombBinderTOCPage = 0;
 				}
-
-				DemandBasedLoading.HandleTransitioning();
 			}
 		};
 	}
@@ -370,7 +374,7 @@ class Tweaks : MonoBehaviour
 			for (int i = 0; i < bombs.Count; i++)
 			{
 				Bomb bomb = bombs[i];
-				BombWrapper bombWrapper = new BombWrapper(bomb);
+				BombWrapper bombWrapper = bomb.gameObject.AddComponent<BombWrapper>();
 				bombWrappers[i] = bombWrapper;
 
 				if (CurrentMode == Mode.Time) bombWrapper.CurrentTimer = Modes.settings.TimeModeStartingTime * 60;
@@ -415,7 +419,7 @@ class Tweaks : MonoBehaviour
 
 					while (currentBomb != null && factoryRoom != null)
 					{
-						BombWrapper bombWrapper = new BombWrapper(currentBomb.GetComponent<Bomb>());
+						BombWrapper bombWrapper = currentBomb.gameObject.AddComponent<BombWrapper>();
 						bombWrappers[0] = bombWrapper;
 
 						if (globalTimerDisabled || firstBomb)
@@ -446,6 +450,10 @@ class Tweaks : MonoBehaviour
 
 		// This code only runs if we aren't in the Factory room.
 		wrapInitialBombs();
+
+		// If TP is enabled, let it handle managing the emergency lights.
+		if (TwitchPlaysActiveCache)
+			yield break;
 
 		SceneManager.Instance.GameplayState.Room.PacingActions.RemoveAll(pacingAction => pacingAction.EventType == Assets.Scripts.Pacing.PaceEvent.OneMinuteLeft);
 		UnityEngine.Object portalRoom = null;
@@ -621,7 +629,7 @@ class Tweaks : MonoBehaviour
 	{
 		MainThreadQueue.ProcessQueue();
 
-		if (CurrentState == KMGameInfo.State.Setup && (CaseGeneratorSettingCache != settings.CaseGenerator || DemandBasedSettingCache != settings.DemandBasedModLoading || DemandBasedLoading.DisabledModsCount != 0) && Input.GetKeyDown(KeyCode.Tab))
+		if (CurrentState == KMGameInfo.State.Setup && SettingWarningEnabled && Input.GetKeyDown(KeyCode.F2))
 		{
 			StartCoroutine(DemandBasedLoading.EnterAndLeaveModManager());
 		}
@@ -637,13 +645,34 @@ class Tweaks : MonoBehaviour
 		SettingWarning.Traverse("CaseGenerator").SetActive(CurrentState == KMGameInfo.State.Setup && CaseGeneratorSettingCache != settings.CaseGenerator);
 		SettingWarning.Traverse("DemandBasedModLoading").SetActive(CurrentState == KMGameInfo.State.Setup && (demandSettingChanged || demandModsDisabled));
 
-		SettingWarning.Traverse<Text>("DemandBasedModLoading", "WarningText").text = $"The { (demandSettingChanged ? "change to the setting \"DemandBasedModLoading\"" : "") + (demandSettingChanged && demandModsDisabled ? " and " : "") + (demandModsDisabled ? $"{DemandBasedLoading.DisabledModsCount} mod{(DemandBasedLoading.DisabledModsCount == 1 ? "" : "s")} that were automatically disabled" : "") } will only take effect once you enter the Mod Manager. <i>Press \"TAB\" to do that automatically!</i>";
+		SettingWarning.Traverse<Text>("DemandBasedModLoading", "WarningText").text = $"The { (demandSettingChanged ? "change to the setting \"DemandBasedModLoading\"" : "") + (demandSettingChanged && demandModsDisabled ? " and " : "") + (demandModsDisabled ? $"{DemandBasedLoading.DisabledModsCount} mod{(DemandBasedLoading.DisabledModsCount == 1 ? "" : "s")} that were automatically disabled" : "") } will only take effect once you enter the Mod Manager. <i>Press \"F2\" to do that automatically!</i>";
+
+		SettingWarningEnabled = CurrentState == KMGameInfo.State.Setup && (CaseGeneratorSettingCache != settings.CaseGenerator || demandSettingChanged || demandModsDisabled);
 	});
 
-	/*void OnApplicationQuit()
+	public static bool SettingWarningEnabled;
+
+	public void OnApplicationQuit()
 	{
-		Debug.LogFormat("[Tweaks] [OnApplicationQuit] Found output_log: {0}", File.Exists(Path.Combine(Application.dataPath, "output_log.txt")));
-	}*/
+		string path = Path.Combine(Application.persistentDataPath, "output_log.txt");
+		if (!File.Exists(path))
+		{
+			Log("Unable to save output log since it couldn't be found.");
+			return;
+		}
+
+		File.Copy(
+			path,
+			Path.Combine(Application.persistentDataPath, "output_log_2.txt"),
+			true
+		);
+	}
+
+	public static void FixRNGSeed()
+	{
+		// The game sets the seed to 33 for some reason, so we have to set the seed so it doesn't pick the same values every time.
+		UnityEngine.Random.InitState((int) DateTime.Now.Ticks);
+	}
 
 	public static void Log(params object[] args) => Debug.Log("[Tweaks] " + args.Select(Convert.ToString).Join(" "));
 
@@ -696,15 +725,14 @@ class Tweaks : MonoBehaviour
 					new Dictionary<string, object> { { "Key", "FixFER" }, { "Text", "Fix Foreign Exchange Rates" }, { "Description", "Changes the URL that is queried since the old one is no longer operational." } },
 					new Dictionary<string, object> { { "Key", "BombHUD" }, { "Text", "Bomb HUD" }, { "Description", "Adds a HUD in the top right corner showing information about the currently selected bomb." } },
 					new Dictionary<string, object> { { "Key", "ShowEdgework" }, { "Text", "Show Edgework" }, { "Description", "Adds a HUD to the top of the screen showing the edgework for the currently selected bomb." } },
-					new Dictionary<string, object> { { "Key", "DisableAdvantageous" }, { "Text", "Disable Advantageous Features" }, { "Description", "Disables features like the Bomb HUD, Show Edgework, etc." } },
+					new Dictionary<string, object> { { "Key", "DisableAdvantageous" }, { "Text", "Disable Advantageous Features" }, { "Description", "Disables advantageous features like the Bomb HUD, Show Edgework,\ncustom Modes and Mission Seed." } },
 					new Dictionary<string, object> { { "Key", "MissionSeed" }, { "Text", "Mission Seed" }, { "Description", "Seeds the random numbers for the mission which should make the bomb\ngenerate consistently." } },
 					new Dictionary<string, object> { { "Key", "CaseGenerator" }, { "Text", "Case Generator" }, { "Description", "Generates a case to best fit the bomb which can be one of the colors defined by CaseColors." } },
 					new Dictionary<string, object> { { "Key", "ModuleTweaks" }, { "Text", "Module Tweaks" }, { "Description", "Controls all module related tweaks like fixing status light positions." } },
 
-
 					new Dictionary<string, object> { { "Text", "Demand Based Mod Loading" }, { "Type", "Section" } },
-					new Dictionary<string, object> { { "Key", "DemandBasedModLoading" }, { "Text", "Demand Based Mod Loading" }, { "Description", "Load only the modules on a bomb instead of loading all of them when starting up." } },
-					new Dictionary<string, object> { { "Key", "DisableDemandBasedMods" }, { "Text", "Disable Demand Based Mods" }, { "Description", "Disables mods that can be loaded on demand so they don't load when the game starts." } },
+					new Dictionary<string, object> { { "Key", "DemandBasedModLoading" }, { "Text", "Demand-based Mod Loading" }, { "Description", "Load only the modules on a bomb instead of loading all of them when starting up." } },
+					new Dictionary<string, object> { { "Key", "DisableDemandBasedMods" }, { "Text", "Disable Demand-based Mods" }, { "Description", "Disables mods that can be loaded on demand so they aren't load when the game starts.\nThis setting is not easily reversed without manually re-enabling these mods." } },
 					new Dictionary<string, object> { { "Key", "DemandModLimit" }, { "Text", "Demand Mod Limit" }, { "Description", "Sets the limit of how many mods will be kept loaded after the bomb\nis over. Negative numbers will keep all mods loaded." } },
 				}
 			}
@@ -740,24 +768,6 @@ class Tweaks : MonoBehaviour
 			}
 		}
 	};
-}
-
-class SteamFilterService : ServicesSteam
-{
-	public static string TargetMissionID;
-
-	public override void ExecuteLeaderboardRequest(LeaderboardRequest request)
-	{
-		LeaderboardListRequest listRequest = request as LeaderboardListRequest;
-		if (listRequest?.SubmitScore == true && listRequest?.MissionID == TargetMissionID)
-		{
-			ReflectedTypes.SubmitFieldProperty.SetValue(listRequest, false, null);
-
-			TargetMissionID = null;
-		}
-
-		base.ExecuteLeaderboardRequest(request);
-	}
 }
 
 class TweakSettings

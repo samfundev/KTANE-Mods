@@ -97,14 +97,15 @@
     <Compile Include="BombStatus.cs" />
     <Compile Include="DemandBasedLoading.cs" />
     <Compile Include="GeneralExtensions.cs" />
+    <Compile Include="LeaderboardController.cs" />
     <Compile Include="MainThreadQueue.cs" />
+    <Compile Include="ModdedAPI.cs" />
     <Compile Include="Modules\ModuleLogging.cs" />
     <Compile Include="Modules\KeypadLogging.cs" />
     <Compile Include="Modules\SeaShellsLogging.cs" />
     <Compile Include="Modules\WiresLogging.cs" />
     <Compile Include="Modules\ProbingLogging.cs" />
     <Compile Include="Modules\EmojiMathLogging.cs" />
-    <Compile Include="Modules\SwitchesLogging.cs" />
     <Compile Include="Modules\ModuleTweak.cs" />
     <Compile Include="ModSelectorExtension.cs" />
     <Compile Include="SettingsPage.cs" />
@@ -117,7 +118,9 @@
     <Compile Include="BombWrapper.cs" />
     <Compile Include="Modes.cs" />
     <Compile Include="Modules\TTKComponentSolver.cs" />
+    <Compile Include="Tips.cs" />
     <Compile Include="Tweaks.cs" />
+    <Compile Include="TweaksAPI.cs" />
     <Compile Include="TweaksProperties.cs" />
   </ItemGroup>
   <ItemGroup>

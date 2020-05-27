@@ -6,8 +6,9 @@ using Newtonsoft.Json;
 using UnityEngine;
 using Assets.Scripts.Missions;
 using Events;
+using Assets.Scripts.Records;
 
-class BombWrapper
+class BombWrapper : MonoBehaviour
 {
 	readonly Dictionary<Mode, Color> ModeColors = new Dictionary<Mode, Color>()
 	{
@@ -19,12 +20,12 @@ class BombWrapper
 
 	float realTimeStart;
 
-	public BombWrapper(Bomb bomb)
+	public void Awake()
 	{
-		Bomb = bomb;
-		holdable = bomb.GetComponentInChildren<FloatingHoldable>();
-		timerComponent = bomb.GetTimer();
-		widgetManager = bomb.WidgetManager;
+		Bomb = GetComponent<Bomb>();
+		holdable = Bomb.GetComponentInChildren<FloatingHoldable>();
+		timerComponent = Bomb.GetTimer();
+		widgetManager = Bomb.WidgetManager;
 
 		holdable.OnLetGo += () => BombStatus.Instance.currentBomb = null;
 
@@ -197,7 +198,6 @@ class BombWrapper
 			{ "Emoji Math", bombComponent => new EmojiMathLogging(bombComponent) },
 			{ "Probing", bombComponent => new ProbingLogging(bombComponent) },
 			{ "SeaShells", bombComponent => new SeaShellsLogging(bombComponent) },
-			{ "switchModule", bombComponent => new SwitchesLogging(bombComponent) },
 			{ "WordScrambleModule", bombComponent => new WordScramblePatch(bombComponent) },
 
 			{ "Wires", bombComponent => new WiresLogging(bombComponent) },
@@ -244,8 +244,22 @@ class BombWrapper
 						break;
 					case "TwoBits":
 					case "errorCodes":
+					case "primeEncryption":
+					case "memorableButtons":
+					case "babaIsWho":
+					case "colorfulDials":
+					case "scalarDials":
 						// This fixes the position of the status light
 						component.GetComponentInChildren<StatusLightParent>().transform.localPosition = new Vector3(0.075167f, 0.01986f, 0.076057f);
+						break;
+				}
+
+				// This fixes the position of the highlight
+				switch (bombModule.ModuleType)
+				{
+					case "babaIsWho":
+					case "needlesslyComplicatedButton":
+						component.GetComponent<Selectable>().Highlight.transform.localPosition = Vector3.zero;
 						break;
 				}
 			}
@@ -282,6 +296,13 @@ class BombWrapper
 				}
 			}
 		}
+	}
+
+	public void OnDestroy()
+	{
+		BombEvents.OnBombDetonated -= OnDetonate;
+		BombEvents.OnBombSolved -= OnSolve;
+		Tweaks.bombWrappers = new BombWrapper[] { };
 	}
 
 	int modulesUnactivated = 0;
@@ -456,6 +477,30 @@ class BombWrapper
 
 		Alerts.Remove(alert);
 		UnityEngine.Object.Destroy(alert.gameObject);
+	}
+
+	public void CauseStrikesToExplosion(string reason)
+	{
+		for (int strikesToMake = StrikeLimit - StrikeCount; strikesToMake > 0; --strikesToMake)
+		{
+			CauseStrike(reason);
+		}
+	}
+
+	private void CauseStrike(string reason)
+	{
+		StrikeSource strikeSource = new StrikeSource
+		{
+			ComponentType = ComponentTypeEnum.Mod,
+			InteractionType = InteractionTypeEnum.Other,
+			Time = CurrentTimerElapsed,
+			ComponentName = reason
+		};
+
+		RecordManager recordManager = RecordManager.Instance;
+		recordManager.RecordStrike(strikeSource);
+
+		Bomb.OnStrike(null);
 	}
 
 	private float ZenModeTimePenalty;

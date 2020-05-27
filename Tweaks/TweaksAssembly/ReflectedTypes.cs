@@ -1,6 +1,5 @@
 ﻿using Assets.Scripts.Leaderboards;
 using Assets.Scripts.Records;
-using Assets.Scripts.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +13,6 @@ static class ReflectedTypes
 	public static FieldInfo GameRecordCurrentStrikeIndexField = typeof(GameRecord).GetField("currentStrikeIndex", BindingFlags.NonPublic | BindingFlags.Instance);
 	public static FieldInfo HighlightField = typeof(Highlightable).GetField("highlight", BindingFlags.NonPublic | BindingFlags.Instance);
 	public static PropertyInfo SubmitFieldProperty = typeof(LeaderboardListRequest).GetProperty("SubmitScore", BindingFlags.Public | BindingFlags.Instance);
-	public static FieldInfo InstanceField = typeof(AbstractServices).GetField("instance", BindingFlags.NonPublic | BindingFlags.Static);
 
 	public static Type FactoryRoomType;
 	public static Type FactoryGameModeType;
@@ -43,9 +41,9 @@ static class ReflectedTypes
 
 	public static FieldInfo KeypadButtonHeightField = typeof(KeypadButton).GetField("buttonHeight", BindingFlags.NonPublic | BindingFlags.Instance);
 
-	static readonly Dictionary<MonoBehaviour, ModuleFields> CachedFields = new Dictionary<MonoBehaviour, ModuleFields>();
+	public static readonly Dictionary<MonoBehaviour, ModuleFields> CachedFields = new Dictionary<MonoBehaviour, ModuleFields>();
 
-	class ModuleFields
+	public class ModuleFields
 	{
 		public FieldInfo ZenModeBool;
 		public FieldInfo TimeModeBool;

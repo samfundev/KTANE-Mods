@@ -34,6 +34,14 @@ class BombStatus : MonoBehaviour
 		Instance = this;
 		GameplayState.OnLightsOnEvent += delegate { widgetsActivated = true; };
 
+		HUD = gameObject.Traverse("HUD");
+		TimerPrefab = HUD.Traverse<Text>("TimerGroup", "Timer");
+		TimerShadowPrefab = HUD.Traverse<Text>("TimerGroup", "TimerShadow");
+		StrikesPrefab = HUD.Traverse<Text>("StatsGroup", "Strikes");
+		SolvesPrefab = HUD.Traverse<Text>("StatsGroup", "Solves");
+		NeediesPrefab = HUD.Traverse<Text>("StatsGroup", "Needies");
+		ConfidencePrefab = HUD.Traverse<Text>("StatsGroup", "Confidence");
+
 		Alert = transform.Find("Alert").gameObject;
 		Alert.SetActive(false);
 
