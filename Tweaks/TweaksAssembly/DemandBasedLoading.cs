@@ -17,7 +17,6 @@ static class DemandBasedLoading
 	static string modWorkshopPath;
 	static readonly List<int> loadOrder = new List<int>();
 	static readonly Dictionary<int, UnityEngine.Object[]> loadedObjects = new Dictionary<int, UnityEngine.Object[]>();
-	static readonly List<BombComponent> emptyTimerFaceComponents = new List<BombComponent>();
 
 	public static void HandleTransitioning()
 	{
@@ -40,9 +39,6 @@ static class DemandBasedLoading
 
 		// Unload mods if we're we're over the limit
 		UnloadTo(Tweaks.settings.DemandModLimit);
-
-		// Clear list so the components don't carry over between rounds
-		emptyTimerFaceComponents.Clear();
 	}
 
 	private static void UnloadTo(int limit)
@@ -85,16 +81,6 @@ static class DemandBasedLoading
 		Tweaks.Instance.UpdateSettingWarning();
 		yield return new WaitUntil(() => SceneManager.Instance?.ModManagerState != null && MenuManager.Instance?.CurrentScreen?.GetType() == typeof(ModManagerMainMenuScreen));
 		ModManagerScreenManager.Instance.OpenModLoadingScreenAndReturnToGame();
-	}
-
-	public static void AttachWatcher()
-	{
-		if (!Tweaks.DemandBasedSettingCache)
-			return;
-
-		var emptyGameObject = BetterCasePicker.BombGenerator.emptyComponentPrefab.gameObject;
-		if (emptyGameObject.GetComponent<EmptyComponentWatcher>() == null)
-			emptyGameObject.AddComponent<EmptyComponentWatcher>();
 	}
 
 	static IEnumerator CheckForModManagerState()
@@ -379,9 +365,12 @@ static class DemandBasedLoading
 		BombFace timerFace;
 
 		public static readonly Dictionary<string, Mod> loadedMods = ModManager.Instance.GetValue<Dictionary<string, Mod>>("loadedMods");
+		private static List<BombComponent> emptyTimerFaceComponents = null;
 
 		public void Awake()
 		{
+			emptyTimerFaceComponents = null;
+
 			bomb = BetterCasePicker.BombGenerator.GetValue<Bomb>("bomb");
 
 			int SteamID = int.Parse(gameObject.name.Replace("(Clone)", ""));
@@ -525,6 +514,8 @@ static class DemandBasedLoading
 
 			if (bombComponent.RequiresTimerVisibility)
 			{
+				GetTimerFaceComponents();
+
 				GetComponent<BombComponent>().RequiresTimerVisibility = true;
 
 				var bombFace = GetComponent<Selectable>().Parent.GetComponent<BombFace>();
@@ -599,23 +590,25 @@ static class DemandBasedLoading
 
 			Destroy(gameObject);
 		}
-	}
 
-	class EmptyComponentWatcher : MonoBehaviour
-	{
-		public void Awake()
+		private void GetTimerFaceComponents()
 		{
-			if (!Tweaks.DemandBasedSettingCache)
+			if (emptyTimerFaceComponents != null)
 				return;
 
-			var bomb = BetterCasePicker.BombGenerator.GetValue<Bomb>("bomb");
+			emptyTimerFaceComponents = new List<BombComponent>();
+
 			GetComponentSpawnPoint(bomb.GetTimer().transform.position, bomb, out BombFace timerFace);
-			GetComponentSpawnPoint(transform.position, bomb, out BombFace ourFace);
+			foreach (BombComponent bombComponent in bomb.BombComponents)
+			{
+				if (bombComponent.ComponentType != Assets.Scripts.Missions.ComponentTypeEnum.Empty)
+					continue;
 
-			if (timerFace == ourFace)
-				emptyTimerFaceComponents.Add(GetComponent<BombComponent>());
+				GetComponentSpawnPoint(bombComponent.transform.position, bomb, out BombFace ourFace);
 
-			Destroy(this);
+				if (timerFace == ourFace)
+					emptyTimerFaceComponents.Add(GetComponent<BombComponent>());
+			}
 		}
 	}
 }

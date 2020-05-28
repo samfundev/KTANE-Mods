@@ -16,7 +16,6 @@ static class BetterCasePicker
 
 		BombGenerator bombGenerator = Object.FindObjectOfType<BombGenerator>();
 		BombGenerator = bombGenerator;
-		DemandBasedLoading.AttachWatcher();
 
 		if (bombGenerator.BombPrefabOverride == null) // No point in doing anything if they aren't even going to use the ObjectPool.
 		{

@@ -726,6 +726,7 @@ class Tweaks : MonoBehaviour
 					new Dictionary<string, object> { { "Key", "BombHUD" }, { "Text", "Bomb HUD" }, { "Description", "Adds a HUD in the top right corner showing information about the currently selected bomb." } },
 					new Dictionary<string, object> { { "Key", "ShowEdgework" }, { "Text", "Show Edgework" }, { "Description", "Adds a HUD to the top of the screen showing the edgework for the currently selected bomb." } },
 					new Dictionary<string, object> { { "Key", "DisableAdvantageous" }, { "Text", "Disable Advantageous Features" }, { "Description", "Disables advantageous features like the Bomb HUD, Show Edgework,\ncustom Modes and Mission Seed." } },
+					new Dictionary<string, object> { { "Key", "ShowTips" }, { "Text", "Show Tips" }, { "Description", "Shows tips about Tweaks features that you may not know about." } },
 					new Dictionary<string, object> { { "Key", "MissionSeed" }, { "Text", "Mission Seed" }, { "Description", "Seeds the random numbers for the mission which should make the bomb\ngenerate consistently." } },
 					new Dictionary<string, object> { { "Key", "CaseGenerator" }, { "Text", "Case Generator" }, { "Description", "Generates a case to best fit the bomb which can be one of the colors defined by CaseColors." } },
 					new Dictionary<string, object> { { "Key", "ModuleTweaks" }, { "Text", "Module Tweaks" }, { "Description", "Controls all module related tweaks like fixing status light positions." } },
@@ -784,6 +785,7 @@ class TweakSettings
 	public bool BombHUD = false;
 	public bool ShowEdgework = false;
 	public bool DisableAdvantageous = false;
+	public bool ShowTips = true;
 	public List<string> HideTOC = new List<string>();
 	public Mode Mode = Mode.Normal;
 	public int MissionSeed = -1;
