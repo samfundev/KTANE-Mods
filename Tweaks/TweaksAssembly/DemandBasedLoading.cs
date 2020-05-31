@@ -607,7 +607,7 @@ static class DemandBasedLoading
 				GetComponentSpawnPoint(bombComponent.transform.position, bomb, out BombFace ourFace);
 
 				if (timerFace == ourFace)
-					emptyTimerFaceComponents.Add(GetComponent<BombComponent>());
+					emptyTimerFaceComponents.Add(bombComponent);
 			}
 		}
 	}
