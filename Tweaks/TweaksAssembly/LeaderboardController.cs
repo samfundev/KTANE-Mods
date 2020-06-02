@@ -13,7 +13,7 @@ using Events;
 /// </summary>
 static class LeaderboardController
 {
-	public static FieldInfo InstanceField = typeof(AbstractServices).GetField("instance", BindingFlags.NonPublic | BindingFlags.Static);
+	private static readonly FieldInfo InstanceField = typeof(AbstractServices).GetField("instance", BindingFlags.NonPublic | BindingFlags.Static);
 
 	/// <summary>Installs everything necessary to work and only needs to be called once. Records will still be saved if this is not called.</summary>
 	public static void Install()
@@ -52,12 +52,14 @@ static class LeaderboardController
 
 class SteamFilterService : ServicesSteam
 {
+	private static readonly PropertyInfo SubmitFieldProperty = typeof(LeaderboardListRequest).GetProperty("SubmitScore", BindingFlags.Public | BindingFlags.Instance);
+
 	public override void ExecuteLeaderboardRequest(LeaderboardRequest request)
 	{
 		LeaderboardListRequest listRequest = request as LeaderboardListRequest;
 		if (RecordManager.Instance.DisableBestRecords && listRequest?.SubmitScore == true && listRequest?.MissionID == GameplayState.MissionToLoad)
 		{
-			ReflectedTypes.SubmitFieldProperty.SetValue(listRequest, false, null);
+			SubmitFieldProperty.SetValue(listRequest, false, null);
 		}
 
 		base.ExecuteLeaderboardRequest(request);

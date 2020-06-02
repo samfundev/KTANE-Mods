@@ -5,10 +5,11 @@ using System.Reflection;
 using System.Collections;
 using System.Linq;
 
+/// <summary>A class to add and access shared modded APIs for things like exploding the bomb.</summary>
 static class ModdedAPI
 {
 	private static IDictionary<string, object> sharedAPI;
-	public static IDictionary<string, object> API
+	private static IDictionary<string, object> API
 	{
 		get
 		{
@@ -20,6 +21,14 @@ static class ModdedAPI
 
 	private static Type propertyType;
 
+	/// <summary>
+	/// Adds a new property with a getter and setter. The getter or setter can be null.
+	/// If at anytime you can't handle a property, disable the property using <see cref="SetEnabled(object, bool)"/>.
+	/// </summary>
+	/// <param name="name">The name of the property.</param>
+	/// <param name="get">The getter of the property.</param>
+	/// <param name="set">The setter of the property.</param>
+	/// <returns>An object that represents the property. Used in <see cref="SetEnabled(object, bool)"/>.</returns>
 	public static object AddProperty(string name, Func<object> get, Action<object> set)
 	{
 		var sharedAPIType = API.GetType();
@@ -27,21 +36,47 @@ static class ModdedAPI
 		return addPropertyMethod.Invoke(sharedAPI, new object[] { name, get, set });
 	}
 
+	/// <summary>Sets whether or not a property is enabled. This allows other mods to handle the property instead.</summary>
+	/// <param name="property">The property object from the <see cref="AddProperty(string, Func{object}, Action{object})"/> method.</param>
+	/// <param name="enabled">Whether or not the property should be enabled or disabled.</param>
 	public static void SetEnabled(object property, bool enabled)
 	{
 		propertyType.GetField("Enabled").SetValue(property, enabled);
 	}
 
+	/// <summary>Gets a value from a property.</summary>
+	/// <typeparam name="T">The type of the value.</typeparam>
+	/// <param name="name">The name of the property.</param>
+	/// <param name="value">The variable to put the value into.</param>
+	/// <returns>Whether or not a value was read succesfully.</returns>
 	public static bool TryGetAs<T>(string name, out T value)
 	{
-		if (API.TryGetValue(name, out object objectValue) && objectValue is T)
+#pragma warning disable IDE0018, IDE0038
+		object objectValue;
+		if (API.TryGetValue(name, out objectValue) && objectValue is T)
+#pragma warning restore
 		{
 			value = (T) objectValue;
 			return true;
 		}
 
+#pragma warning disable IDE0034, IDE0034WithoutSuggestion, RCS1244
 		value = default(T);
+#pragma warning restore
 		return false;
+	}
+
+	/// <summary>Sets a value to a property.</summary>
+	/// <param name="name">The name of the property.</param>
+	/// <param name="value">The value to put into the property.</param>
+	/// <returns>Whether or not a value was written sucessfully.</returns>
+	public static bool TrySet(string name, object value)
+	{
+		if (!API.ContainsKey(name))
+			return false;
+
+		API[name] = value;
+		return true;
 	}
 
 	private static void EnsureSharedAPI()
@@ -49,7 +84,9 @@ static class ModdedAPI
 		if (sharedAPI != null)
 			return;
 
+#pragma warning disable RCS1128
 		var apiObject = GameObject.Find("ModdedAPI_Info");
+#pragma warning restore
 		if (apiObject == null)
 		{
 			apiObject = new GameObject("ModdedAPI_Info", typeof(ModdedAPIBehaviour));
@@ -102,7 +139,10 @@ public class ModdedAPIBehaviour : MonoBehaviour, IDictionary<string, object>
 
 	public Property AddProperty(string name, Func<object> get, Action<object> set)
 	{
-		if (!_properties.TryGetValue(name, out List<Property> subproperties))
+#pragma warning disable IDE0018
+		List<Property> subproperties;
+#pragma warning restore
+		if (!_properties.TryGetValue(name, out subproperties))
 		{
 			subproperties = new List<Property>();
 			_properties.Add(name, subproperties);
@@ -115,7 +155,9 @@ public class ModdedAPIBehaviour : MonoBehaviour, IDictionary<string, object>
 
 	public object this[string key]
 	{
+#pragma warning disable IDE0027
 		get { return GetEnabledProperty(key).Get(); }
+#pragma warning restore
 		set
 		{
 			if (!_properties.ContainsKey(key))
@@ -131,16 +173,36 @@ public class ModdedAPIBehaviour : MonoBehaviour, IDictionary<string, object>
 		}
 	}
 
-	public int Count => _properties.Count;
+#pragma warning disable IDE0025
+	public int Count
+	{
+		get
+		{
+			return _properties.Count;
+		}
+	}
 
-	public bool IsReadOnly => false;
+	public bool IsReadOnly
+	{
+		get
+		{
+			return false;
+		}
+	}
 
-	public ICollection<string> Keys => _properties.Keys.ToList();
+	public ICollection<string> Keys
+	{
+		get
+		{
+			return _properties.Keys.ToList();
+		}
+	}
 
 	public ICollection<object> Values
 	{
 		get { throw new NotSupportedException("The Values property is not supported in this Dictionary."); }
 	}
+#pragma warning restore
 
 	public void Add(KeyValuePair<string, object> item)
 	{

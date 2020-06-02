@@ -12,7 +12,6 @@ static class ReflectedTypes
 
 	public static FieldInfo GameRecordCurrentStrikeIndexField = typeof(GameRecord).GetField("currentStrikeIndex", BindingFlags.NonPublic | BindingFlags.Instance);
 	public static FieldInfo HighlightField = typeof(Highlightable).GetField("highlight", BindingFlags.NonPublic | BindingFlags.Instance);
-	public static PropertyInfo SubmitFieldProperty = typeof(LeaderboardListRequest).GetProperty("SubmitScore", BindingFlags.Public | BindingFlags.Instance);
 
 	public static Type FactoryRoomType;
 	public static Type FactoryGameModeType;
