@@ -11,9 +11,9 @@ class ModConfig<T>
 		SettingsPath = Path.Combine(Path.Combine(Application.persistentDataPath, "Modsettings"), filename + ".json");
     }
 
-	readonly string SettingsPath = null;
+	readonly string SettingsPath;
 
-	public string SerializeSettings(T settings)
+	public static string SerializeSettings(object settings)
 	{
 		return JsonConvert.SerializeObject(settings, Formatting.Indented, new StringEnumConverter());
 	}

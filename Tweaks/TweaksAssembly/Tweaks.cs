@@ -87,7 +87,7 @@ class Tweaks : MonoBehaviour
 		};
 		watcher.Changed += (object source, FileSystemEventArgs e) =>
 		{
-			if (modConfig.SerializeSettings(userSettings) == modConfig.SerializeSettings(modConfig.Settings)) return;
+			if (ModConfig<TweakSettings>.SerializeSettings(userSettings) == ModConfig<TweakSettings>.SerializeSettings(modConfig.Settings)) return;
 
 			UpdateSettings();
 			UpdateSettingWarning();

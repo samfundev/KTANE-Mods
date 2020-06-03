@@ -99,6 +99,7 @@
     <Compile Include="GeneralExtensions.cs" />
     <Compile Include="LeaderboardController.cs" />
     <Compile Include="MainThreadQueue.cs" />
+    <Compile Include="ModConfig.cs" />
     <Compile Include="ModdedAPI.cs" />
     <Compile Include="Modules\ModuleLogging.cs" />
     <Compile Include="Modules\KeypadLogging.cs" />
@@ -109,7 +110,6 @@
     <Compile Include="Modules\ModuleTweak.cs" />
     <Compile Include="ModSelectorExtension.cs" />
     <Compile Include="SettingsPage.cs" />
-    <Compile Include="ModSettings.cs" />
     <Compile Include="Modules\WordScramblePatch.cs" />
     <Compile Include="PropertiesBehaviour.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
