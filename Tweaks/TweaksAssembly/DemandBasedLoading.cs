@@ -548,6 +548,10 @@ static class DemandBasedLoading
 						if (emptyTimerFaceComponents.Contains(swapTarget))
 						{
 							emptyTimerFaceComponents.Remove(swapTarget);
+
+							var swapIndex = Array.IndexOf(timerFaceSelectable.Children, swapTarget.GetComponent<Selectable>());
+							timerFaceSelectable.Children[swapIndex] = GetComponent<Selectable>();
+							GetComponent<Selectable>().Parent = timerFaceSelectable;
 						}
 						else
 						{
