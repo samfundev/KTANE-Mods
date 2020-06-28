@@ -32,6 +32,7 @@ The settings can be found in a file called "TweakSettings" in your "Modsettings"
 * <b id="settings-BombHUD">BombHUD</b> (Default: `false`) - Adds a HUD in the top right corner showing information about the currently selected bomb.
 * <b id="settings-ShowEdgework">ShowEdgework</b> (Default: false) - Adds a HUD to the top of the screen showing the edgework for the currently selected bomb.
 * <b id="settings-DisableAdvantageous">DisableAdvantageous</b> (Default: `false`) - Disables [advantageous features](#advantageous-features) so you don't have to modify your settings temporarily.
+* <b id="settings-ShowTips">ShowTips</b> (Default: `true`) - Shows tips about Tweaks features that you may not know about. Only tips about features that aren't being used will be shown.
 * <b id="settings-HideTOC">HideTOC</b> (Default: `[]`) - Hides table of contents entries that match the specified patterns. [(See example.)](https://i.imgur.com/pN0WfJw.gif) Patterns can use an `*` to match any number of characters and a `?` to match any single character. The pattern must match the whole entry and is case-insensitive. Patterns must be comma separated. Example:
 ```json
 "HideTOC": [
