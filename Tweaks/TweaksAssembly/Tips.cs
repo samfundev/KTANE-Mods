@@ -22,7 +22,7 @@ public static class Tips
 		new Tip("See the current status of the bomb using the \"BombHUD\" setting.", () => !Settings.BombHUD, "settings-BombHUD"),
 		new Tip("See a bomb's edgework on screen using the \"ShowEdgework\" setting.", () => !Settings.ShowEdgework, "settings-ShowEdgework"),
 		new Tip("Temporarily disable advantageous features using the \"DisableAdvantageous\" setting.", () => !Settings.DisableAdvantageous, "settings-DisableAdvantageous"),
-		new Tip("Disable these tips using the \"ShowTips\" setting.", () => Settings.ShowTips),
+		new Tip("Disable these tips using the \"ShowTips\" setting.", () => Settings.ShowTips, "settings-ShowTips"),
 		new Tip("Hide unnecessary table of contents entries using the \"HideTOC\" setting.", () => Settings.HideTOC.Count == 0, "settings-HideTOC"),
 		new Tip("Try out different modes for defusing bombs using the \"Mode\" setting.", () => Settings.Mode == Mode.Normal, "settings-Mode"),
 		new Tip("Generate the same bomb consistently using the \"MissionSeed\" setting.", () => Settings.MissionSeed == -1, "settings-MissionSeed"),

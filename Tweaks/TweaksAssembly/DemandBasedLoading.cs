@@ -115,7 +115,7 @@ static class DemandBasedLoading
 
 	class KtaneModule
 	{
-		public int? SteamID;
+		public string SteamID;
 		public string Name;
 		public string ModuleID;
 		public string Type;
@@ -130,35 +130,35 @@ static class DemandBasedLoading
 			Name = "The Button Translated",
 			ModuleID = "BigButtonTranslated",
 			Type = "Regular",
-			SteamID = 850186070
+			SteamID = "850186070"
 		},
 		new KtaneModule
 		{
 			Name = "Who's on First Translated",
 			ModuleID = "WhosOnFirstTranslated",
 			Type = "Regular",
-			SteamID = 850186070
+			SteamID = "850186070"
 		},
 		new KtaneModule
 		{
 			Name = "Password Translated",
 			ModuleID = "PasswordsTranslated",
 			Type = "Regular",
-			SteamID = 850186070
+			SteamID = "850186070"
 		},
 		new KtaneModule
 		{
 			Name = "Morse Code Translated",
 			ModuleID = "MorseCodeTranslated",
 			Type = "Regular",
-			SteamID = 850186070
+			SteamID = "850186070"
 		},
 		new KtaneModule
 		{
 			Name = "Venting Gas Translated",
 			ModuleID = "VentGasTranslated",
 			Type = "Needy",
-			SteamID = 850186070
+			SteamID = "850186070"
 		},
 
 		// Russian Adjacent Letters
@@ -167,7 +167,7 @@ static class DemandBasedLoading
 			Name = "Adjacent Letters (Russian)",
 			ModuleID = "AdjacentLettersModule_Rus",
 			Type = "Regular",
-			SteamID = 806188270
+			SteamID = "806188270"
 		},
 
 		// Polish Colour Flash
@@ -176,7 +176,7 @@ static class DemandBasedLoading
 			Name = "Colour Flash PL",
 			ModuleID = "ColourFlashPL",
 			Type = "Regular",
-			SteamID = 2030249636
+			SteamID = "2030249636"
 		},
 	};
 
