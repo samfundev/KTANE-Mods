@@ -15,8 +15,8 @@ static class DemandBasedLoading
 	public static int DisabledModsCount;
 	static readonly List<string> fakedModules = new List<string>();
 	static string modWorkshopPath;
-	static readonly List<int> loadOrder = new List<int>();
-	static readonly Dictionary<int, UnityEngine.Object[]> loadedObjects = new Dictionary<int, UnityEngine.Object[]>();
+	static readonly List<string> loadOrder = new List<string>();
+	static readonly Dictionary<string, UnityEngine.Object[]> loadedObjects = new Dictionary<string, UnityEngine.Object[]>();
 
 	public static void HandleTransitioning()
 	{
@@ -272,7 +272,7 @@ static class DemandBasedLoading
 				if (module.SteamID == null || !(module.Type == "Regular" || module.Type == "Needy"))
 					continue;
 
-				var modPath = Path.Combine(modWorkshopPath, module.SteamID.ToString());
+				var modPath = Path.Combine(modWorkshopPath, module.SteamID);
 				if (!Directory.Exists(modPath))
 				{
 					cantLoad.Add($"{module.ModuleID} ({module.SteamID})");
@@ -313,7 +313,7 @@ static class DemandBasedLoading
 					needyModule.ModuleDisplayName = module.Name;
 				}
 
-				fakeModule.gameObject.name = module.SteamID.ToString();
+				fakeModule.gameObject.name = module.SteamID;
 				fakeModule.AddComponent<FakeModule>();
 				fakeModule.AddComponent<Selectable>();
 				fakeModule.AddComponent<ModSource>().ModName = "Tweaks";
@@ -332,7 +332,7 @@ static class DemandBasedLoading
 		Time.timeScale = 1;
 	}
 
-	public static Dictionary<int, Mod> manuallyLoadedMods = new Dictionary<int, Mod>();
+	public static Dictionary<string, Mod> manuallyLoadedMods = new Dictionary<string, Mod>();
 
 	public static Selectable renderSelectable;
 
@@ -373,7 +373,7 @@ static class DemandBasedLoading
 
 			bomb = BetterCasePicker.BombGenerator.GetValue<Bomb>("bomb");
 
-			int SteamID = int.Parse(gameObject.name.Replace("(Clone)", ""));
+			string SteamID = gameObject.name.Replace("(Clone)", "");
 			string ModuleID = GetComponent<KMBombModule>()?.ModuleType ?? GetComponent<KMNeedyModule>()?.ModuleType;
 
 			// Hide from Souvenir
@@ -383,7 +383,7 @@ static class DemandBasedLoading
 
 			if (!manuallyLoadedMods.TryGetValue(SteamID, out Mod mod))
 			{
-				var modPath = Path.Combine(modWorkshopPath, SteamID.ToString());
+				var modPath = Path.Combine(modWorkshopPath, SteamID);
 				if (!Directory.Exists(modPath))
 					return;
 
