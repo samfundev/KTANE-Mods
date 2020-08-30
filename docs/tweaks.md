@@ -2,24 +2,28 @@
 title: Tweaks
 ---
 # Features
+This list is sorted with what I think are generally the most useful and relevant features first.
+* Adds demand-based mod loading, making the game boot up faster and saving memory. See the [DBML](#demand-based-mod-loading) section below.
 * Picks the smallest case that fits the number of modules on the bomb.
 * Adds a customizable case generator which will create the best fitting case.
 * Adds three new ways to solve bombs: Time, Zen and Steady Mode. See the [Modes](#Modes) section below.
 * Adds two separate HUDs, one showing the bomb status and the other showing edgework.
 * Adds a mod settings editor app to Mod Selector.
 * Allows the player to hide table of contents entries in the mission binder. [(See example.)](https://i.imgur.com/pN0WfJw.gif)
-* Adds the ability to turn the Mods Only key on by default.
-* Fixes the URL that the module Foreign Exchange Rates uses since the old one no longer works.
-* Adds the ability to instantly skip the gameplay loading screen.
-* Sets the fade time to be the same between scenes.
-* Adds logging for Probing, Emoji Math, Switches and some of the vanilla modules.
+* Adds a setting to control the mission seed. So you can try to consistently generate the same bomb.
+* Adds a setting to turn the Mods Only key on by default.
+* Adds a setting to instantly skip the gameplay loading screen and or the lights being out at the start of a bomb.
+* Sets the fade time to be the same between scenes and which can be controlled with a setting.
+* Adds logging for many modules like Probing and Keypad.
+* Adds logging which is used to improve the [Logfile Analyzer](https://ktane.timwi.de/More/Logfile%20Analyzer.html).
 * Fixes Word Scramble so that the word "papers" is accepted.
+* Fixes the URL that Foreign Exchange Rates uses since the old one no longer works.
 * Removes the maximum time limit in the freeplay briefcase.
 * Makes the minimum number of modules in the freeplay briefcase to 1.
-* Centers the status lights on modules.
+* Fixes little details about modules like centering the status light or background.
 
 # Settings
-The settings can be found in a file called "TweakSettings" in your "Modsettings" folder.
+Most of these settings can be easily edited using the Mod Settings Editor found in the Mod Selector tablet. Additional ones can found in a file called "TweakSettings" in your "Modsettings" folder.
 * <b id="settings-FadeTime">FadeTime</b> (Default: `1`) - The number seconds should it take to fade in and out of scenes. If the is negative then the game default's will not be changed.
 * <b id="settings-InstantSkip">InstantSkip</b> (Default: `true`) - Skips the gameplay loading screen as soon as possible.
 * <b id="settings-SkipGameplayDelay">SkipGameplayDelay</b> (Default: `false`) - Skips the delay at the beginning of a round when the lights are out.
