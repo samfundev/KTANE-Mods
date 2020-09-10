@@ -24,20 +24,20 @@ This list is sorted with what I think are generally the most useful and relevant
 
 # Settings
 Most of these settings can be easily edited using the Mod Settings Editor found in the Mod Selector tablet. Additional ones can found in a file called "TweakSettings" in your "Modsettings" folder.
-* <b id="settings-FadeTime">FadeTime</b> (Default: `1`) - The number seconds should it take to fade in and out of scenes. If the is negative then the game default's will not be changed.
-* <b id="settings-InstantSkip">InstantSkip</b> (Default: `true`) - Skips the gameplay loading screen as soon as possible.
-* <b id="settings-SkipGameplayDelay">SkipGameplayDelay</b> (Default: `false`) - Skips the delay at the beginning of a round when the lights are out.
-* <b id="settings-BetterCasePicker">BetterCasePicker</b> (Default: `true`) - Chooses the smallest case that fits instead of a random one.
-* <b id="settings-EnableModsOnlyKey">EnableModsOnlyKey</b> (Default: `false`) - Turns the Mods Only key to be on by default.
-* <b id="settings-DemandBasedModLoading">DemandBasedModLoading</b> (Default: `false`) - Load only the modules on a bomb instead of loading all of them when starting up. See the [DBML](#demand-based-mod-loading) section below.
-* <b id="settings-DisableDemandBasedMods">DisableDemandBasedMods</b> (Default: `false`) - Disables mods that can be loaded on demand so they aren't load when the game starts. This tricks the game into thinking that you've disabled these mods in the Mod Manager so this cannot be undone without manually re-enabling these mods.
-* <b id="settings-DemandModLimit">DemandModLimit</b> (Default: `-1`) - Sets the limit of how many mods will be kept loaded after the bomb is over. Negative numbers will keep all mods loaded..
-* <b id="settings-FixFER">FixFER</b> (Default: `false`) - Changes the URL that is queried by [Foreign Exchange Rates](https://steamcommunity.com/sharedfiles/filedetails/?id=743442301) since the old one is no longer operational. See the module’s [manual](https://ktane.timwi.de/HTML/Foreign%20Exchange%20Rates.html) for the new URL.
-* <b id="settings-BombHUD">BombHUD</b> (Default: `false`) - Adds a HUD in the top right corner showing information about the currently selected bomb.
-* <b id="settings-ShowEdgework">ShowEdgework</b> (Default: false) - Adds a HUD to the top of the screen showing the edgework for the currently selected bomb.
-* <b id="settings-DisableAdvantageous">DisableAdvantageous</b> (Default: `false`) - Disables [advantageous features](#advantageous-features) so you don't have to modify your settings temporarily.
-* <b id="settings-ShowTips">ShowTips</b> (Default: `true`) - Shows tips about Tweaks features that you may not know about. Only tips about features that aren't being used will be shown.
-* <b id="settings-HideTOC">HideTOC</b> (Default: `[]`) - Hides table of contents entries that match the specified patterns. [(See example.)](https://i.imgur.com/pN0WfJw.gif) Patterns can use an `*` to match any number of characters and a `?` to match any single character. The pattern must match the whole entry and is case-insensitive. Patterns must be comma separated. Example:
+* <b id="settings-FadeTime">Fade Time</b> (Default: `1`) - The number seconds should it take to fade in and out of scenes. If the is negative then the game default's will not be changed.
+* <b id="settings-InstantSkip">Instant Skip</b> (Default: `true`) - Skips the gameplay loading screen as soon as possible.
+* <b id="settings-SkipGameplayDelay">Skip Gameplay Delay</b> (Default: `false`) - Skips the delay at the beginning of a round when the lights are out.
+* <b id="settings-BetterCasePicker">Better Case Picker</b> (Default: `true`) - Chooses the smallest case that fits instead of a random one.
+* <b id="settings-EnableModsOnlyKey">Enable Mods Only Key</b> (Default: `false`) - Turns the Mods Only key to be on by default.
+* <b id="settings-DemandBasedModLoading">Demand Based Mod Loading</b> (Default: `false`) - Load only the modules on a bomb instead of loading all of them when starting up. See the [DBML](#demand-based-mod-loading) section below.
+* <b id="settings-DisableDemandBasedMods">Disable Demand Based Mods</b> (Default: `false`) - Disables mods that can be loaded on demand so they aren't load when the game starts. This tricks the game into thinking that you've disabled these mods in the Mod Manager so this cannot be undone without manually re-enabling these mods.
+* <b id="settings-DemandModLimit">Demand Mod Limit</b> (Default: `-1`) - Sets the limit of how many mods will be kept loaded after the bomb is over. Negative numbers will keep all mods loaded..
+* <b id="settings-FixFER">Fix FER</b> (Default: `false`) - Changes the URL that is queried by [Foreign Exchange Rates](https://steamcommunity.com/sharedfiles/filedetails/?id=743442301) since the old one is no longer operational. See the module’s [manual](https://ktane.timwi.de/HTML/Foreign%20Exchange%20Rates.html) for the new URL.
+* <b id="settings-BombHUD">Bomb HUD</b> (Default: `false`) - Adds a HUD in the top right corner showing information about the currently selected bomb.
+* <b id="settings-ShowEdgework">Show Edgework</b> (Default: false) - Adds a HUD to the top of the screen showing the edgework for the currently selected bomb.
+* <b id="settings-DisableAdvantageous">Disable Advantageous</b> (Default: `false`) - Disables [advantageous features](#advantageous-features) so you don't have to modify your settings temporarily.
+* <b id="settings-ShowTips">Show Tips</b> (Default: `true`) - Shows tips about Tweaks features that you may not know about. Only tips about features that aren't being used will be shown.
+* <b id="settings-HideTOC">Hide TOC</b> (Default: `[]`) - Hides table of contents entries that match the specified patterns. [(See example.)](https://i.imgur.com/pN0WfJw.gif) Patterns can use an `*` to match any number of characters and a `?` to match any single character. The pattern must match the whole entry and is case-insensitive. Patterns must be comma separated. Example:
 ```json
 "HideTOC": [
     "Probing",
@@ -46,10 +46,10 @@ Most of these settings can be easily edited using the Mod Settings Editor found 
 ]
 ```
 * <b id="settings-Mode">Mode</b> (Default: `"Normal"`) - Sets the mode for the next bomb. Acceptable values are "Normal", "Zen", "Time" and "Steady". The [Bomb Creator](https://steamcommunity.com/sharedfiles/filedetails/?id=1224340893) allows you to change the current mode. See the [Modes](#Modes) section below.
-* <b id="settings-MissionSeed">MissionSeed</b> (Default: `-1`) - Seeds the random numbers for the mission which should make the bomb generate consistently. Useful for trying to race to see who could complete a bomb first. You'll need to make sure things are consistent like settings and what mods are installed. A negative number means that the random numbers won't be seeded by Tweaks.
-* <b id="settings-CaseGenerator">CaseGenerator</b> (Default: `true`) - Generates a case to best fit the number of modules on the bomb which can be one of the colors defined by `CaseColors`. Requires BetterCasePicker to be enabled.
-* <b id="settings-ModuleTweaks">ModuleTweaks</b> (Default: `true`) - Controls all module related tweaks like fixing status light positions.
-* <b id="settings-CaseColors">CaseColors</b> (Default: `[]`) - Colors which can be picked by the case generator. Supports: Common color names, HEX, RGB, HSV and random. Example: 
+* <b id="settings-MissionSeed">Mission Seed</b> (Default: `-1`) - Seeds the random numbers for the mission which should make the bomb generate consistently. Useful for trying to race to see who could complete a bomb first. You'll need to make sure things are consistent like settings and what mods are installed. A negative number means that the random numbers won't be seeded by Tweaks.
+* <b id="settings-CaseGenerator">Case Generator</b> (Default: `true`) - Generates a case to best fit the number of modules on the bomb which can be one of the colors defined by `CaseColors`. Requires BetterCasePicker to be enabled.
+* <b id="settings-ModuleTweaks">Module Tweaks</b> (Default: `true`) - Controls all module related tweaks like fixing status light positions.
+* <b id="settings-CaseColors">Case Colors</b> (Default: `[]`) - Colors which can be picked by the case generator. Supports: Common color names, HEX, RGB, HSV and random. Example: 
 ```json
 "CaseColors": [
     "red",
@@ -81,23 +81,26 @@ An [editor](https://ktane.timwi.de/More/Mode%20Settings%20Editor.html) has been 
 Initially the Mode Settings Editor will be populated with the default TP point values for all modules that have them. Modules that don’t have a point value set will be outlined in red. After the point value there may be a number in parenthesis. This is the point difference that module gives when compared to the default Twitch Plays value. If it is a “?” instead of a number, then there is no Twitch Plays value for that module. If you are confused, you can always hover over it for an explanation.
 
 The ModeSettings file contains the following settings:
-* **ZenModeTimePenalty** (Default: `0`) - The base amount of minutes to be penalized for getting a strike.
-* **ZenModeTimePenaltyIncrease** (Default: `0`) - The number of minutes to add to the penalty each time you get a strike after the first.
-* **ZenModeTimerSpeedUp** (Default: `0.25`) - The rate the timer speeds up when you get a strike. For example, if this value is 0.25 then the timer speeds up to 1.25x for the first strike, 1.5x for the second, etc.
-* **ZenModeTimerMaxSpeed** (Default: `2`) - The maximum rate the timer can be set to. For example, 2 is twice as fast as the normal timer.
-* **SteadyModeFixedPenalty** (Default: `2`) - The number of minutes subtracted from the time when you get a strike.
-* **SteadyModePercentPenalty** (Default: `0`) - The factor of the starting time the remaining time is reduced by. For example, if this value is 0.25 and you get a strike with 10 minutes on the clock, then the timer will have 7 minutes and 30 seconds left.
-* **TimeModeStartingTime** (Default: `5`) - The number of minutes on the timer when you start a bomb. This can be set in the game by using [Bomb Creator](https://steamcommunity.com/sharedfiles/filedetails/?id=1224340893) when Time mode is enabled.
-* **TimeModeStartingMultiplier** (Default: `9`) - The initial multiplier.
-* **TimeModeMaxMultiplier** (Default: `10`) - The highest the multiplier can go.
-* **TimeModeMinMultiplier** (Default: `1`) - The lowest the multiplier can go.
-* **TimeModeSolveBonus** (Default: `0.1`) - The amount added to the multiplier when you solve a module.
-* **TimeModeMultiplierStrikePenalty** (Default: `1.5`) - The amount subtracted from the multiplier when you get a strike.
-* **TimeModeTimerStrikePenalty** (Default: `0.25`) - The factor the time is reduced by when getting a strike. For example, if this value is 0.25, then after a strike the timer will have 75% it's previous value.
-* **TimeModeMinimumTimeLost** (Default: `15`) - Lowest amount of time that you can lose when you get a strike.
-* **TimeModeMinimumTimeGained** (Default: `20`) - Lowest amount of time you can gain when you solve a module.
-* **TimeModePointMultiplier** (Default: `1`) - The additional multiplier for all points earned.
-* **ComponentValues** (Default: `{}`) - The base point value for each module specified by its module ID. Example:
+## Zen Mode
+* **Time Penalty** (Default: `0`) - The base amount of minutes to be penalized for getting a strike.
+* **Time Penalty Increase** (Default: `0`) - The number of minutes to add to the penalty each time you get a strike after the first.
+* **Timer Speed Up** (Default: `0.25`) - The rate the timer speeds up when you get a strike. For example, if this value is 0.25 then the timer speeds up to 1.25x for the first strike, 1.5x for the second, etc.
+* **Timer Max Speed** (Default: `2`) - The maximum rate the timer can be set to. For example, 2 is twice as fast as the normal timer.
+## Steady Mode
+* **Fixed Penalty** (Default: `2`) - The number of minutes subtracted from the time when you get a strike.
+* **Percent Penalty** (Default: `0`) - The factor of the starting time the remaining time is reduced by. For example, if this value is 0.25 and you get a strike with 10 minutes on the clock, then the timer will have 7 minutes and 30 seconds left.
+## Time Mode
+* **Starting Time** (Default: `5`) - The number of minutes on the timer when you start a bomb. This can be set in the game by using [Bomb Creator](https://steamcommunity.com/sharedfiles/filedetails/?id=1224340893) when Time mode is enabled.
+* **Starting Multiplier** (Default: `9`) - The initial multiplier.
+* **Max Multiplier** (Default: `10`) - The highest the multiplier can go.
+* **Min Multiplier** (Default: `1`) - The lowest the multiplier can go.
+* **Solve Bonus** (Default: `0.1`) - The amount added to the multiplier when you solve a module.
+* **Multiplier Strike Penalty** (Default: `1.5`) - The amount subtracted from the multiplier when you get a strike.
+* **Timer Strike Penalty** (Default: `0.25`) - The factor the time is reduced by when getting a strike. For example, if this value is 0.25, then after a strike the timer will have 75% it's previous value.
+* **Minimum Time Lost** (Default: `15`) - Lowest amount of time that you can lose when you get a strike.
+* **Minimum Time Gained** (Default: `20`) - Lowest amount of time you can gain when you solve a module.
+* **Point Multiplier** (Default: `1`) - The additional multiplier for all points earned.
+* **Component Values** (Default: `{}`) - The base point value for each module specified by its module ID. Example:
 ```json
 "ComponentValues": {
     "MemoryV2": 5.0,
@@ -106,7 +109,7 @@ The ModeSettings file contains the following settings:
     "CheapCheckoutModule": 12.0
 }
 ```
-* **TotalModulesMultiplier** (Default: `{}`) - The bonus points awarded for solving a module specified by its module ID. This value is multiplied by the number of modules on the bomb. The point value for a module is the base points plus these bonus points. This feature is especially suitable for modules like Forget Me Not or Souvenir. Unfortunately, at this time, this field can’t be changed using the Mode Settings editor. Example:
+* **Total Modules Multiplier** (Default: `{}`) - The bonus points awarded for solving a module specified by its module ID. This value is multiplied by the number of modules on the bomb. The point value for a module is the base points plus these bonus points. This feature is especially suitable for modules like Forget Me Not or Souvenir. Unfortunately, at this time, this field can’t be changed using the Mode Settings editor. Example:
 ```json
 "TotalModulesMultiplier": {
     "MemoryV2": 0.5,
