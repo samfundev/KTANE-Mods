@@ -96,6 +96,7 @@ The ModeSettings file contains the following settings:
 * **TimeModeTimerStrikePenalty** (Default: `0.25`) - The factor the time is reduced by when getting a strike. For example, if this value is 0.25, then after a strike the timer will have 75% it's previous value.
 * **TimeModeMinimumTimeLost** (Default: `15`) - Lowest amount of time that you can lose when you get a strike.
 * **TimeModeMinimumTimeGained** (Default: `20`) - Lowest amount of time you can gain when you solve a module.
+* **TimeModePointMultiplier** (Default: `1`) - The additional multiplier for all points earned.
 * **ComponentValues** (Default: `{}`) - The base point value for each module specified by its module ID. Example:
 ```json
 "ComponentValues": {
