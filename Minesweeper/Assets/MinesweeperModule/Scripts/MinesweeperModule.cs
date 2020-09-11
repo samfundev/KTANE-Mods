@@ -22,13 +22,13 @@ public class MinesweeperModule : MonoBehaviour
 
 	public List<Sprite> Sprites;
 
-	bool loggedLegend = false;
+	bool loggedLegend;
 	static int idCounter = 1;
 	int moduleID;
 
 	Vector2 GridSize = new Vector2(8, 10);
 
-	MSGrid Game = new MSGrid();
+	readonly MSGrid Game = new MSGrid();
 
 	class MSGrid
 	{
@@ -69,7 +69,7 @@ public class MinesweeperModule : MonoBehaviour
 				bool won = true;
 				foreach (Cell cell in Cells)
 				{
-					if ((cell.Mine && !cell.Flagged) || (!cell.Mine && cell.Flagged))
+					if (cell.Mine ^ cell.Flagged)
 					{
 						won = false;
 						break;
@@ -86,25 +86,8 @@ public class MinesweeperModule : MonoBehaviour
 		public int _x;
 		public int _y;
 
-		bool _Dug;
-		public bool Dug
-		{
-			get { return _Dug; }
-			set
-			{
-				_Dug = value;
-			}
-		}
-
-		bool _Flagged;
-		public bool Flagged
-		{
-			get { return _Flagged; }
-			set
-			{
-				_Flagged = value;
-			}
-		}
+		public bool Dug;
+		public bool Flagged;
 
 		List<Cell> _Around = null;
 		public List<Cell> Around
@@ -147,22 +130,13 @@ public class MinesweeperModule : MonoBehaviour
 		public void UpdateSprite()
 		{
 			string name = "Cover";
-			if (_Dug)
+			if (Dug)
 			{
-				if (Mine)
-				{
-					name = "Incorrect";
-				}
-				else if (Number == 0)
-				{
-					name = "Empty";
-				}
-				else
-				{
-					name = Number.ToString();
-				}
+				name = Mine ? "Incorrect" :
+					Number == 0 ? "Empty" :
+					Number.ToString();
 			}
-			else if (_Flagged)
+			else if (Flagged)
 			{
 				name = "Flagged";
 			}
@@ -227,7 +201,7 @@ public class MinesweeperModule : MonoBehaviour
 			_selectable.OnInteractEnded();
 		}
 
-		MSGrid _game;
+		readonly MSGrid _game;
 		public Cell(MSGrid game, int x, int y, GameObject Object, KMAudio Audio, List<Sprite> Sprites)
 		{
 			_game = game;
@@ -258,7 +232,6 @@ public class MinesweeperModule : MonoBehaviour
 					Children.Add(Picks.Contains(cell) ? cell._selectable : null);
 				}
 			}
-
 		}
 
 		if (StartFound)
@@ -286,12 +259,12 @@ public class MinesweeperModule : MonoBehaviour
 		Log(string.Format(data.ToString(), formatting));
 	}
 
-	int mod(int x, int m)
+	int Mod(int x, int m)
 	{
 		return (x % m + m) % m;
 	}
 
-	Dictionary<string, Color> Colors = new Dictionary<string, Color>()
+	readonly Dictionary<string, Color> Colors = new Dictionary<string, Color>()
 	{
 		{"red",    Color.red},
 		{"orange", new Color(1, 0.5f, 0)},
@@ -302,7 +275,7 @@ public class MinesweeperModule : MonoBehaviour
 		{"black", Color.black}
 	};
 
-	Dictionary<int, string> numToName = new Dictionary<int, string>()
+	readonly Dictionary<int, string> numToName = new Dictionary<int, string>()
 	{
 		{5, "red"},
 		{2, "orange"},
@@ -312,7 +285,7 @@ public class MinesweeperModule : MonoBehaviour
 		{4, "purple"}
 	};
 
-	List<string> unpickedNames = new List<string>() {
+	readonly List<string> unpickedNames = new List<string>() {
 		"red",
 		"orange",
 		"yellow",
@@ -337,10 +310,7 @@ public class MinesweeperModule : MonoBehaviour
 			Picks.Add(Game.Cells.Except(Picks).ElementAt(Random.Range(0, Game.Cells.Count - Picks.Count)));
 		}
 
-		Picks.Sort(delegate (Cell x, Cell y)
-		{
-			return Game.Cells.IndexOf(x) < Game.Cells.IndexOf(y) ? -1 : 1;
-		});
+		Picks.Sort((Cell x, Cell y) => Game.Cells.IndexOf(x) < Game.Cells.IndexOf(y) ? -1 : 1);
 
 		int digit = Bomb.GetSerialNumberNumbers().ElementAt(1);
 		int number = digit;
@@ -352,7 +322,7 @@ public class MinesweeperModule : MonoBehaviour
 
 		int G = total - Picks.IndexOf(StartingCell);
 		int S = Bomb.GetSerialNumberLetters().First() - 64;
-		int sol = mod(((G - S) - 1), total) + 1;
+		int sol = Mod(G - S - 1, total) + 1;
 		if (sol == 7)
 		{
 			goto pick_colors;
@@ -374,7 +344,7 @@ public class MinesweeperModule : MonoBehaviour
 
 			cell._renderer.color = Colors[name];
 			cell.Color = name;
-			
+
 			char letter = name == "black" ? 'K' : name[0];
 			if (colorblind) Instantiate(ColorblindLabel, cell._object.transform).GetComponent<TextMesh>().text = letter.ToString();
 		}
@@ -526,7 +496,7 @@ public class MinesweeperModule : MonoBehaviour
 	bool Held = false;
 	Coroutine _playClick = null;
 
-	void Start()
+	public void Start()
 	{
 		moduleID = idCounter++;
 
@@ -534,7 +504,7 @@ public class MinesweeperModule : MonoBehaviour
 
 		Slider = ModeToggle.transform.Find("Slider").gameObject;
 
-		ModeToggle.GetComponent<KMSelectable>().OnInteract = delegate ()
+		ModeToggle.GetComponent<KMSelectable>().OnInteract = () =>
 		{
 			Audio.PlaySoundAtTransform("Toggle-" + (Digging ? 1 : 2).ToString("D2"), transform);
 			Digging = !Digging;
@@ -574,7 +544,7 @@ public class MinesweeperModule : MonoBehaviour
 				Game.Cells.Insert(x + y * (int) GridSize.x, cell);
 				Game.Board[y].Insert(x, cell);
 
-				cell._selectable.OnInteract = delegate ()
+				cell._selectable.OnInteract = () =>
 				{
 					_playClick = StartCoroutine(HoldCell(cell));
 					Held = false;
@@ -582,7 +552,7 @@ public class MinesweeperModule : MonoBehaviour
 					return false;
 				};
 
-				cell._selectable.OnInteractEnded = delegate ()
+				cell._selectable.OnInteractEnded = () =>
 				{
 					StopCoroutine(_playClick);
 					if (!Held)
@@ -869,7 +839,7 @@ public class MinesweeperModule : MonoBehaviour
 		}
 
 		string[] split = command.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-		bool digging = EqualsAny(split[0], "dig", "d");
+		bool digging = split.Length >= 1 && EqualsAny(split[0], "dig", "d");
 		if (StartFound)
 		{
 			bool holding = EqualsAny(split.Last(), "hold", "holding", "h");
@@ -975,7 +945,7 @@ public class MinesweeperModule : MonoBehaviour
 			StartingCell.Click();
 			yield return new WaitForSeconds(0.1f);
 		}
-		
+
 		List<Cell> Unused = Game.Cells.Where(cell => cell.Number != 0 && cell.Dug).ToList(); // Cells that have a number in them but haven't been used by the solver yet.
 		List<Cell> Used = new List<Cell>(); // Store the used cells temporarily until the loop is over.
 		List<Cell> UnusedTemp = new List<Cell>(); // Store the new unused cells temporarily until the loop is over.

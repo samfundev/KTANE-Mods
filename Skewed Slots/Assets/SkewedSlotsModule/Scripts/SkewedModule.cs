@@ -14,13 +14,13 @@ public class SkewedModule : MonoBehaviour
     public KMBombModule BombModule;
     public KMBombInfo BombInfo;
 
-    int[] Numbers = new int[3];
-    int[] Display = new int[3];
-    int[] Solution = new int[3];
-    bool moduleActivated = false;
-    bool solved = false;
+	readonly int[] Numbers = new int[3];
+	readonly int[] Display = new int[3];
+	readonly int[] Solution = new int[3];
+    bool moduleActivated;
+    bool solved;
     string ruleLog = "(Rule Log)";
-    int[] fibonacci = {1, 1, 2, 3, 5, 8, 13, 21, 34, 55};
+	readonly int[] fibonacci = {1, 1, 2, 3, 5, 8, 13, 21, 34, 55};
 
     static int idCounter = 1;
     int moduleID;
@@ -30,7 +30,7 @@ public class SkewedModule : MonoBehaviour
         ruleLog += "\n" + string.Format(msg, args);
     }
 
-    public static bool isPrime(int number)
+    public static bool IsPrime(int number)
     {
         if (number <= 1) return false;
         if (number == 2) return true;
@@ -67,7 +67,7 @@ public class SkewedModule : MonoBehaviour
 
 	void SetupInteraction(KMSelectable Selectable, Action action)
     {
-		Selectable.OnInteract += delegate ()
+		Selectable.OnInteract += () =>
 		{
 			Selectable.AddInteractionPunch();
 			BombAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
@@ -98,7 +98,7 @@ public class SkewedModule : MonoBehaviour
                     Numbers[slotnumber] = number;
                     Display[slotnumber] = number;
 
-                    spins[slotnumber] = spins[slotnumber] - 1;
+					spins[slotnumber]--;
                 }
 
                 if (spins[slotnumber] == 0 && state == 2) {
@@ -141,7 +141,7 @@ public class SkewedModule : MonoBehaviour
     {
         BombModule.OnActivate += ActivateModule;
 
-		SetupInteraction(Submit, delegate ()
+		SetupInteraction(Submit, () =>
 		{
 			DebugMsg("Submitted: {0}", Join(Display, " "));
 			if (Display.SequenceEqual(Solution))
@@ -159,18 +159,18 @@ public class SkewedModule : MonoBehaviour
             int slotnumber = int.Parse(slot.name.Substring(4, 1));
             KMSelectable up = slot.transform.Find("Up").GetComponent<KMSelectable>();
             KMSelectable down = slot.transform.Find("Down").GetComponent<KMSelectable>();
-			SetupInteraction(up, delegate ()
+			SetupInteraction(up, () =>
 			{
 				Display[slotnumber] = (Display[slotnumber] + 1) % 10;
 				UpdateSlots();
 			});
 
-			SetupInteraction(down, delegate ()
-            {
-                Display[slotnumber] = Display[slotnumber] - 1;
-                if (Display[slotnumber] == -1) Display[slotnumber] = 9;
-                UpdateSlots();
-            });
+			SetupInteraction(down, () =>
+			{
+				Display[slotnumber]--;
+				if (Display[slotnumber] == -1) Display[slotnumber] = 9;
+				UpdateSlots();
+			});
         }
     }
 
@@ -237,7 +237,7 @@ public class SkewedModule : MonoBehaviour
                 LogRule("Number is even and greater than 5. # / 2.");
                 correct /= 2;
             }
-            else if (isPrime(correct))
+            else if (IsPrime(correct))
             {
                 LogRule("Number is prime. Added rightmost serial number.");
                 correct += int.Parse(serial[serial.Length - 1].ToString());
@@ -315,12 +315,11 @@ public class SkewedModule : MonoBehaviour
             else if (correct >= 5)
             {
                 int total = 0;
-                foreach (char c in Convert.ToString(digit, 2).ToCharArray())
+                foreach (char c in Convert.ToString(digit, 2))
                 {
-
                     if (c.ToString() == "1")
                     {
-                        total = total + 1;
+						total++;
                     }
                 }
 
@@ -330,7 +329,7 @@ public class SkewedModule : MonoBehaviour
             else
             {
                 LogRule("No other rules apply. Number + 1.");
-                correct += 1;
+				correct++;
             }
         }
 
@@ -338,11 +337,11 @@ public class SkewedModule : MonoBehaviour
 
         while (correct > 9)
         {
-            correct = correct - 10;
+            correct -= 10;
         }
         while (correct < 0)
         {
-            correct = correct + 10;
+            correct += 10;
         }
 
         LogRule("Final digit: {0}", correct);
@@ -382,7 +381,7 @@ public class SkewedModule : MonoBehaviour
     }
 
     #pragma warning disable 414
-    private string TwitchHelpMessage = "Submit the correct response with !{0} submit 1 2 3.";
+    private readonly string TwitchHelpMessage = "Submit the correct response with !{0} submit 1 2 3.";
     #pragma warning restore 414
 
     public IEnumerator ProcessTwitchCommand(string command)
@@ -423,6 +422,6 @@ public class SkewedModule : MonoBehaviour
 
 	IEnumerator TwitchHandleForcedSolve()
 	{
-		yield return ProcessTwitchCommand(String.Concat(Solution[0], Solution[1], Solution[2]));
+		yield return ProcessTwitchCommand(string.Concat(Solution[0], Solution[1], Solution[2]));
 	}
 }

@@ -27,12 +27,12 @@ public class CreationModule : MonoBehaviour
     int Day = 1;
     int Permutation = -1;
     string Lifeform = "";
-    HashSet<string> Required = new HashSet<string>();
+	readonly HashSet<string> Required = new HashSet<string>();
     string Weather = "";
     bool Combining = false;
     //bool FirstDay = true;
     bool Solved = false;
-    List<string> Weathers = new List<string>
+	readonly List<string> Weathers = new List<string>
     {
         "Clear",
         "Heat Wave",
@@ -40,10 +40,10 @@ public class CreationModule : MonoBehaviour
         "Rain",
         "Windy"
     };
-    Dictionary<string, Material> ElementData = new Dictionary<string, Material>() { };
-    Dictionary<string, Material> WeatherData = new Dictionary<string, Material>() { };
+	readonly Dictionary<string, Material> ElementData = new Dictionary<string, Material>();
+	readonly Dictionary<string, Material> WeatherData = new Dictionary<string, Material>();
 
-    Dictionary<string, List<string>> Combinations = new Dictionary<string, List<string>>()
+	readonly Dictionary<string, List<string>> Combinations = new Dictionary<string, List<string>>()
     {
         // GEN. 4
         {"Bird", new List<string> {"Egg", "Air"}},
@@ -75,7 +75,7 @@ public class CreationModule : MonoBehaviour
         Debug.LogFormat("[Creation #{0}] {1}", moduleID, msg);
     }
 
-    float mod(float x, float m)
+    float Mod(float x, float m)
     {
         return (x % m + m) % m;
     }
@@ -99,12 +99,12 @@ public class CreationModule : MonoBehaviour
         while (i < 1)
         {
             i = Math.Min(i + 0.01f, 1);
-            
+
             float wang = InOutCubic(weatherx, 360 * multiplier + Weathers.IndexOf(Weather) * 72, i);
             float dang = InOutCubic(dayx, 360 * multiplier + (Day - 1) * 60, i);
             WeatherCylinder.transform.localEulerAngles = new Vector3(wang, 0, 0);
             DayCylinder.transform.localEulerAngles = new Vector3(dang, 0, 0);
-            
+
             /*if (!FirstDay)
             {
                 ws += wang - wx;
@@ -127,8 +127,8 @@ public class CreationModule : MonoBehaviour
 
             yield return new WaitForSeconds(0.01f);
         }
-        wx = mod(wx, 360);
-        dx = mod(dx, 360);
+        wx = Mod(wx, 360);
+        dx = Mod(dx, 360);
 
         //FirstDay = false;
         Combining = false;
@@ -142,7 +142,7 @@ public class CreationModule : MonoBehaviour
             weather = Weathers[Random.Range(0, Weathers.Count)];
         }
         DebugMsg("It's now Day " + Day + ". The current weather conditions are " + weather + ".");
-        
+
         Weather = weather;
         StartCoroutine(UpdateDisplay());
 
@@ -325,7 +325,7 @@ public class CreationModule : MonoBehaviour
             }
         }
 
-        Dictionary<GameObject, Vector3> Origin = new Dictionary<GameObject, Vector3>() { };
+        Dictionary<GameObject, Vector3> Origin = new Dictionary<GameObject, Vector3>();
         foreach (GameObject baseelement in bases)
         {
             Origin[baseelement] = baseelement.transform.localPosition;
@@ -460,7 +460,7 @@ public class CreationModule : MonoBehaviour
         moduleID = idCounter++;
 
 		Halo.GetComponent<Light>().range *= transform.lossyScale.x;
-        
+
         ModuleSelectable = gameObject.GetComponent<KMSelectable>();
         foreach (Material mat in Data.Icons)
         {
@@ -510,84 +510,84 @@ public class CreationModule : MonoBehaviour
             {
                 GameObject glow = child.Find("Glow").gameObject;
                 KMSelectable Selectable = element.GetComponent<KMSelectable>();
-                Selectable.OnInteract = delegate ()
-                {
-                    if (!Combining && !Solved)
-                    {
-                        Selectable.AddInteractionPunch(0.5f);
-                        BombAudio.PlaySoundAtTransform("Select", child);
+                Selectable.OnInteract = () =>
+				{
+					if (!Combining && !Solved)
+					{
+						Selectable.AddInteractionPunch(0.5f);
+						BombAudio.PlaySoundAtTransform("Select", child);
 
-                        if (selected == null)
-                        {
-                            selected = element;
-                            glow.SetActive(true);
-                        }
-                        else if (selected == element)
-                        {
-                            selected = null;
-                            glow.SetActive(false);
-                        }
-                        else
-                        {
-                            string name = selected.GetComponent<Renderer>().sharedMaterial.name;
-                            string name2 = element.GetComponent<Renderer>().sharedMaterial.name;
+						if (selected == null)
+						{
+							selected = element;
+							glow.SetActive(true);
+						}
+						else if (selected == element)
+						{
+							selected = null;
+							glow.SetActive(false);
+						}
+						else
+						{
+							string name = selected.GetComponent<Renderer>().sharedMaterial.name;
+							string name2 = element.GetComponent<Renderer>().sharedMaterial.name;
 
-                            string created = null;
-                            foreach (string step in Required)
-                            {
-                                if (Combinations.ContainsKey(step))
-                                {
-                                    List<string> combinations = Combinations[step];
-                                    switch (Weather)
-                                    {
-                                        case "Rain": combinations = Replace(combinations, "Water", "Fire"); break;
-                                        case "Windy": combinations = Replace(combinations, "Air", "Earth"); break;
-                                        case "Heat Wave": combinations = Replace(combinations, "Fire", "Water"); break;
-                                        case "Meteor Shower": combinations = Replace(combinations, "Earth", "Air"); break;
-                                        case "Clear": break;
-                                    }
+							string created = null;
+							foreach (string step in Required)
+							{
+								if (Combinations.ContainsKey(step))
+								{
+									List<string> combinations = Combinations[step];
+									switch (Weather)
+									{
+										case "Rain": combinations = Replace(combinations, "Water", "Fire"); break;
+										case "Windy": combinations = Replace(combinations, "Air", "Earth"); break;
+										case "Heat Wave": combinations = Replace(combinations, "Fire", "Water"); break;
+										case "Meteor Shower": combinations = Replace(combinations, "Earth", "Air"); break;
+										case "Clear": break;
+									}
 
-                                    if (combinations.Contains(name) && combinations.Contains(name2))
-                                    {
-                                        created = step;
-                                    }
-                                }
-                            }
+									if (combinations.Contains(name) && combinations.Contains(name2))
+									{
+										created = step;
+									}
+								}
+							}
 
-                            foreach (Transform ele in Elements.transform)
-                            {
-                                if (ele.gameObject != Halo)
-                                {
-                                    ele.Find("Glow").gameObject.SetActive(false);
-                                }
-                            }
+							foreach (Transform ele in Elements.transform)
+							{
+								if (ele.gameObject != Halo)
+								{
+									ele.Find("Glow").gameObject.SetActive(false);
+								}
+							}
 
-                            if (created != null)
-                            {
-                                DebugMsg("Combining " + name + " and " + name2 + " to create " + created + ".");
-                                Required.Remove(created);
-                                
-                                StartCoroutine(CreateElement(created, new GameObject[] { element, selected }));
-                            }
-                            else
-                            {
-                                DebugMsg("Combining " + name + " and " + name2 + " is wrong. Restarting module...");
-                                BombModule.HandleStrike();
-                                Restart();
-                            }
+							if (created != null)
+							{
+								DebugMsg("Combining " + name + " and " + name2 + " to create " + created + ".");
+								Required.Remove(created);
 
-                            selected = null;
-                        }
-                    }
+								StartCoroutine(CreateElement(created, new GameObject[] { element, selected }));
+							}
+							else
+							{
+								DebugMsg("Combining " + name + " and " + name2 + " is wrong. Restarting module...");
+								BombModule.HandleStrike();
+								Restart();
+							}
 
-                    return false;
-                };
+							selected = null;
+						}
+					}
+
+					return false;
+				};
             }
         }
     }
 
     #pragma warning disable 414
-    private string TwitchHelpMessage = "Combine two elements with !{0} combine water fire.";
+    private readonly string TwitchHelpMessage = "Combine two elements with !{0} combine water fire.";
     #pragma warning restore 414
 
     public IEnumerator ProcessTwitchCommand(string command)

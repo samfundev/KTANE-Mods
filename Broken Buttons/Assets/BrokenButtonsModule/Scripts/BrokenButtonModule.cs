@@ -72,11 +72,11 @@ public class BrokenButtonModule : MonoBehaviour
     }
 
     List<GameObject> Solution = new List<GameObject>();
-    bool SubmitButton = false;
+    bool SubmitButton;
     readonly List<string> Pressed = new List<string>();
-    bool LetterE = false;
-    bool Solved = false;
-	bool Animating = false;
+    bool LetterE;
+    bool Solved;
+	bool Animating;
 
     static int idCounter = 1;
     int moduleID;

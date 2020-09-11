@@ -15,8 +15,8 @@ class EncryptedEquations : MonoBehaviour
 	static int idCounter = 1;
 	int moduleID;
 
-	bool isSolved = false;
-	bool isAnimating = false;
+	bool isSolved;
+	bool isAnimating;
 	bool NotInteractable
 	{
 		get
@@ -25,21 +25,21 @@ class EncryptedEquations : MonoBehaviour
 		}
 	}
 
-	public Texture[] ShapeTextures = null;
-	public Texture[] SymbolTextures = null;
-	public Texture[] OperationTextures = null;
+	public Texture[] ShapeTextures;
+	public Texture[] SymbolTextures;
+	public Texture[] OperationTextures;
 
 	// The name of these textures indicates two things:
 	// 1. Whether or not it applies to the "Current" side or the "Oppsite".
 	// 2. The number indicates if it's on the left or right. Odds are on the right.
-	public Texture[] ParenthesesTextures = null;
+	public Texture[] ParenthesesTextures;
 
-	public GameObject Screen = null;
+	public GameObject Screen;
 
 	// 0-9 - .
-	public KMSelectable[] Numberpad = null;
-	public KMSelectable ClearButton = null;
-	public KMSelectable SubmitButton = null;
+	public KMSelectable[] Numberpad;
+	public KMSelectable ClearButton;
+	public KMSelectable SubmitButton;
 
 	public static Shape[] Shapes = {
 		new Shape(0, "Triangle", 0),

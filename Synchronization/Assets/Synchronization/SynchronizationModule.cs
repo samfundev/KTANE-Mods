@@ -21,7 +21,7 @@ public class SynchronizationModule : MonoBehaviour
 
 	const float FlashingSpeed = 0.35f;
 	int DisplayNumber;
-	bool Solved = false;
+	bool Solved;
 	Light SelectedLight;
 	int[] SyncMethod;
 	readonly int[] InitialSpeeds = new int[9];
@@ -42,9 +42,9 @@ public class SynchronizationModule : MonoBehaviour
 
 		public GameObject gObject;
 		public GameObject selection;
-		public int speed = 0;
+		public int speed;
 		public float randomDelay = Random.value * FlashingSpeed;
-		public int syncIndex = 0; // Used for sync animation ordering.
+		public int syncIndex; // Used for sync animation ordering.
 
 		public Light(GameObject light, MonoBehaviour module)
 		{
@@ -253,7 +253,7 @@ public class SynchronizationModule : MonoBehaviour
 		Log("Reset module to the initial state.");
 	}
 
-	bool syncPause = false;
+	bool syncPause;
 	IEnumerator SyncLights(Light light)
 	{
 		syncPause = true;
@@ -335,9 +335,9 @@ public class SynchronizationModule : MonoBehaviour
 		};
 	}
 
-	bool firstSyncDone = false;
-	bool altRuleState = false;
-	bool oppRuleFirstGreater = false;
+	bool firstSyncDone;
+	bool altRuleState;
+	bool oppRuleFirstGreater;
 
 	bool ValidateSync(Light lightA, Light lightB)
 	{

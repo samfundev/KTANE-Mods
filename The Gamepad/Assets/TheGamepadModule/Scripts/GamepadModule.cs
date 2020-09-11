@@ -18,8 +18,8 @@ public class GamepadModule : MonoBehaviour
     public KMBombInfo BombInfo;
 
     string input = "";
-    string solution = null;
-    bool solved = false;
+    string solution;
+    bool solved;
 
     int x = 0;
     int y = 0;
@@ -27,12 +27,20 @@ public class GamepadModule : MonoBehaviour
     static int idCounter = 1;
     int moduleID;
 
-    string[] correct = { "GOOD JOB!", "CORRECT!", ":)", "=)", ";)", ":D", "=D", ";D", "^_^" };
-    string[] incorrect = { "POOR JOB!", "INCORRECT", ":(", ";(", "=(", ">:(", "O_o", "o_o", "o_O", "O_O", ">_<", ">_>", "<_<", "V_V", "X_X", "x_x", "-_-", };
+	readonly string[] correct = {
+        "GOOD JOB!", "CORRECT!",
+        "AMAZING!", "WONDERFUL!",
+        ":)", "=)", ";)", ":D", "=D", ";D", "^_^", "^-^", "^.^", ":-)", ":P", "<3"
+    };
+	readonly string[] incorrect = {
+        "POOR JOB!", "INCORRECT",
+        "TRY AGAIN!",
+        ":(", ";(", "=(", ">:(", "O_o", "o_o", "o_O", "O_O", ">_<", ">_>", "<_<", "V_V", "X_X", "x_x", "-_-", ":U", ":O"
+    };
 
-    int[] hcn = { 1, 2, 4, 6, 12, 24, 36, 48, 60 };
+	readonly int[] hcn = { 1, 2, 4, 6, 12, 24, 36, 48, 60 };
 
-    public static bool isPrime(int number)
+    public static bool IsPrime(int number)
     {
         int boundary = (int) Math.Floor(Math.Sqrt(number));
 
@@ -47,12 +55,12 @@ public class GamepadModule : MonoBehaviour
         return true;
     }
 
-    bool isMultiple(int number, int multiple)
+    bool IsMultiple(int number, int multiple)
     {
         return number % multiple == 0;
     }
 
-    bool isPerfectSquare(int number)
+    bool IsPerfectSquare(int number)
     {
         return Math.Sqrt(number) % 1 == 0;
     }
@@ -115,63 +123,63 @@ public class GamepadModule : MonoBehaviour
         {
             string text = button.gameObject.GetComponentInChildren<TextMesh>().text;
 
-            button.OnInteract += delegate ()
-            {
-                ButtonPress(button);
-                int length = input.Length;
-                switch (text)
-                {
-                    case "←":
-                        if (length > 0)
-                        {
-                            input = input.Substring(0, length - 1);
-                            UpdateInput();
-                        }
-                        break;
-                    case "↵":
-                        if (!solved)
-                        {
-                            DebugMsg("Submitted: " + FormatInputs(input));
-                            if (input == solution)
-                            {
-                                //InputMesh.text = "GOOD JOB!";
-                                DebugMsg("Module solved!");
-                                InputMesh.text = correct[Random.Range(0, correct.Length)];
-                                BombModule.HandlePass();
-                                solved = true;
+            button.OnInteract += () =>
+			{
+				ButtonPress(button);
+				int length = input.Length;
+				switch (text)
+				{
+					case "←":
+						if (length > 0)
+						{
+							input = input.Substring(0, length - 1);
+							UpdateInput();
+						}
+						break;
+					case "↵":
+						if (!solved)
+						{
+							DebugMsg("Submitted: " + FormatInputs(input));
+							if (input == solution)
+							{
+								//InputMesh.text = "GOOD JOB!";
+								DebugMsg("Module solved!");
+								InputMesh.text = correct[Random.Range(0, correct.Length)];
+								BombModule.HandlePass();
+								solved = true;
 
-                                StartCoroutine(Wait(2, () =>
-                                {
-                                    UpdateInput();
-                                    return true;
-                                }));
-                            }
-                            else
-                            {
-                                //InputMesh.text = "INCORRECT";
-                                DebugMsg("Inputted " + FormatInputs(input) + " but expected " + FormatInputs(solution));
-                                InputMesh.text = incorrect[Random.Range(0, incorrect.Length)];
-                                BombModule.HandleStrike();
+								StartCoroutine(Wait(2, () =>
+								{
+									UpdateInput();
+									return true;
+								}));
+							}
+							else
+							{
+								//InputMesh.text = "INCORRECT";
+								DebugMsg("Inputted " + FormatInputs(input) + " but expected " + FormatInputs(solution));
+								InputMesh.text = incorrect[Random.Range(0, incorrect.Length)];
+								BombModule.HandleStrike();
 
-                                StartCoroutine(Wait(2, () =>
-                                {
-                                    UpdateInput();
-                                    return true;
-                                }));
-                            }
-                        }
-                        break;
-                    default:
-                        if (length < 8)
-                        {
-                            input = input + text;
-                            UpdateInput();
-                        }
-                        break;
-                }
+								StartCoroutine(Wait(2, () =>
+								{
+									UpdateInput();
+									return true;
+								}));
+							}
+						}
+						break;
+					default:
+						if (length < 8)
+						{
+							input += text;
+							UpdateInput();
+						}
+						break;
+				}
 
-                return false;
-            };
+				return false;
+			};
         }
     }
 
@@ -188,15 +196,15 @@ public class GamepadModule : MonoBehaviour
 
         DebugMsg("Initial State: " + x.ToString("D2") + ":" + y.ToString("D2"));
         // Left Commands
-        if (isPrime(x))
+        if (IsPrime(x))
         {
             solution = "▲▲▼▼";
         }
-        else if (isMultiple(x, 12))
+        else if (IsMultiple(x, 12))
         {
             solution = "▲A◀◀";
         }
-        else if (a + b == 10 && isMultiple(serialn, 2) == false)
+        else if (a + b == 10 && !IsMultiple(serialn, 2))
         {
             solution = "AB◀▶";
         }
@@ -204,7 +212,7 @@ public class GamepadModule : MonoBehaviour
         {
             solution = "▼◀A▶";
         }
-        else if (isMultiple(x, 7) && !isMultiple(y, 7))
+        else if (IsMultiple(x, 7) && !IsMultiple(y, 7))
         {
             solution = "◀◀▲B";
         }
@@ -212,7 +220,7 @@ public class GamepadModule : MonoBehaviour
         {
             solution = "A▲◀◀";
         }
-        else if (isPerfectSquare(x))
+        else if (IsPerfectSquare(x))
         {
             solution = "▶▶A▼";
         }
@@ -224,11 +232,11 @@ public class GamepadModule : MonoBehaviour
         {
             solution = "BB▶◀";
         }
-        else if (isMultiple(x, 6))
+        else if (IsMultiple(x, 6))
         {
             solution = "ABA▶";
         }
-        else if (isMultiple(x, 4))
+        else if (IsMultiple(x, 4))
         {
             solution = "▼▼◀▲";
         }
@@ -238,11 +246,11 @@ public class GamepadModule : MonoBehaviour
         }
 
         // Right Commands
-        if (isPrime(y))
+        if (IsPrime(y))
         {
             solution += "◀▶◀▶";
         }
-        else if (isMultiple(y, 8))
+        else if (IsMultiple(y, 8))
         {
             solution += "▼▶B▲";
         }
@@ -254,11 +262,11 @@ public class GamepadModule : MonoBehaviour
         {
             solution += "B▲▶A";
         }
-        else if (isMultiple(y, 7) && !isMultiple(x, 7))
+        else if (IsMultiple(y, 7) && !IsMultiple(x, 7))
         {
             solution += "◀◀▼A";
         }
-        else if (isPerfectSquare(y))
+        else if (IsPerfectSquare(y))
         {
             solution += "▲▼B▶";
         }
@@ -274,11 +282,11 @@ public class GamepadModule : MonoBehaviour
         {
             solution += "AA▲▼";
         }
-        else if (isMultiple(y, 5))
+        else if (IsMultiple(y, 5))
         {
             solution += "BAB◀";
         }
-        else if (isMultiple(y, 3))
+        else if (IsMultiple(y, 3))
         {
             solution += "▶▲▲◀";
         }
@@ -289,7 +297,7 @@ public class GamepadModule : MonoBehaviour
 
         DebugMsg("Solution (Before Overrides): " + FormatInputs(solution));
         // Global Override
-        if (isMultiple(x, 11))
+        if (IsMultiple(x, 11))
         {
             DebugMsg(x + " is a multiple of 11. Swapping 1 <-> 2 & 5 <-> 7.");
             solution = SwapCharacters(SwapCharacters(solution, 4, 6), 0, 1);
@@ -321,7 +329,7 @@ public class GamepadModule : MonoBehaviour
             solution = solution.Substring(4, 4) + solution.Substring(0, 4);
         }
 
-        if (isPerfectSquare(x) && isPerfectSquare(y))
+        if (IsPerfectSquare(x) && IsPerfectSquare(y))
         {
             DebugMsg(x + " & " + y + " are perfect squares. Reversing entire sequence.");
             char[] charArray = solution.ToCharArray();
@@ -331,9 +339,9 @@ public class GamepadModule : MonoBehaviour
 
         DebugMsg("Solution: " + FormatInputs(solution));
 	}
-	
+
     #pragma warning disable 414
-	private string TwitchHelpMessage = "Use !{0} submit ab◀r d<a>. You can use shorthands or symbols to reference buttons.";
+	private readonly string TwitchHelpMessage = "Use !{0} submit ab◀r d<a>. You can use shorthands or symbols to reference buttons.";
 	#pragma warning restore 414
     public KMSelectable[] ProcessTwitchCommand(string command)
     {

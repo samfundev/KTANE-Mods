@@ -3,9 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 class EncryptedValues : MonoBehaviour
 {
@@ -23,15 +21,15 @@ class EncryptedValues : MonoBehaviour
 		}
 	}
 
-	public Texture[] ShapeTextures = null;
+	public Texture[] ShapeTextures;
 
-	public GameObject OperandScreen = null;
-	public GameObject SubmissionScreen = null;
+	public GameObject OperandScreen;
+	public GameObject SubmissionScreen;
 
 	// 0-9 - .
-	public KMSelectable[] Numberpad = null;
-	public KMSelectable ClearButton = null;
-	public KMSelectable SubmitButton = null;
+	public KMSelectable[] Numberpad;
+	public KMSelectable ClearButton;
+	public KMSelectable SubmitButton;
 
 	public static Shape[] Shapes = {
 		new Shape(0, "Triangle", 0),
@@ -312,6 +310,7 @@ class EncryptedValues : MonoBehaviour
 		NeedyModule.OnNeedyDeactivation = () => SetDisplayVisiblity(false);
 		NeedyModule.OnTimerExpired = () =>
 		{
+			isSolved = true;
 			NeedyModule.HandleStrike();
 			SetDisplayVisiblity(false);
 		};
