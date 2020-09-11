@@ -28,10 +28,10 @@ public class EmojiMathLogging : ModuleLogging
         {
             var buttons = (KMSelectable[]) mButtons.GetValue(component);
             for (int i = 0; i < buttons.Length; i++)
-                bindButtonPress(buttons[i], i);
+                BindButtonPress(buttons[i], i);
 
             var puzzle = mPuzzle.GetValue(component);
-            getPuzzleFieldsMethods(puzzle.GetType());
+            GetPuzzleFieldsMethods(puzzle.GetType());
             var op1 = (int) mOperand1.GetValue(puzzle);
             var op2 = (int) mOperand2.GetValue(puzzle);
             var op = (string) mGetOperationString.Invoke(null, new object[] { mOperator.GetValue(puzzle) });
@@ -41,7 +41,7 @@ public class EmojiMathLogging : ModuleLogging
         };
     }
 
-    private void bindButtonPress(KMSelectable sel, int i)
+    private void BindButtonPress(KMSelectable sel, int i)
     {
         var prev = sel.OnInteract;
         sel.OnInteract = delegate
@@ -66,7 +66,7 @@ public class EmojiMathLogging : ModuleLogging
         };
     }
 
-    private void getPuzzleFieldsMethods(Type puzzleType)
+    private void GetPuzzleFieldsMethods(Type puzzleType)
     {
         mCheckAnswer = puzzleType.GetMethod("CheckAnswer", BindingFlags.Public | BindingFlags.Instance);
         mGetOperationString = puzzleType.GetMethod("GetOperationString", BindingFlags.Public | BindingFlags.Static);

@@ -47,14 +47,13 @@ class BombStatus : MonoBehaviour
 
 		CanvasGroup = GetComponent<CanvasGroup>();
 		CanvasGroup.alpha = 0;
-
 	}
 
 	public void LateUpdate()
 	{
 		if (currentBomb == null)
 		{
-			currentBomb = Array.Find(Tweaks.bombWrappers, x => x.holdable.HoldState == FloatingHoldable.HoldStateEnum.Held);
+			currentBomb = Tweaks.bombWrappers.Find(x => x.holdable.HoldState == FloatingHoldable.HoldStateEnum.Held);
 			if (currentBomb != null)
 			{
 				UpdateSolves();

@@ -96,7 +96,8 @@ static class ReflectedTypes
 				continue;
 			foreach (FieldInfo fieldInfo in GetAllFields(component.GetType(), BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
 			{
-				if (fieldInfo.FieldType == typeof(int) && (fieldInfo.Name.EndsWith("moduleid", StringComparison.InvariantCultureIgnoreCase) || string.Equals(fieldInfo.Name, "thisloggingid", StringComparison.InvariantCultureIgnoreCase)))
+				var name = fieldInfo.Name.ToLowerInvariant();
+				if (fieldInfo.FieldType == typeof(int) && (name.EndsWith("moduleid") || string.Equals(name, "thisloggingid") || name.StartsWith("lognum")))
 				{
 					targetComponent = component;
 					return fieldInfo;

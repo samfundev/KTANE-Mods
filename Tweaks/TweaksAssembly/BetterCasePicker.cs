@@ -140,8 +140,8 @@ static class BetterCasePicker
 		prefabPool.Objects = minBombCases.Select(x => x.Key).ToList();
 	}
 
-	static Dictionary<KMGameCommands, KMGameCommands.CreateBombDelegate> previousDelegates = new Dictionary<KMGameCommands, KMGameCommands.CreateBombDelegate>();
-	static Dictionary<KMGameCommands, KMGameCommands.CreateBombDelegate> addedDelegates = new Dictionary<KMGameCommands, KMGameCommands.CreateBombDelegate>();
+	static readonly Dictionary<KMGameCommands, KMGameCommands.CreateBombDelegate> previousDelegates = new Dictionary<KMGameCommands, KMGameCommands.CreateBombDelegate>();
+	static readonly Dictionary<KMGameCommands, KMGameCommands.CreateBombDelegate> addedDelegates = new Dictionary<KMGameCommands, KMGameCommands.CreateBombDelegate>();
 	public static void RestoreGameCommands()
 	{
 		foreach (var pair in previousDelegates)

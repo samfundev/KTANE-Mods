@@ -34,7 +34,7 @@ public class TTKComponentSolver
         int timeRemaining = (int)currentBomb.GetTimer().TimeRemaining;
         if (Tweaks.CurrentMode.Equals(Mode.Zen) && timeRemaining > time) return false;
         if (Tweaks.CurrentMode.Equals(Mode.Zen))
-            return !((int)_targetTimeField.GetValue(module.GetComponent(_componentType)) < time) && IsTargetTurnTimeCorrect(turnTime);
+            return (int) _targetTimeField.GetValue(module.GetComponent(_componentType)) >= time && IsTargetTurnTimeCorrect(turnTime);
         return false;
     }
 
@@ -177,23 +177,23 @@ public class TTKComponentSolver
         _keyTurnTimes = new List<int>();
     }
 
-    private static Type _componentType = null;
-    private static FieldInfo _lockField = null;
-    private static FieldInfo _activatedField = null;
-    private static FieldInfo _solvedField = null;
-    private static FieldInfo _targetTimeField = null;
-    private static FieldInfo _keyAnimatorField = null;
-    private static FieldInfo _displayField = null;
-    private static FieldInfo _keyUnlockedField = null;
-    private static FieldInfo _keyAudioField = null;
-    private static MethodInfo _stopAllCorotinesMethod = null;
+    private static readonly Type _componentType = null;
+    private static readonly FieldInfo _lockField = null;
+    private static readonly FieldInfo _activatedField = null;
+    private static readonly FieldInfo _solvedField = null;
+    private static readonly FieldInfo _targetTimeField = null;
+    private static readonly FieldInfo _keyAnimatorField = null;
+    private static readonly FieldInfo _displayField = null;
+    private static readonly FieldInfo _keyUnlockedField = null;
+    private static readonly FieldInfo _keyAudioField = null;
+    private static readonly MethodInfo _stopAllCorotinesMethod = null;
 
     private static List<int> _keyTurnTimes = null;
     private static string _previousSerialNumber = null;
     private bool active = false;
 
-    private MonoBehaviour _lock = null;
-    private KMBombModule module;
-    private Bomb currentBomb;
+    private readonly MonoBehaviour _lock = null;
+    private readonly KMBombModule module;
+    private readonly Bomb currentBomb;
     private readonly float initialTime;
 }

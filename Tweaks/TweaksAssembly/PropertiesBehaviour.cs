@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEngine;
 
 // This file originally came from Multiple Bombs, written by Lupo511.
+#pragma warning disable
 
 public class PropertiesBehaviour : MonoBehaviour, IDictionary<string, object>
 {

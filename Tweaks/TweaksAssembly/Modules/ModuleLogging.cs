@@ -3,7 +3,7 @@ using UnityEngine;
 
 public abstract class ModuleLogging : ModuleTweak
 {
-	private static Dictionary<string, int> idCounters = new Dictionary<string, int>();
+	private static readonly Dictionary<string, int> idCounters = new Dictionary<string, int>();
 	public readonly int moduleID;
 	private readonly string logName;
 

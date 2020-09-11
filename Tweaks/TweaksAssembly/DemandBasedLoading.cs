@@ -334,8 +334,6 @@ static class DemandBasedLoading
 
 	public static Dictionary<string, Mod> manuallyLoadedMods = new Dictionary<string, Mod>();
 
-	public static Selectable renderSelectable;
-
 	public static BombFace.ComponentSpawnPoint? GetComponentSpawnPoint(Vector3 position, Bomb bomb, out BombFace bombFace)
 	{
 		float minimum = float.MaxValue;

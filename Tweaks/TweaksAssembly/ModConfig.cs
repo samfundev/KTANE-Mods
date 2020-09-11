@@ -13,7 +13,7 @@ class ModConfig<T>
 
 	readonly string SettingsPath;
 
-	public static string SerializeSettings(object settings)
+	public static string SerializeSettings(T settings)
 	{
 		return JsonConvert.SerializeObject(settings, Formatting.Indented, new StringEnumConverter());
 	}

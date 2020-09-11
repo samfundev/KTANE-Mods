@@ -56,12 +56,7 @@ public static class GeneralExtensions
 	}
 
 	public static T GetKeySafe<T>(this Dictionary<string, object> dictionary, string key) {
-		if (dictionary.ContainsKey(key))
-		{
-			return (T) dictionary[key];
-		}
-
-		return default;
+		return dictionary.ContainsKey(key) ? (T) dictionary[key] : default;
 	}
 
 	/// <summary>
