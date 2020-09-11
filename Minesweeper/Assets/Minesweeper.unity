@@ -152,6 +152,11 @@ Prefab:
       propertyPath: m_RootOrder
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 114000013210471804, guid: 7358bc8dcd67b9e468ff1740ebefedb1,
+        type: 2}
+      propertyPath: ForceInteractionHighlight
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 7358bc8dcd67b9e468ff1740ebefedb1, type: 2}
   m_IsPrefabParent: 0

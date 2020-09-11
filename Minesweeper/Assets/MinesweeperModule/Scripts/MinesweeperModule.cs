@@ -504,6 +504,20 @@ public class MinesweeperModule : MonoBehaviour
 
 		Slider = ModeToggle.transform.Find("Slider").gameObject;
 
+		bool motionControls = false;
+		try {
+			motionControls = ReflectionHelper.FindType("KTInputManager").GetValue<object>("Instance").CallMethod<bool>("IsMotionControlMode");
+		} catch (Exception exception) {
+			Log("Failed to see if motion controls are enabled: " + exception);
+		}
+
+		foreach (KMSelectable selectable in ModuleSelectable.Children) {
+			var boxCollider = ((BoxCollider) selectable.SelectableColliders[0]);
+			var size = boxCollider.size;
+			size.y = 1;
+			boxCollider.size = size;
+		}
+
 		ModeToggle.GetComponent<KMSelectable>().OnInteract = () =>
 		{
 			Audio.PlaySoundAtTransform("Toggle-" + (Digging ? 1 : 2).ToString("D2"), transform);
