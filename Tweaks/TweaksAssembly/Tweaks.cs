@@ -725,9 +725,12 @@ class Tweaks : MonoBehaviour
 					new Dictionary<string, object> { { "Key", "ShowEdgework" }, { "Text", "Show Edgework" }, { "Description", "Adds a HUD to the top of the screen showing the edgework for the currently selected bomb." } },
 					new Dictionary<string, object> { { "Key", "DisableAdvantageous" }, { "Text", "Disable Advantageous Features" }, { "Description", "Disables advantageous features like the Bomb HUD, Show Edgework,\ncustom Modes and Mission Seed." } },
 					new Dictionary<string, object> { { "Key", "ShowTips" }, { "Text", "Show Tips" }, { "Description", "Shows tips about Tweaks features that you may not know about." } },
+					new Dictionary<string, object> { { "Key", "HideTOC" }, { "Text", "Hide TOC" }, { "Description", "Hides table of contents entries based on patterns." } },
 					new Dictionary<string, object> { { "Key", "MissionSeed" }, { "Text", "Mission Seed" }, { "Description", "Seeds the random numbers for the mission which should make the bomb\ngenerate consistently." } },
 					new Dictionary<string, object> { { "Key", "CaseGenerator" }, { "Text", "Case Generator" }, { "Description", "Generates a case to best fit the bomb which can be one of the colors defined by CaseColors." } },
 					new Dictionary<string, object> { { "Key", "ModuleTweaks" }, { "Text", "Module Tweaks" }, { "Description", "Controls all module related tweaks like fixing status light positions." } },
+					new Dictionary<string, object> { { "Key", "CaseColors" }, { "Text", "Case Colors" }, { "Description", "Controls the color of the cases that are generated with Case Generator." } },
+					new Dictionary<string, object> { { "Key", "PinnedSettings" }, { "Text", "Pinned Settings" }, { "Description", "Pins settings at the top of the Mod Settings Editor." } },
 
 					new Dictionary<string, object> { { "Text", "Demand Based Mod Loading" }, { "Type", "Section" } },
 					new Dictionary<string, object> { { "Key", "DemandBasedModLoading" }, { "Text", "Demand-based Mod Loading" }, { "Description", "Load only the modules on a bomb instead of loading all of them when starting up." } },

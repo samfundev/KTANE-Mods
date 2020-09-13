@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using System.Text.RegularExpressions;
 using System.Reflection;
 using System.Collections;
+using Newtonsoft.Json.Linq;
 
 // TODO: Can we do something about the lag spike when reading settings for the first time?
 // TODO: Consider wrapping the longer settings and making the listings twice as tall
@@ -54,9 +55,11 @@ class SettingsPage : MonoBehaviour
 	{
 		public List<Listing> Listings = new List<Listing>();
 		public string TitleText = "Mod Settings";
+		public string Subtitle = null;
 		public int Page = 0;
 		public bool Pinnable = false;
 		public bool Sorted = false;
+		public Action OnPop;
 	}
 
 	public Screen CurrentScreen => ScreenStack.Peek();
@@ -96,7 +99,8 @@ class SettingsPage : MonoBehaviour
 			SetIcon(Object.transform, sortedListings[i].Pinned ? "pinned" : "");
 		}
 
-		TitleTextMesh.text = $"<b>{TitleText}</b>\n<size=16>Page {CurrentPage / ListingsPerPage + 1} of {Mathf.CeilToInt(CurrentListings.Count / (float) ListingsPerPage)}</size>";
+		var subtitle = CurrentScreen.Subtitle ?? $"Page {CurrentPage / ListingsPerPage + 1} of {Mathf.CeilToInt(CurrentListings.Count / (float) ListingsPerPage)}";
+		TitleTextMesh.text = $"<b>{TitleText}</b>\n<size=16>{subtitle}</size>";
 	}
 
 	public int CurrentPage
@@ -183,17 +187,25 @@ class SettingsPage : MonoBehaviour
 		RootSelectable.Children = new KMSelectable[] { };
 	}
 
-	public void PushScreen()
+	public void ResetScreen()
+	{
+		ClearScreen();
+		CurrentListings.Clear();
+	}
+
+	public void PushScreen(string subtitle = null)
 	{
 		ClearScreen();
 		ScreenStack.Push(new Screen());
+		CurrentScreen.Subtitle = subtitle;
 		UpdateScreen();
 	}
 
 	public void PopScreen()
 	{
 		ClearScreen();
-		ScreenStack.Pop();
+		// Pop off the screen and call it's OnPop event, if it has one.
+		ScreenStack.Pop().OnPop?.Invoke();
 		UpdateListings();
 	}
 
@@ -290,28 +302,13 @@ class SettingsPage : MonoBehaviour
 				List<Listing> listings = new List<Listing>();
 				foreach (var pair in settings)
 				{
-					ListingType type;
-					switch (pair.Value) // TODO: Support more types like arrays and dictionaries
+					ListingType? type = Listing.TypeFromValue(pair.Value);
+					if (type == null || (type == ListingType.String && Regex.IsMatch(pair.Key, @"^(how\s*to|note$)", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase)))
 					{
-						case string stringValue:
-							// Some mods have "HowToX" fields for documenting stuff.
-							if (Regex.IsMatch(pair.Key, @"^(how\s*to|note$)", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase)) continue;
-
-							type = ListingType.String;
-							break;
-						case double doubleValue:
-						case long intValue:
-							type = ListingType.Number;
-							break;
-						case bool boolValue:
-							type = ListingType.Checkbox;
-							break;
-						default:
-							//Tweaks.Log("Unsupported type:", pair.Value?.GetType().ToString(), "in:", Path.GetFileName(file));
-							continue;
+						continue;
 					}
 
-					listings.Add(new Listing(type, pair.Key) { Key = pair.Key });
+					listings.Add(new Listing((ListingType) type, pair.Key) { Key = pair.Key });
 				}
 
 				if (listings.Count == 0) continue;
@@ -620,31 +617,7 @@ class SettingsPage : MonoBehaviour
 
 		listing.Object = ListingObject;
 
-		switch (listing.Type)
-		{
-			case ListingType.Submenu:
-				TypeSelectable.OnInteract += delegate
-				{
-					listing.Action(null);
-					return false;
-				};
-				break;
-			case ListingType.Checkbox:
-				new CheckboxInput(listing);
-				break;
-			case ListingType.Number:
-				new NumberInput(listing);
-				break;
-			case ListingType.String:
-				new StringInput(listing);
-				break;
-			case ListingType.Dropdown:
-				new DropdownInput(listing);
-				break;
-			case ListingType.Section:
-				ListingObject.transform.Find("FakeHighlight").gameObject.SetActive(false);
-				break;
-		}
+		listing.Setup();
 
 		return ListingObject;
 	}
@@ -855,7 +828,7 @@ class SettingsPage : MonoBehaviour
 		}
 	}
 
-	public void ToggleKeyboard()
+	public void ToggleKeyboard(string subtitle = null)
 	{
 		bool newState = !Keyboard.activeSelf;
 		Keyboard.SetActive(newState);
@@ -863,7 +836,7 @@ class SettingsPage : MonoBehaviour
 		if (newState)
 		{
 			AlertTextMesh.gameObject.SetActive(false);
-			PushScreen();
+			PushScreen(subtitle);
 			SetupSelectables(Keyboard.GetComponentsInChildren<KMSelectable>().ToList());
 		}
 		else
@@ -877,17 +850,13 @@ class SettingsPage : MonoBehaviour
 	{
 		KeyboardInput = initalValue;
 
-		string title = CurrentScreen.TitleText;
-		ToggleKeyboard();
-		CurrentScreen.TitleText = title;
+		ToggleKeyboard(subtitle);
 
 		KeyboardInputComplete = (string input) =>
 		{
 			KeyboardInputComplete = null;
 			callback(input);
 		};
-
-		TitleTextMesh.text = $"<b>{TitleText}</b>\n<size=16>{subtitle}</size>";
 	}
 }
 
@@ -905,7 +874,8 @@ enum ListingType
 	String,
 	Number,
 	Dropdown,
-	Section
+	Section,
+	Array
 }
 
 class Listing
@@ -932,6 +902,48 @@ class Listing
 		this.Text = Text;
 		this.Key = Key;
 		this.Description = Description;
+	}
+
+	public static ListingType? TypeFromValue(object value) => value switch
+	{
+		string _ => ListingType.String,
+		double _ => ListingType.Number,
+		long _ => ListingType.Number,
+		bool _ => ListingType.Checkbox,
+		JArray _ => ListingType.Array,
+		_ => null,
+	};
+
+	internal void Setup()
+	{
+		switch (Type)
+		{
+			case ListingType.Submenu:
+				TypeSelectable.OnInteract += delegate
+				{
+					Action(null);
+					return false;
+				};
+				break;
+			case ListingType.Checkbox:
+				new CheckboxInput(this);
+				break;
+			case ListingType.Number:
+				new NumberInput(this);
+				break;
+			case ListingType.String:
+				new StringInput(this);
+				break;
+			case ListingType.Dropdown:
+				new DropdownInput(this);
+				break;
+			case ListingType.Array:
+				new ArrayInput(this);
+				break;
+			case ListingType.Section:
+				Object.transform.Find("FakeHighlight").gameObject.SetActive(false);
+				break;
+		}
 	}
 }
 
@@ -1075,7 +1087,7 @@ class DropdownInput : SettingsInput
 
 		listing.TypeSelectable.OnInteract += delegate
 		{
-			SettingsPage.Instance.PushScreen();
+			SettingsPage.Instance.PushScreen(listing.Text);
 			foreach (object item in listing.DropdownItems)
 			{
 				SettingsPage.Instance.CurrentListings.Add(
@@ -1092,6 +1104,152 @@ class DropdownInput : SettingsInput
 			}
 
 			SettingsPage.Instance.UpdateListings();
+
+			return false;
+		};
+	}
+}
+
+class ArrayInput : SettingsInput
+{
+	public List<object> CurrentValue { get; set; }
+
+	enum ArrayMode
+	{
+		None,
+		Delete,
+		MoveUp,
+		MoveDown
+	}
+
+	public ArrayInput(Listing listing) : base(listing)
+	{
+		CurrentValue = (listing.DefaultValue is JArray jArray) ? jArray.ToObject<List<object>>() : (List<object>) listing.DefaultValue;
+
+		ArrayMode currentMode = ArrayMode.None;
+
+		void displayArray()
+		{
+			SettingsPage.Instance.ResetScreen();
+
+			for (int j = 0; j < CurrentValue.Count; j++)
+			{
+				int i = j;
+				var item = CurrentValue[i];
+
+				var potentialType = Listing.TypeFromValue(item);
+				if (potentialType == null)
+					continue;
+
+				ListingType type = (ListingType) potentialType;
+
+				var sublisting = new Listing(type, "Item " + (i + 1))
+				{
+					DefaultValue = CurrentValue[i]
+				};
+
+				sublisting.Action = (newItem) =>
+				{
+					CurrentValue[i] = newItem;
+					sublisting.DefaultValue = newItem;
+				};
+
+				SettingsPage.Instance.CurrentListings.Add(sublisting);
+			}
+
+			SettingsPage.Instance.CurrentListings.Add(new Listing(ListingType.Submenu, "Add Item")
+			{
+				Action = (_) =>
+				{
+					SettingsPage.Instance.PushScreen("Add Item");
+
+					Dictionary<string, object> types = new Dictionary<string, object>()
+					{
+						{ "Boolean", false },
+						{ "Number", 0L },
+						{ "String", "" },
+						{ "Array", new JArray() },
+					};
+
+					foreach (var pair in types)
+					{
+						SettingsPage.Instance.CurrentListings.Add(new Listing(ListingType.Submenu, pair.Key)
+						{
+							Action = (_) =>
+							{
+								CurrentValue.Add(pair.Value);
+								SettingsPage.Instance.PopScreen();
+								displayArray();
+							}
+						});
+					}
+
+					SettingsPage.Instance.UpdateListings();
+				}
+			});
+
+			Dictionary<ArrayMode, string> modes = new Dictionary<ArrayMode, string>()
+			{
+				{ ArrayMode.Delete, "Delete Item" },
+				{ ArrayMode.MoveUp, "Move Item Up" },
+				{ ArrayMode.MoveDown, "Move Item Down" },
+			};
+
+			foreach (var pair in modes)
+			{
+				var modeActive = pair.Key == currentMode;
+				SettingsPage.Instance.CurrentListings.Add(new Listing(ListingType.Submenu, (modeActive ? "<b>" : "") + pair.Value + (modeActive ? "</b> (Click again to cancel)" : ""))
+				{
+					Action = (_) =>
+					{
+						currentMode = currentMode == pair.Key ? ArrayMode.None : pair.Key;
+						displayArray();
+					}
+				});
+			}
+
+			SettingsPage.Instance.UpdateListings();
+
+			if (currentMode != ArrayMode.None)
+			{
+				for (int j = 0; j < CurrentValue.Count; j++)
+				{
+					var i = j;
+					var listing = SettingsPage.Instance.CurrentListings[i];
+
+					listing.TypeSelectable.OnInteract = () =>
+					{
+						switch (currentMode)
+						{
+							case ArrayMode.Delete:
+								CurrentValue.RemoveAt(i);
+								displayArray();
+								break;
+							case ArrayMode.MoveUp when i != 0:
+								var above = CurrentValue[i - 1];
+								CurrentValue[i - 1] = CurrentValue[i];
+								CurrentValue[i] = above;
+								displayArray();
+								break;
+							case ArrayMode.MoveDown when i != CurrentValue.Count - 1:
+								var below = CurrentValue[i + 1];
+								CurrentValue[i + 1] = CurrentValue[i];
+								CurrentValue[i] = below;
+								displayArray();
+								break;
+						}
+
+						return false;
+					};
+				}
+			}
+		}
+
+		listing.TypeSelectable.OnInteract += delegate
+		{
+			SettingsPage.Instance.PushScreen(listing.Text);
+			SettingsPage.Instance.CurrentScreen.OnPop = () => listing.Action(CurrentValue);
+			displayArray();
 
 			return false;
 		};
