@@ -78,7 +78,7 @@ static class DemandBasedLoading
 	public static IEnumerator EnterAndLeaveModManager()
 	{
 		SceneManager.Instance.EnterModManagerStateFromSetup();
-		Tweaks.Instance.UpdateSettingWarning();
+		Tweaks.Instance.UpdateSettingWarnings();
 		yield return new WaitUntil(() => SceneManager.Instance?.ModManagerState != null && MenuManager.Instance?.CurrentScreen?.GetType() == typeof(ModManagerMainMenuScreen));
 		ModManagerScreenManager.Instance.OpenModLoadingScreenAndReturnToGame();
 	}

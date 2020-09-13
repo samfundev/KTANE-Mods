@@ -22,8 +22,12 @@ class Tweaks : MonoBehaviour
 	public static ModConfig<TweakSettings> modConfig;
 	public static TweakSettings settings;
 	public static TweakSettings userSettings; // This stores exactly what the user has in their settings file unlike the settings variable which includes overrides.
+
 	public static bool CaseGeneratorSettingCache; // The CaseGenerator setting is cached until the user returns to the setup room to fix bugs related to the largest case size being cached.
 	public static bool DemandBasedSettingCache; // The DemandBasedModLoading setting is cached until the user enters the Mod Manager so the demand based mods can either be loaded or unloaded.
+
+	static GameObject CaseGeneratorWarning;
+	static GameObject DBMLWarning;
 
 	public static bool TwitchPlaysActive => GameObject.Find("TwitchPlays_Info") != null;
 	public static Mode CurrentMode => TwitchPlaysActive ? Mode.Normal : settings.Mode;
@@ -53,6 +57,9 @@ class Tweaks : MonoBehaviour
 		Tips.TipMessage = gameObject.Traverse("UI", "TipMessage");
 		BetterCasePicker.BombCaseGenerator = GetComponentInChildren<BombCaseGenerator>();
 
+		CaseGeneratorWarning = MakeSettingWarning("CaseGenerator");
+		DBMLWarning = MakeSettingWarning("DemandBasedModLoading");
+
 		modConfig = new ModConfig<TweakSettings>("TweakSettings", OnReadError);
 		UpdateSettings();
 		StartCoroutine(Modes.LoadDefaultSettings());
@@ -72,7 +79,7 @@ class Tweaks : MonoBehaviour
 			ProgressionManager.Instance.RecordLastFreeplaySettings(lastFreeplaySettings);
 		}
 
-		UpdateSettingWarning();
+		UpdateSettingWarnings();
 		AdvantageousWarning.SetActive(false);
 
 		// Setup API/properties other mods to interact with
@@ -91,7 +98,7 @@ class Tweaks : MonoBehaviour
 			if (ModConfig<TweakSettings>.SerializeSettings(userSettings) == ModConfig<TweakSettings>.SerializeSettings(modConfig.Settings)) return;
 
 			UpdateSettings();
-			UpdateSettingWarning();
+			UpdateSettingWarnings();
 
 			MainThreadQueue.Enqueue(() => StartCoroutine(ModifyFreeplayDevice(false)));
 		};
@@ -120,7 +127,7 @@ class Tweaks : MonoBehaviour
 		UnityEngine.SceneManagement.SceneManager.sceneLoaded += (Scene scene, LoadSceneMode _) =>
 		{
 			UpdateSettings();
-			UpdateSettingWarning();
+			UpdateSettingWarnings();
 
 			Modes.settings = Modes.modConfig.Settings;
 			Modes.modConfig.Settings = Modes.settings;
@@ -231,7 +238,6 @@ class Tweaks : MonoBehaviour
 							tweaksMod.ModObjects.Remove(TweaksCaseGeneratorCase);
 
 						CaseGeneratorSettingCache = settings.CaseGenerator;
-						UpdateSettingWarning();
 					}
 				}
 
@@ -241,6 +247,8 @@ class Tweaks : MonoBehaviour
 				TweaksAPI.SetTPProperties(!TwitchPlaysActive);
 
 				GameplayState.BombSeedToUse = -1;
+
+				UpdateSettingWarnings();
 			}
 			else if (state == KMGameInfo.State.Transitioning)
 			{
@@ -633,7 +641,15 @@ class Tweaks : MonoBehaviour
 		}
 	}
 
-	public void UpdateSettingWarning() => MainThreadQueue.Enqueue(() =>
+	private GameObject MakeSettingWarning(string setting)
+	{
+		var warning = Instantiate(SettingWarning.Traverse("BaseSetting"), SettingWarning.transform);
+		warning.Traverse<Text>("WarningText").text = $"The change to the setting \"{setting}\" will only take effect once you re-enter the setup room. <i>Press \"F2\" to do that automatically!</i>";
+
+		return warning;
+	}
+
+	public void UpdateSettingWarnings() => MainThreadQueue.Enqueue(() =>
 	{
 		if (SettingWarning == null)
 			return;
@@ -641,12 +657,14 @@ class Tweaks : MonoBehaviour
 		bool demandSettingChanged = DemandBasedSettingCache != settings.DemandBasedModLoading;
 		bool demandModsDisabled = DemandBasedLoading.DisabledModsCount != 0;
 
-		SettingWarning.Traverse("CaseGenerator").SetActive(CurrentState == KMGameInfo.State.Setup && CaseGeneratorSettingCache != settings.CaseGenerator);
-		SettingWarning.Traverse("DemandBasedModLoading").SetActive(CurrentState == KMGameInfo.State.Setup && (demandSettingChanged || demandModsDisabled));
+		bool warningsEnabled = CurrentState == KMGameInfo.State.Setup && !modConfig.FailedRead;
 
-		SettingWarning.Traverse<Text>("DemandBasedModLoading", "WarningText").text = $"The { (demandSettingChanged ? "change to the setting \"DemandBasedModLoading\"" : "") + (demandSettingChanged && demandModsDisabled ? " and " : "") + (demandModsDisabled ? $"{DemandBasedLoading.DisabledModsCount} mod{(DemandBasedLoading.DisabledModsCount == 1 ? "" : "s")} that were automatically disabled" : "") } will only take effect once you enter the Mod Manager. <i>Press \"F2\" to do that automatically!</i>";
+		CaseGeneratorWarning.SetActive(warningsEnabled && CaseGeneratorSettingCache != settings.CaseGenerator);
 
-		SettingWarningEnabled = CurrentState == KMGameInfo.State.Setup && (CaseGeneratorSettingCache != settings.CaseGenerator || demandSettingChanged || demandModsDisabled);
+		DBMLWarning.SetActive(warningsEnabled && (demandSettingChanged || demandModsDisabled));
+		DBMLWarning.Traverse<Text>("WarningText").text = $"The { (demandSettingChanged ? "change to the setting \"DemandBasedModLoading\"" : "") + (demandSettingChanged && demandModsDisabled ? " and " : "") + (demandModsDisabled ? $"{DemandBasedLoading.DisabledModsCount} mod{(DemandBasedLoading.DisabledModsCount == 1 ? "" : "s")} that were automatically disabled" : "") } will only take effect once you enter the Mod Manager. <i>Press \"F2\" to do that automatically!</i>";
+
+		SettingWarningEnabled = new[] { CaseGeneratorWarning, DBMLWarning }.Any(warning => warning.activeSelf);
 	});
 
 	public static bool SettingWarningEnabled;
