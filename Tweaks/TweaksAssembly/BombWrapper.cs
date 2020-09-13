@@ -199,6 +199,7 @@ class BombWrapper : MonoBehaviour
 			{ "Probing", bombComponent => new ProbingLogging(bombComponent) },
 			{ "SeaShells", bombComponent => new SeaShellsLogging(bombComponent) },
 			{ "WordScrambleModule", bombComponent => new WordScramblePatch(bombComponent) },
+			{ "Color Decoding", bombComponent => new ColorDecodingTweak(bombComponent) },
 
 			{ "Wires", bombComponent => new WiresLogging(bombComponent) },
 			{ "Keypad", bombComponent => new KeypadLogging(bombComponent) }

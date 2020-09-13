@@ -111,6 +111,7 @@
     <Compile Include="ModSelectorExtension.cs" />
     <Compile Include="SettingsPage.cs" />
     <Compile Include="Modules\WordScramblePatch.cs" />
+    <Compile Include="Modules\ColorDecodingTweak.cs" />
     <Compile Include="PropertiesBehaviour.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReflectedTypes.cs" />
@@ -122,6 +123,7 @@
     <Compile Include="Tweaks.cs" />
     <Compile Include="TweaksAPI.cs" />
     <Compile Include="TweaksProperties.cs" />
+    <Compile Include="ColorblindMode.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="TweaksAssembly.ruleset" />
