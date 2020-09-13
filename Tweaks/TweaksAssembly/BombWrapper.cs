@@ -253,6 +253,13 @@ class BombWrapper : MonoBehaviour
 						// This fixes the position of the status light
 						component.GetComponentInChildren<StatusLightParent>().transform.localPosition = new Vector3(0.075167f, 0.01986f, 0.076057f);
 						break;
+					case "tWords":
+					case "moon":
+					case "sun":
+					case "jewelVault":
+						// This fixes the scale of the light components
+						component.GetComponentInChildren<Light>().range *= component.transform.lossyScale.x;
+						break;
 				}
 
 				// This fixes the position of the highlight
