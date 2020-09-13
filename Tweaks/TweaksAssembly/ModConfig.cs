@@ -6,19 +6,23 @@ using UnityEngine;
 
 class ModConfig<T>
 {
-    public ModConfig(string filename)
+    public ModConfig(string filename, Action<Exception> onRead = null)
     {
-		SettingsPath = Path.Combine(Path.Combine(Application.persistentDataPath, "Modsettings"), filename + ".json");
+		settingsPath = Path.Combine(Path.Combine(Application.persistentDataPath, "Modsettings"), filename + ".json");
+		OnRead = onRead;
     }
 
-	readonly string SettingsPath;
+	private readonly string settingsPath;
 
 	public static string SerializeSettings(T settings)
 	{
 		return JsonConvert.SerializeObject(settings, Formatting.Indented, new StringEnumConverter());
 	}
 
-	static readonly object settingsFileLock = new object();
+	private static readonly object settingsFileLock = new object();
+
+	public bool FailedRead;
+	public Action<Exception> OnRead;
 
 	public T Settings
     {
@@ -28,39 +32,43 @@ class ModConfig<T>
             {
 				lock(settingsFileLock)
 				{
-					if (!File.Exists(SettingsPath))
+					if (!File.Exists(settingsPath))
 					{
-						File.WriteAllText(SettingsPath, SerializeSettings(Activator.CreateInstance<T>()));
+						File.WriteAllText(settingsPath, SerializeSettings(Activator.CreateInstance<T>()));
 					}
 
-					T deserialized = JsonConvert.DeserializeObject<T>(
-						File.ReadAllText(SettingsPath),
-						new JsonSerializerSettings { Error = (object sender, Newtonsoft.Json.Serialization.ErrorEventArgs args) => args.ErrorContext.Handled = true }
-					);
-					return deserialized != null ? deserialized : Activator.CreateInstance<T>();
+					T deserialized = JsonConvert.DeserializeObject<T>(File.ReadAllText(settingsPath));
+					if (deserialized == null)
+						throw new Exception("Deserialized null.");
+
+					OnRead?.Invoke(null);
+					return deserialized;
 				}
-            }
-            catch(Exception e)
-            {
-				Debug.LogFormat("An exception has occured while attempting to read the settings from {0}\nDefault settings will be used for the type of {1}.", SettingsPath, typeof(T).ToString());
+			}
+			catch (Exception e)
+			{
+				FailedRead = true;
+				OnRead?.Invoke(e);
+
+				Debug.LogFormat("An exception has occurred while attempting to read the settings from {0}\nDefault settings will be used for the type of {1}.", settingsPath, typeof(T).ToString());
 				Debug.LogException(e);
-                return Activator.CreateInstance<T>();
-            }
-        }
+				return Activator.CreateInstance<T>();
+			}
+		}
 
         set
         {
-            if (value.GetType() == typeof(T))
+            if (value.GetType() == typeof(T) && !FailedRead)
             {
 				lock (settingsFileLock)
 				{
 					try
 					{
-						File.WriteAllText(SettingsPath, SerializeSettings(value));
+						File.WriteAllText(settingsPath, SerializeSettings(value));
 					}
 					catch (Exception e)
 					{
-						Debug.LogFormat("Failed to write to {0}", SettingsPath);
+						Debug.LogFormat("Failed to write to {0}", settingsPath);
 						Debug.LogException(e);
 					}
 				}

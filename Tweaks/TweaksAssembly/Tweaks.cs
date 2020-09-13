@@ -11,6 +11,7 @@ using Assets.Scripts.Settings;
 using Assets.Scripts.BombBinder;
 using Assets.Scripts.Mods.Mission;
 using Assets.Scripts.Props;
+using System.Text.RegularExpressions;
 
 [RequireComponent(typeof(KMService))]
 [RequireComponent(typeof(KMGameInfo))]
@@ -52,7 +53,7 @@ class Tweaks : MonoBehaviour
 		Tips.TipMessage = gameObject.Traverse("UI", "TipMessage");
 		BetterCasePicker.BombCaseGenerator = GetComponentInChildren<BombCaseGenerator>();
 
-		modConfig = new ModConfig<TweakSettings>("TweakSettings");
+		modConfig = new ModConfig<TweakSettings>("TweakSettings", OnReadError);
 		UpdateSettings();
 		StartCoroutine(Modes.LoadDefaultSettings());
 
@@ -649,6 +650,29 @@ class Tweaks : MonoBehaviour
 	});
 
 	public static bool SettingWarningEnabled;
+
+	private void OnReadError(Exception exception)
+	{
+		var invalidSettings = gameObject.Traverse("UI", "InvalidSettings");
+		invalidSettings.SetActive(exception != null);
+
+		if (exception != null)
+		{
+			var error = exception.Message;
+
+			Dictionary<string, string> replacements = new Dictionary<string, string>()
+			{
+				{ @"([A-Z][a-z]+\.){1,}", "" },
+				{ @"List`1\[(.+)\]", "$1 Array" },
+				{ @"\. ", "\n" }
+			};
+
+			foreach (var replacement in replacements)
+				error = Regex.Replace(error, replacement.Key, replacement.Value);
+
+			invalidSettings.Traverse<Text>("Details", "Text").text = error;
+		}
+	}
 
 	public void OnApplicationQuit()
 	{
