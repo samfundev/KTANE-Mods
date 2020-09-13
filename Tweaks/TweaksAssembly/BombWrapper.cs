@@ -310,7 +310,7 @@ class BombWrapper : MonoBehaviour
 	{
 		BombEvents.OnBombDetonated -= OnDetonate;
 		BombEvents.OnBombSolved -= OnSolve;
-		Tweaks.bombWrappers = new BombWrapper[] { };
+		Tweaks.bombWrappers.Remove(this);
 	}
 
 	int modulesUnactivated = 0;

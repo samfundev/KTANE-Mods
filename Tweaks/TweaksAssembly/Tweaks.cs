@@ -212,9 +212,8 @@ class Tweaks : MonoBehaviour
 
 				Modes.Multiplier = Modes.settings.TimeModeStartingMultiplier;
 				BombStatus.Instance.UpdateMultiplier();
-				bombWrappers = new BombWrapper[] { };
+				bombWrappers.Clear();
 				StartCoroutine(CheckForBombs());
-				if (settings.SkipGameplayDelay) StartCoroutine(SkipGameplayDelay());
 
 				if (GameplayState.BombSeedToUse == -1) GameplayState.BombSeedToUse = settings.MissionSeed;
 			}
@@ -348,13 +347,15 @@ class Tweaks : MonoBehaviour
 		GUILayout.EndHorizontal();
 	}*/
 
-	public static BombWrapper[] bombWrappers = new BombWrapper[] { };
+	public static List<BombWrapper> bombWrappers = new List<BombWrapper>();
 
 	public IEnumerator CheckForBombs()
 	{
 		yield return new WaitUntil(() => (SceneManager.Instance.GameplayState.Bombs?.Count > 0));
 		yield return null;
 		List<Bomb> bombs = SceneManager.Instance.GameplayState.Bombs;
+
+		if (settings.SkipGameplayDelay) StartCoroutine(SkipGameplayDelay());
 
 		LogJSON("LFAEvent", new Dictionary<string, object>()
 		{
@@ -368,13 +369,11 @@ class Tweaks : MonoBehaviour
 
 		void wrapInitialBombs()
 		{
-			Array.Resize(ref bombWrappers, bombs.Count);
-
 			for (int i = 0; i < bombs.Count; i++)
 			{
 				Bomb bomb = bombs[i];
 				BombWrapper bombWrapper = bomb.gameObject.AddComponent<BombWrapper>();
-				bombWrappers[i] = bombWrapper;
+				bombWrappers.Add(bombWrapper);
 
 				if (CurrentMode == Mode.Time) bombWrapper.CurrentTimer = Modes.settings.TimeModeStartingTime * 60;
 				else if (CurrentMode == Mode.Zen) bombWrapper.CurrentTimer = 0.001f;
@@ -414,12 +413,10 @@ class Tweaks : MonoBehaviour
 					Component currentBomb = getBomb();
 					bool firstBomb = true;
 
-					Array.Resize(ref bombWrappers, 1);
-
 					while (currentBomb != null && factoryRoom != null)
 					{
 						BombWrapper bombWrapper = currentBomb.gameObject.AddComponent<BombWrapper>();
-						bombWrappers[0] = bombWrapper;
+						bombWrappers.Add(bombWrapper);
 
 						if (globalTimerDisabled || firstBomb)
 						{
@@ -433,6 +430,7 @@ class Tweaks : MonoBehaviour
 
 						yield return new WaitUntil(() => currentBomb != getBomb() || factoryRoom == null);
 
+						bombWrappers.Remove(bombWrapper);
 						currentBomb = getBomb();
 
 						if (currentBomb == null || factoryRoom == null) break;
