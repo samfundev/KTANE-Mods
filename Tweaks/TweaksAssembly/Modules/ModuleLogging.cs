@@ -7,7 +7,7 @@ public abstract class ModuleLogging : ModuleTweak
 	public readonly int moduleID;
 	private readonly string logName;
 
-	protected ModuleLogging(BombComponent bombComponent, string logName) : base(bombComponent)
+	protected ModuleLogging(BombComponent bombComponent, string componentString, string logName) : base(bombComponent, componentString)
 	{
 		if (!idCounters.ContainsKey(logName)) idCounters[logName] = 1;
 		moduleID = idCounters[logName]++;

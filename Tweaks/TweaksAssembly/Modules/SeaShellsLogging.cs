@@ -1,19 +1,14 @@
 ﻿using System;
 using System.Collections;
 using System.Linq;
-using System.Reflection;
 using UnityEngine;
 
 public class SeaShellsLogging : ModuleLogging
 {
-	const string typeName = "SeaShellsModule";
-
-	private object SeaShellsModule;
 	private bool Solved;
 
-	public SeaShellsLogging(BombComponent bombComponent) : base(bombComponent, "Sea Shells")
+	public SeaShellsLogging(BombComponent bombComponent) : base(bombComponent, "SeaShellsModule", "Sea Shells")
 	{
-		SeaShellsModule = bombComponent.gameObject.GetComponent(typeName);
 		bombComponent.GetComponent<KMBombModule>().OnPass += () =>
 		{
 			Solved = true;
@@ -24,16 +19,16 @@ public class SeaShellsLogging : ModuleLogging
 		{
 			var checker = bombComponent.StartCoroutine(RunLogger());
 
-			var buttons = SeaShellsModule.GetValue<KMSelectable[]>("buttons");
+			var buttons = component.GetValue<KMSelectable[]>("buttons");
 			var oldHandlers = buttons.Select(button => button.OnInteract).ToArray();
 			for (int i = 0; i < buttons.Length; i++)
 			{
 				var j = i;
 				buttons[i].OnInteract = delegate
 				{
-					var prevStep = SeaShellsModule.GetValue<int>("step");
+					var prevStep = component.GetValue<int>("step");
 					var ret = oldHandlers[j]();
-					if (Solved || SeaShellsModule.GetValue<int>("step") > prevStep)
+					if (Solved || component.GetValue<int>("step") > prevStep)
 					{
 						Log($"{buttons[j].GetComponentInChildren<TextMesh>().text}: correct");
 						if (Solved)
@@ -54,7 +49,7 @@ public class SeaShellsLogging : ModuleLogging
 
 	private IEnumerator RunLogger()
 	{
-		var buttons = SeaShellsModule.GetValue<KMSelectable[]>("buttons");
+		var buttons = component.GetValue<KMSelectable[]>("buttons");
 		while (true)
 		{
 			while (buttons.Any(b => b.GetComponentInChildren<TextMesh>().text == " "))
@@ -64,18 +59,18 @@ public class SeaShellsLogging : ModuleLogging
 					yield break;
 			}
 
-			Log($"Stage: {SeaShellsModule.GetValue<int>("stage") + 1}");
-			Log($"Phrase: {SeaShellsModule.GetValue<TextMesh>("Display").text.Replace("\n", " ")}");
+			Log($"Stage: {component.GetValue<int>("stage") + 1}");
+			Log($"Phrase: {component.GetValue<TextMesh>("Display").text.Replace("\n", " ")}");
 			Log($"Buttons: {buttons.Select(b => b.GetComponentInChildren<TextMesh>().text).Join(", ")}");
 
-			var row = SeaShellsModule.GetValue<int>("row");
-			var col = SeaShellsModule.GetValue<int>("col");
-			var key = SeaShellsModule.GetValue<int[,]>("key");
-			var keynum = SeaShellsModule.GetValue<int>("keynum");
-			var table = SeaShellsModule.GetValue<int[,,]>("table");
-			var swap = SeaShellsModule.GetValue<int[]>("swap");
+			var row = component.GetValue<int>("row");
+			var col = component.GetValue<int>("col");
+			var key = component.GetValue<int[,]>("key");
+			var keynum = component.GetValue<int>("keynum");
+			var table = component.GetValue<int[,,]>("table");
+			var swap = component.GetValue<int[]>("swap");
 
-			Log($@"Expected solution: {Enumerable.Range(0, SeaShellsModule.GetValue<int[,]>("length")[row, col])
+			Log($@"Expected solution: {Enumerable.Range(0, component.GetValue<int[,]>("length")[row, col])
 				.Select(i => buttons[Array.IndexOf(swap, key[keynum, table[row, col, i]])].GetComponentInChildren<TextMesh>().text)
 				.Join(", ")}");
 

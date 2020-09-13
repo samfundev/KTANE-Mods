@@ -5,13 +5,8 @@ using UnityEngine;
 
 public class EmojiMathLogging : ModuleLogging
 {
-    const string typeName = "EmojiMathModule";
-
-    public EmojiMathLogging(BombComponent bombComponent) : base(bombComponent, "Emoji Math")
+    public EmojiMathLogging(BombComponent bombComponent) : base(bombComponent, "EmojiMathModule", "Emoji Math")
     {
-        componentType = componentType ?? (componentType = ReflectionHelper.FindType(typeName));
-        component = bombComponent.GetComponent(componentType);
-
         mPuzzle = componentType?.GetField("Puzzle", BindingFlags.NonPublic | BindingFlags.Instance);
         mButtons = componentType?.GetField("Buttons", BindingFlags.Public | BindingFlags.Instance);
         mSign = componentType?.GetField("Sign", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -77,8 +72,6 @@ public class EmojiMathLogging : ModuleLogging
         if (mCheckAnswer == null || mGetOperationString == null || mOperand1 == null || mOperand2 == null || mOperator == null)
             Log($"Logging failed (2): {new object[] { mCheckAnswer, mGetOperationString, mOperand1, mOperand2, mOperator }.Select(obj => obj == null ? "<NULL>" : "(not null)").Join(", ")}.");
     }
-
-    static Type componentType;
 
     // Fields on the component type
     static FieldInfo mPuzzle;

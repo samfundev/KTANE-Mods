@@ -3,12 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using UnityEngine;
 
 public class ProbingLogging : ModuleLogging
 {
-    const string typeName = "ProbingModule";
-
     [Flags]
     private enum WireValues
     {
@@ -43,13 +40,12 @@ public class ProbingLogging : ModuleLogging
 
     private readonly KMBombInfo bombInfo;
 
-    public ProbingLogging(BombComponent bombComponent) : base(bombComponent, "Probing")
+    public ProbingLogging(BombComponent bombComponent) : base(bombComponent, "ProbingModule", "Probing")
     {
         mWiresField ??= (mWiresField = componentType.GetField("mWires", NonPublicInstance));
         mTargetWireAField ??= (mTargetWireAField = componentType.GetField("mTargetWireA", NonPublicInstance));
         mTargetWireBField ??= (mTargetWireBField = componentType.GetField("mTargetWireB", NonPublicInstance));
 
-        component = bombComponent.GetComponent(componentType);
         bombInfo = bombComponent.GetComponent<KMBombInfo>();
         mNumStrikes = bombInfo.GetStrikes();
         bombComponent.GetComponent<KMBombModule>().OnActivate += () => bActive = true;
@@ -112,7 +108,6 @@ public class ProbingLogging : ModuleLogging
         Log($"The blue clip should be connected to a wire containing {FormatWireValue(blueTargetValues)} because {blueClipRules[blueTargetValues]}.");
     }
 
-    static Type componentType;
     static FieldInfo mWiresField;
     static FieldInfo mTargetWireAField;
     static FieldInfo mTargetWireBField;
