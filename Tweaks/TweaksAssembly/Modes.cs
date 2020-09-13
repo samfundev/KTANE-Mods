@@ -63,27 +63,31 @@ static class Modes
 
 		if (!www.isNetworkError && !www.isHttpError)
 		{
+			bool missingWarning = false;
 			foreach (var entry in JObject.Parse(www.downloadHandler.text)["feed"]["entry"])
 			{
-				bool score = !string.IsNullOrEmpty(entry["gsx$score"]["$t"]?.Value<string>());
-				bool multiplier = !string.IsNullOrEmpty(entry["gsx$bossmodulepointspermodule"]["$t"]?.Value<string>());
+				bool score = !string.IsNullOrEmpty(entry["gsx$resolvedscore"]["$t"]?.Value<string>());
+				bool multiplier = !string.IsNullOrEmpty(entry["gsx$resolvedbosspointspermodule"]["$t"]?.Value<string>());
 
-				if (entry["gsx$_cn6ca"] == null)
+				if (entry["gsx$moduleid"] == null)
 				{
-					if (score || multiplier)
+					if ((score || multiplier) && !missingWarning)
+					{
+						missingWarning = true;
 						Tweaks.Log("An entry on the spreadsheet is missing it's module ID. You should contact the spreadsheet maintainers about this.");
+					}
 
 					continue;
 				}
 
-				string moduleID = entry["gsx$_cn6ca"].Value<string>("$t");
+				string moduleID = entry["gsx$moduleid"].Value<string>("$t");
 				if (string.IsNullOrEmpty(moduleID) || moduleID == "ModuleID")
 					continue;
 
 				if (score)
-					DefaultComponentValues[moduleID] = entry["gsx$score"].Value<double>("$t");
+					DefaultComponentValues[moduleID] = entry["gsx$resolvedscore"].Value<double>("$t");
 				if (multiplier)
-					DefaultTotalModulesMultiplier[moduleID] = entry["gsx$bossmodulepointspermodule"].Value<double>("$t");
+					DefaultTotalModulesMultiplier[moduleID] = entry["gsx$resolvedbosspointspermodule"].Value<double>("$t");
 			}
 		}
 		else
