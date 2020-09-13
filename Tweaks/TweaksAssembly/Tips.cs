@@ -27,6 +27,7 @@ public static class Tips
 		new Tip("Try out different modes for defusing bombs using the \"Mode\" setting.", () => Settings.Mode == Mode.Normal, "settings-Mode"),
 		new Tip("Generate the same bomb consistently using the \"MissionSeed\" setting.", () => Settings.MissionSeed == -1, "settings-MissionSeed"),
 		new Tip("Give generated cases a new splash of color using the \"CaseColors\" setting.", () => Settings.CaseGenerator && Settings.CaseColors.Count == 0, "settings-CaseColors"),
+		new Tip("Hide and swap holdables using the \"Holdables\" setting.", () => Settings.Holdables.Any(pair => !(pair.Value is bool boolean) || !boolean), "settings-Holdables"),
 		new Tip("Pin frequently used settings using the pin icon in the Mod Settings app.", () => Settings.PinnedSettings.Count == 0),
 	};
 

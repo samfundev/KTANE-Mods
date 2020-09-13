@@ -25,9 +25,11 @@ class Tweaks : MonoBehaviour
 
 	public static bool CaseGeneratorSettingCache; // The CaseGenerator setting is cached until the user returns to the setup room to fix bugs related to the largest case size being cached.
 	public static bool DemandBasedSettingCache; // The DemandBasedModLoading setting is cached until the user enters the Mod Manager so the demand based mods can either be loaded or unloaded.
+	public static Dictionary<string, object> HoldablesSettingCache; // The Holdables setting is cached to see if the user has changed it.
 
 	static GameObject CaseGeneratorWarning;
 	static GameObject DBMLWarning;
+	static GameObject HoldablesWarning;
 
 	public static bool TwitchPlaysActive => GameObject.Find("TwitchPlays_Info") != null;
 	public static Mode CurrentMode => TwitchPlaysActive ? Mode.Normal : settings.Mode;
@@ -59,6 +61,7 @@ class Tweaks : MonoBehaviour
 
 		CaseGeneratorWarning = MakeSettingWarning("CaseGenerator");
 		DBMLWarning = MakeSettingWarning("DemandBasedModLoading");
+		HoldablesWarning = MakeSettingWarning("Holdables");
 
 		modConfig = new ModConfig<TweakSettings>("TweakSettings", OnReadError);
 		UpdateSettings();
@@ -66,6 +69,8 @@ class Tweaks : MonoBehaviour
 
 		DemandBasedLoading.EverLoadedModules = !settings.DemandBasedModLoading;
 		DemandBasedSettingCache = settings.DemandBasedModLoading;
+
+		HoldablesSettingCache = settings.Holdables;
 
 		bool changeFadeTime = settings.FadeTime >= 0;
 
@@ -243,6 +248,7 @@ class Tweaks : MonoBehaviour
 
 				StartCoroutine(Tips.ShowTip());
 				StartCoroutine(ModifyFreeplayDevice(true));
+				StartCoroutine(ModifyHoldables());
 				GetComponentInChildren<ModSelectorExtension>().FindAPI();
 				TweaksAPI.SetTPProperties(!TwitchPlaysActive);
 
@@ -600,6 +606,81 @@ class Tweaks : MonoBehaviour
 		}
 	}
 
+	public static IEnumerator ModifyHoldables()
+	{
+		HoldablesSettingCache = settings.Holdables;
+
+		yield return null;
+
+		var holdableSettings = settings.Holdables;
+		var holdables = SceneManager.Instance.SetupState
+			.GetValue<SetupRoom>("setupRoom")
+			.GetComponentsInChildren<FloatingHoldable>()
+			.ToDictionary(holdable => holdable.name.Replace("(Clone)", "").Replace("Holdable", ""), holdable => holdable);
+		var holdableSpots = holdables.ToDictionary(pair => pair.Key, pair => pair.Key);
+
+		foreach (var pair in holdables)
+		{
+			var name = pair.Key;
+			var holdable = pair.Value;
+			if (!holdableSettings.ContainsKey(name))
+			{
+				userSettings.Holdables.Add(name, true);
+				holdableSettings.Add(name, true);
+				UpdateSettings(false);
+			}
+
+			Dictionary<string, Vector3> positionOffsets = new Dictionary<string, Vector3>()
+			{
+				{ "FreeplayDevice", new Vector3(0.1f, 0.0075f, -0.15f) }
+			};
+
+			Dictionary<string, Vector3> rotationOffsets = new Dictionary<string, Vector3>()
+			{
+				{ "FreeplayDevice", new Vector3(0, 90, -5) },
+				{ "ModManager", new Vector3(0, 90, 0) }
+			};
+
+			switch (holdableSettings[name])
+			{
+				case bool active:
+					holdable.gameObject.SetActive(active);
+					break;
+				case string originalTargetName when holdables.ContainsKey(originalTargetName):
+					var targetName = holdableSpots[originalTargetName];
+					var targetHoldable = holdables[targetName];
+
+					var oldPosition = holdable.transform.position;
+					var oldRotation = holdable.transform.rotation.eulerAngles;
+					var newRotation = targetHoldable.transform.rotation.eulerAngles;
+
+					positionOffsets.TryGetValue(targetName, out Vector3 oldPosOffset);
+					positionOffsets.TryGetValue(name, out Vector3 newPosOffset);
+
+					rotationOffsets.TryGetValue(targetName, out Vector3 oldRotOffset);
+					rotationOffsets.TryGetValue(name, out Vector3 newRotOffset);
+
+					holdable.transform.position = targetHoldable.transform.position + oldPosOffset - newPosOffset;
+					holdable.transform.rotation = Quaternion.Euler(newRotation + oldRotOffset - newRotOffset);
+					holdable.OrigPosition = holdable.transform.position;
+					holdable.OrigRotation = holdable.transform.rotation;
+
+					targetHoldable.transform.position = oldPosition - oldPosOffset + newPosOffset;
+					targetHoldable.transform.rotation = Quaternion.Euler(oldRotation + newRotOffset - oldRotOffset);
+					targetHoldable.OrigPosition = targetHoldable.transform.position;
+					targetHoldable.OrigRotation = targetHoldable.transform.rotation;
+
+					holdableSpots[name] = targetName;
+					holdableSpots[targetName] = name;
+
+					break;
+				default:
+					Instance.OnReadError(new Exception($"Unexpected value for holdable {name}: {holdableSettings[name]}"));
+					break;
+			}
+		}
+	}
+
 	internal static void FixKeypadButtons(params KeypadButton[] buttons) => FixKeypadButtons((IEnumerable<KeypadButton>) buttons);
 	internal static void FixKeypadButtons(IEnumerable<KeypadButton> buttons)
 	{
@@ -664,7 +745,9 @@ class Tweaks : MonoBehaviour
 		DBMLWarning.SetActive(warningsEnabled && (demandSettingChanged || demandModsDisabled));
 		DBMLWarning.Traverse<Text>("WarningText").text = $"The { (demandSettingChanged ? "change to the setting \"DemandBasedModLoading\"" : "") + (demandSettingChanged && demandModsDisabled ? " and " : "") + (demandModsDisabled ? $"{DemandBasedLoading.DisabledModsCount} mod{(DemandBasedLoading.DisabledModsCount == 1 ? "" : "s")} that were automatically disabled" : "") } will only take effect once you enter the Mod Manager. <i>Press \"F2\" to do that automatically!</i>";
 
-		SettingWarningEnabled = new[] { CaseGeneratorWarning, DBMLWarning }.Any(warning => warning.activeSelf);
+		HoldablesWarning.SetActive(warningsEnabled && HoldablesSettingCache.Count != settings.Holdables.Count || HoldablesSettingCache.Except(settings.Holdables).Any());
+
+		SettingWarningEnabled = new[] { CaseGeneratorWarning, DBMLWarning, HoldablesWarning }.Any(warning => warning.activeSelf);
 	});
 
 	public static bool SettingWarningEnabled;
@@ -835,5 +918,6 @@ class TweakSettings
 	public bool CaseGenerator = true;
 	public bool ModuleTweaks = true;
 	public List<string> CaseColors = new List<string>();
+	public Dictionary<string, object> Holdables = new Dictionary<string, object>();
 	public HashSet<string> PinnedSettings = new HashSet<string>();
 }
