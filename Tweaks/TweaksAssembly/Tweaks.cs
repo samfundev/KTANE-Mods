@@ -736,7 +736,7 @@ class Tweaks : MonoBehaviour
 			return;
 
 		bool demandSettingChanged = DemandBasedSettingCache != settings.DemandBasedModLoading;
-		bool demandModsDisabled = DemandBasedLoading.DisabledModsCount != 0;
+		bool demandModsDisabled = DemandBasedLoading.DisabledModsCount >= 50;
 
 		bool warningsEnabled = CurrentState == KMGameInfo.State.Setup && !modConfig.FailedRead;
 
