@@ -64,7 +64,7 @@ public static class Tips
 		if (tip.DocID != null)
 		{
 			tipText.text += "\n(Click to learn more, opens website)";
-			TipMessage.GetComponent<Button>().onClick.AddListener(() => Process.Start($"https://samfun123.github.io/KTANE-Mods/tweaks.html#{tip.DocID}"));
+			TipMessage.GetComponent<Button>().onClick.AddListener(() => Process.Start($"https://samfundev.github.io/KTANE-Mods/tweaks.html#{tip.DocID}"));
 		}
 
 		yield return new WaitUntil(() => Application.isFocused);
