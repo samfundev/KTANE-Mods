@@ -39,6 +39,9 @@
     <Unity Condition="'$(Unity)' == ''">C:\Program Files\Unity\Editor\Data\Managed\</Unity>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="0Harmony">
+      <HintPath>.\0Harmony.dll</HintPath>
+    </Reference>
     <Reference Include="Assembly-CSharp">
       <HintPath>$(GameFolder)\ktane_Data\Managed\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
@@ -112,6 +115,7 @@
     <Compile Include="SettingsPage.cs" />
     <Compile Include="Modules\WordScramblePatch.cs" />
     <Compile Include="Modules\ColorDecodingTweak.cs" />
+    <Compile Include="Patching.cs" />
     <Compile Include="PropertiesBehaviour.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReflectedTypes.cs" />

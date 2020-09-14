@@ -11,6 +11,7 @@ using Assets.Scripts.Settings;
 using Assets.Scripts.BombBinder;
 using Assets.Scripts.Mods.Mission;
 using Assets.Scripts.Props;
+using TweaksAssembly.Patching;
 using System.Text.RegularExpressions;
 
 [RequireComponent(typeof(KMService))]
@@ -251,6 +252,8 @@ class Tweaks : MonoBehaviour
 				StartCoroutine(ModifyHoldables());
 				GetComponentInChildren<ModSelectorExtension>().FindAPI();
 				TweaksAPI.SetTPProperties(!TwitchPlaysActive);
+
+				Patching.EnsurePatch("LogfileViewerHotkey", typeof(LogfileUploaderPatch));
 
 				GameplayState.BombSeedToUse = -1;
 
