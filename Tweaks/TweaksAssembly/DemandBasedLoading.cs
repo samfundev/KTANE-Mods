@@ -3,20 +3,46 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Assets.Scripts.Missions;
 using Assets.Scripts.Mods.Screens;
 using Assets.Scripts.Settings;
+using HarmonyLib;
 using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.UI;
+using TweaksAssembly.Patching;
+using Random = System.Random;
 
 static class DemandBasedLoading
 {
+	public static CanvasGroup LoadingScreen;
+
 	public static bool EverLoadedModules;
 	public static int DisabledModsCount;
 	static readonly List<string> fakedModules = new List<string>();
 	static string modWorkshopPath;
 	static readonly List<string> loadOrder = new List<string>();
 	static readonly Dictionary<string, UnityEngine.Object[]> loadedObjects = new Dictionary<string, UnityEngine.Object[]>();
+
+	static bool BombLoaded => allBombInfo.Count == 0;
+	static readonly Dictionary<Bomb, BombInfo> allBombInfo = new Dictionary<Bomb, BombInfo>();
+
+	class BombInfo
+	{
+		public readonly List<BombComponent> Components = new List<BombComponent>();
+		public readonly GeneratorSetting Settings;
+		public readonly BombFace TimerFace;
+		public readonly Random Rand;
+		public bool EnableOriginal;
+
+		public BombInfo(GeneratorSetting settings, BombFace timerFace, Random rand)
+		{
+			Settings = settings;
+			TimerFace = timerFace;
+			Rand = rand;
+		}
+	}
 
 	public static void HandleTransitioning()
 	{
@@ -27,6 +53,9 @@ static class DemandBasedLoading
 
 			Time.timeScale = 0;
 			Tweaks.Instance.StartCoroutine(GetModules());
+
+			Patching.EnsurePatch("DBML", typeof(GameplayStatePatches), typeof(GeneratorPatches));
+			FactoryPatches.PatchAll();
 		}
 		else
 		{
@@ -63,7 +92,7 @@ static class DemandBasedLoading
 				Resources.UnloadAsset(loadedObject);
 			}
 
-			FakeModule.loadedMods.Remove(mod.GetModPath());
+			loadedMods.Remove(mod.GetModPath());
 			loadedObjects.Remove(steamID);
 			manuallyLoadedMods.Remove(steamID);
 		}
@@ -364,261 +393,299 @@ static class DemandBasedLoading
 		return item;
 	}
 
+	// Loading a module
+	public static int modsLoading = 0;
+	public static readonly Dictionary<string, Mod> loadedMods = ModManager.Instance.GetValue<Dictionary<string, Mod>>("loadedMods");
+	private static readonly Dictionary<string, bool> modLoading = new Dictionary<string, bool>();
+
+	private static int totalModules = 0;
+
+	private static IEnumerator LoadModule(BombComponent fakeModule, BombInfo bombInfo)
+	{
+		modsLoading++;
+		Time.timeScale = 0;
+
+		yield return null;
+
+		totalModules = modsLoading;
+
+		UpdateLoadingScreen();
+
+		yield return null;
+
+		string SteamID = fakeModule.gameObject.name.Replace("(Clone)", "");
+		string ModuleID = fakeModule.GetComponent<KMBombModule>()?.ModuleType ?? fakeModule.GetComponent<KMNeedyModule>()?.ModuleType;
+
+		if (modLoading.ContainsKey(SteamID))
+		{
+			yield return new WaitUntil(() => !modLoading[SteamID]);
+		}
+
+		if (!manuallyLoadedMods.TryGetValue(SteamID, out Mod mod))
+		{
+			var modPath = Path.Combine(modWorkshopPath, SteamID);
+			if (!Directory.Exists(modPath))
+				yield break;
+
+			modLoading[SteamID] = true;
+
+			mod = Mod.LoadMod(modPath, Assets.Scripts.Mods.ModInfo.ModSourceEnum.Local);
+			foreach (string fileName in mod.GetAssetBundlePaths())
+			{
+				var bundleRequest = AssetBundle.LoadFromFileAsync(fileName);
+
+				yield return bundleRequest;
+
+				var mainBundle = bundleRequest.assetBundle;
+
+				if (mainBundle != null)
+				{
+					try
+					{
+						mod.LoadBundle(mainBundle);
+					}
+					catch (Exception ex)
+					{
+						Debug.LogErrorFormat("Load of mod \"{0}\" failed: \n{1}\n{2}", mod.ModID, ex.Message, ex.StackTrace);
+					}
+
+					loadedObjects[SteamID] = mainBundle.LoadAllAssets<UnityEngine.Object>();
+
+					mainBundle.Unload(false);
+				}
+			}
+
+			mod.CallMethod("RemoveMissions");
+			mod.CallMethod("RemoveSoundOverrides");
+
+			manuallyLoadedMods[SteamID] = mod;
+			loadedMods[modPath] = mod;
+			modLoading[SteamID] = false;
+		}
+
+		loadOrder.Remove(SteamID);
+		loadOrder.Add(SteamID);
+
+		if (mod == null)
+			yield break;
+
+		List<string> moduleIDs = new List<string>();
+		BombComponent realModule = null;
+		foreach (KMBombModule kmbombModule in mod.GetModObjects<KMBombModule>())
+		{
+			string moduleType = kmbombModule.ModuleType;
+			if (moduleType == ModuleID)
+				realModule = kmbombModule.GetComponent<BombComponent>();
+
+			moduleIDs.Add(moduleType);
+		}
+		foreach (KMNeedyModule kmneedyModule in mod.GetModObjects<KMNeedyModule>())
+		{
+			string moduleType = kmneedyModule.ModuleType;
+			if (moduleType == ModuleID)
+				realModule = kmneedyModule.GetComponent<BombComponent>();
+
+			moduleIDs.Add(moduleType);
+		}
+
+		if (realModule != null)
+		{
+			foreach (ModService original in mod.GetModObjects<ModService>())
+			{
+				GameObject gameObject = UnityEngine.Object.Instantiate(original).gameObject;
+				gameObject.transform.parent = ModManager.Instance.transform;
+				mod.AddServiceObject(gameObject);
+			}
+
+			bombInfo.Components.Add(realModule.GetComponent<BombComponent>());
+		}
+		else
+		{
+			Tweaks.Log($"Unable to get the real module for {ModuleID} ({SteamID}). IDs found: {moduleIDs.Select(id => $"\"{id}\"").Join(", ")}. This shouldn't happen, please contact the developer of Tweaks.");
+
+			LeaderboardController.DisableLeaderboards();
+		}
+
+		modsLoading--;
+		UpdateLoadingScreen();
+
+		if (modsLoading == 0)
+			Time.timeScale = 1;
+	}
+
+	private static void UpdateLoadingScreen()
+	{
+		var screen = LoadingScreen;
+		screen.gameObject.SetActive(modsLoading != 0);
+		screen.alpha = (float) modsLoading / totalModules;
+		screen.gameObject.Traverse<Text>("LoadingText").text = $"Loading {modsLoading} module{(modsLoading == 1 ? "" : "s")}...";
+	}
+
+	private static IEnumerator InstantiateComponents(Bomb bomb)
+	{
+		yield return new WaitUntil(() => modsLoading == 0);
+
+		var bombGenerator = SceneManager.Instance.GameplayState.GetValue<BombGenerator>("bombGenerator");
+		bombGenerator.SetValue("bomb", bomb);
+
+		var validBombFaces = new List<BombFace>(bomb.Faces.Where(face => face.ComponentSpawnPoints.Count != 0));
+		bombGenerator.SetValue("validBombFaces", validBombFaces);
+
+		var bombInfo = allBombInfo[bomb];
+		var timerFace = bombInfo.TimerFace;
+		var setting = bombInfo.Settings;
+		bombInfo.EnableOriginal = true;
+		foreach (var bombComponent in bombInfo.Components.OrderByDescending(component => component.RequiresTimerVisibility))
+		{
+			BombFace face = null;
+			if (bombComponent.RequiresTimerVisibility && timerFace.ComponentSpawnPoints.Count != 0)
+				face = timerFace;
+
+			if (face == null && validBombFaces.Count != 0)
+				face = validBombFaces[bombInfo.Rand.Next(0, validBombFaces.Count)];
+
+			if (face == null)
+			{
+				Tweaks.Log("No valid faces remain to instantiate:", bombComponent.name);
+				continue;
+			}
+
+			bombGenerator.CallMethod("InstantiateComponent", face, bombComponent, setting);
+		}
+
+		while (validBombFaces.Count > 0)
+			bombGenerator.CallMethod("InstantiateComponent", validBombFaces[0], bombGenerator.emptyComponentPrefab, setting);
+
+		allBombInfo.Remove(bomb);
+		SceneManager.Instance.GameplayState.Bombs.Add(bomb);
+	}
+
+	// TODO: We don't need to add a component to know which modules are the fake ones, we can just have a list.
 	class FakeModule : MonoBehaviour
 	{
-		GameObject realModule;
-		Bomb bomb;
-		BombFace timerFace;
+	}
 
-		public static readonly Dictionary<string, Mod> loadedMods = ModManager.Instance.GetValue<Dictionary<string, Mod>>("loadedMods");
-		private static List<BombComponent> emptyTimerFaceComponents = null;
-
-		public void Awake()
+	#pragma warning disable IDE0051, RCS1213
+	// Most mods look at the Bombs field of the GameplayState to see when the bombs have finished spawning.
+	// These Harmony patches will make the Bombs field be an empty list until modules have finished loading.
+	[HarmonyPatch(typeof(GameplayState))]
+	static class GameplayStatePatches
+	{
+		[HarmonyPatch("SpawnBomb")]
+		static bool Prefix(GeneratorSetting generatorSetting, HoldableSpawnPoint spawnPoint, int seed, ref Bomb __result)
 		{
-			emptyTimerFaceComponents = null;
+			var gameplayState = SceneManager.Instance.GameplayState;
 
-			bomb = BetterCasePicker.BombGenerator.GetValue<Bomb>("bomb");
+			__result = gameplayState.GetValue<BombGenerator>("bombGenerator").CreateBomb(generatorSetting, spawnPoint, seed, BombTypeEnum.Default);
 
-			string SteamID = gameObject.name.Replace("(Clone)", "");
-			string ModuleID = GetComponent<KMBombModule>()?.ModuleType ?? GetComponent<KMNeedyModule>()?.ModuleType;
+			if (modsLoading == 0)
+				gameplayState.Bombs.Add(__result);
 
-			// Hide from Souvenir
-			var bombModule = GetComponent<KMBombModule>();
-			if (bombModule != null)
-				DestroyImmediate(bombModule);
-
-			if (!manuallyLoadedMods.TryGetValue(SteamID, out Mod mod))
-			{
-				var modPath = Path.Combine(modWorkshopPath, SteamID);
-				if (!Directory.Exists(modPath))
-					return;
-
-				mod = Mod.LoadMod(modPath, Assets.Scripts.Mods.ModInfo.ModSourceEnum.Local);
-				foreach (string fileName in mod.GetAssetBundlePaths())
-				{
-					AssetBundle mainBundle = AssetBundle.LoadFromFile(fileName);
-					if (mainBundle != null)
-					{
-						try
-						{
-							mod.LoadBundle(mainBundle);
-						}
-						catch (Exception ex)
-						{
-							Debug.LogErrorFormat("Load of mod \"{0}\" failed: \n{1}\n{2}", mod.ModID, ex.Message, ex.StackTrace);
-						}
-
-						loadedObjects[SteamID] = mainBundle.LoadAllAssets<UnityEngine.Object>();
-
-						mainBundle.Unload(false);
-					}
-				}
-
-				mod.CallMethod("RemoveMissions");
-				mod.CallMethod("RemoveSoundOverrides");
-
-				manuallyLoadedMods[SteamID] = mod;
-				loadedMods[modPath] = mod;
-			}
-
-			loadOrder.Remove(SteamID);
-			loadOrder.Add(SteamID);
-
-			if (mod != null)
-			{
-				List<string> moduleIDs = new List<string>();
-				foreach (KMBombModule kmbombModule in mod.GetModObjects<KMBombModule>())
-				{
-					string moduleType = kmbombModule.ModuleType;
-					if (moduleType == ModuleID)
-						realModule = Instantiate(kmbombModule.gameObject);
-
-					moduleIDs.Add(moduleType);
-				}
-				foreach (KMNeedyModule kmneedyModule in mod.GetModObjects<KMNeedyModule>())
-				{
-					string moduleType = kmneedyModule.ModuleType;
-					if (moduleType == ModuleID)
-						realModule = Instantiate(kmneedyModule.gameObject);
-
-					moduleIDs.Add(moduleType);
-				}
-
-				if (realModule != null)
-				{
-					foreach (ModService original in mod.GetModObjects<ModService>())
-					{
-						GameObject gameObject = Instantiate(original).gameObject;
-						gameObject.transform.parent = ModManager.Instance.transform;
-						mod.AddServiceObject(gameObject);
-					}
-
-					BombComponent bombComponent = realModule.GetComponent<BombComponent>();
-
-					realModule.transform.parent = bomb.visualTransform.transform;
-					realModule.transform.localScale = Vector3.one;
-
-					// Update backing
-					var backing = GetComponentSpawnPoint(transform.position, bomb, out _)?.Backing;
-					if (bombComponent.RequiresDeepBackingGeometry && backing != null)
-					{
-						backing.CurrentBacking = BombComponentBacking.BackingType.Deep;
-					}
-
-					// Look for a log message so we can remove the fake module from the Bomb's BombComponent list as soon as possible.
-					OnInstantiation(() =>
-					{
-						bomb.BombComponents.Add(bombComponent);
-						bomb.BombComponents.Remove(GetComponent<BombComponent>());
-
-						if (bombComponent.RequiresTimerVisibility)
-						{
-							GetComponentSpawnPoint(bomb.GetTimer().transform.position, bomb, out timerFace);
-							var bombFace = GetComponent<Selectable>().Parent.GetComponent<BombFace>();
-							if (timerFace != bombFace)
-							{
-								bomb.visualTransform.gameObject.AddComponent<ExcludeFromStaticBatch>();
-							}
-						}
-					});
-				}
-				else
-				{
-					Tweaks.Log($"Unable to get the real module for {ModuleID} ({SteamID}). IDs found: {moduleIDs.Select(id => $"\"{id}\"").Join(", ")}. This shouldn't happen, please contact the developer of Tweaks.");
-
-					OnInstantiation(() => bomb.BombComponents.Remove(GetComponent<BombComponent>()));
-
-					LeaderboardController.DisableLeaderboards();
-				}
-			}
+			return false;
 		}
 
-		private void OnInstantiation(Action callback)
+		[HarmonyPatch("Bomb", MethodType.Getter)]
+		static bool Prefix(ref Bomb __result)
 		{
-			void logRecieved(string logString, string _, LogType type)
-			{
-				if (!(logString.StartsWith("[BombGenerator] Instantiated ") && type == LogType.Log))
-					return;
+			if (!BombLoaded)
+				__result = allBombInfo.Keys.First();
 
-				Application.logMessageReceived -= logRecieved;
-
-				callback();
-			}
-
-			Application.logMessageReceived += logRecieved;
+			return BombLoaded;
 		}
 
-		public void Start()
+		[HarmonyPatch("Bombs", MethodType.Getter)]
+		static bool Prefix(ref List<Bomb> __result)
 		{
-			if (realModule == null)
-			{
-				Destroy(gameObject);
-				return;
-			}
+			if (!BombLoaded)
+				__result = new List<Bomb>();
 
-			BombComponent bombComponent = realModule.GetComponent<BombComponent>();
-
-			if (bombComponent.RequiresTimerVisibility)
-			{
-				GetTimerFaceComponents();
-
-				GetComponent<BombComponent>().RequiresTimerVisibility = true;
-
-				var bombFace = GetComponent<Selectable>().Parent.GetComponent<BombFace>();
-				var myFaceSelectable = GetComponent<Selectable>().Parent;
-
-				if (timerFace != bombFace)
-				{
-					var timerFaceSelectable = timerFace.GetComponent<Selectable>();
-					var swapTarget = timerFaceSelectable.Children
-						.Where(child => child != null)
-						.Select(child => child.GetComponent<BombComponent>())
-						.Where(component => !component.RequiresTimerVisibility)
-						.Concat(emptyTimerFaceComponents)
-						.Shuffle()
-						.FirstOrDefault();
-
-					if (swapTarget != null)
-					{
-						var swapPosition = swapTarget.transform.position;
-						var swapRotation = swapTarget.transform.rotation;
-						var myPosition = transform.position;
-						var myRotation = transform.rotation;
-
-						transform.position = swapPosition;
-						transform.rotation = swapRotation;
-
-						swapTarget.transform.position = myPosition;
-						swapTarget.transform.rotation = myRotation;
-
-						if (emptyTimerFaceComponents.Contains(swapTarget))
-						{
-							emptyTimerFaceComponents.Remove(swapTarget);
-
-							var swapIndex = Array.IndexOf(timerFaceSelectable.Children, swapTarget.GetComponent<Selectable>());
-							timerFaceSelectable.Children[swapIndex] = GetComponent<Selectable>();
-							GetComponent<Selectable>().Parent = timerFaceSelectable;
-						}
-						else
-						{
-							var swapIndex = Array.IndexOf(timerFaceSelectable.Children, swapTarget.GetComponent<Selectable>());
-							var myIndex = Array.IndexOf(GetComponent<Selectable>().Parent.Children, GetComponent<Selectable>());
-
-							timerFaceSelectable.Children[swapIndex] = GetComponent<Selectable>();
-							GetComponent<Selectable>().Parent.Children[myIndex] = swapTarget.GetComponent<Selectable>();
-
-							GetComponent<Selectable>().Parent = timerFaceSelectable;
-							swapTarget.GetComponent<Selectable>().Parent = myFaceSelectable;
-						}
-
-						renderSelectable = realModule.GetComponent<Selectable>();
-					}
-				}
-			}
-
-			realModule.transform.position = transform.position;
-			realModule.transform.rotation = transform.rotation;
-
-			Selectable component3 = realModule.GetComponent<Selectable>();
-			if (component3 != null)
-			{
-				Selectable component4 = GetComponent<Selectable>().Parent;
-				int selectableIndex = Array.IndexOf(component4.Children, GetComponent<Selectable>());
-				component4.Children[selectableIndex] = component3;
-				component3.Parent = component4;
-			}
-
-			bombComponent.OnStrike = (StrikeEvent) Delegate.Combine(bombComponent.OnStrike, new StrikeEvent(bomb.OnStrike));
-			bombComponent.OnPass = (PassEvent) Delegate.Combine(bombComponent.OnPass, new PassEvent(bomb.OnPass));
-			bombComponent.Bomb = bomb;
-
-			NeedyComponent needyComponent = realModule.GetComponent<NeedyComponent>();
-			if (needyComponent != null)
-			{
-				needyComponent.SecondsBeforeForcedActivation = GetComponent<NeedyComponent>().SecondsBeforeForcedActivation;
-			}
-
-			Destroy(gameObject);
-		}
-
-		private void GetTimerFaceComponents()
-		{
-			if (emptyTimerFaceComponents != null)
-				return;
-
-			emptyTimerFaceComponents = new List<BombComponent>();
-
-			GetComponentSpawnPoint(bomb.GetTimer().transform.position, bomb, out BombFace timerFace);
-			foreach (BombComponent bombComponent in bomb.BombComponents)
-			{
-				if (bombComponent.ComponentType != Assets.Scripts.Missions.ComponentTypeEnum.Empty)
-					continue;
-
-				GetComponentSpawnPoint(bombComponent.transform.position, bomb, out BombFace ourFace);
-
-				if (timerFace == ourFace)
-					emptyTimerFaceComponents.Add(bombComponent);
-			}
+			return BombLoaded;
 		}
 	}
+
+	// Patches Factory to wait for DBML and fixes a bug with SetSelectableLayer.
+	static class FactoryPatches
+	{
+		static bool QuickDelayCoroutine(Action delayCallable, ref IEnumerator __result)
+		{
+			__result = BombDelayCoroutine(delayCallable);
+			return false;
+		}
+
+		static IEnumerator BombDelayCoroutine(Action delayCallable)
+		{
+			// Do a WaitUntil and then wait 2 frames just like the original one.
+			yield return new WaitUntil(() => allBombInfo.Keys.Count == 0);
+			yield return null;
+			yield return null;
+			delayCallable();
+		}
+
+		// If there is a _selectableArea, run the original method.
+		static bool SetSelectableLayer(object ____selectableArea) => ____selectableArea != null;
+
+		public static void PatchAll()
+		{
+			PatchMethod(ReflectedTypes.FactoryRoomType, "QuickDelayCoroutine");
+			PatchMethod(ReflectionHelper.FindType("FactoryAssembly.FactoryBomb"), "SetSelectableLayer");
+		}
+
+		static void PatchMethod(Type type, string method)
+		{
+			if (type == null)
+				return;
+
+			var original = AccessTools.DeclaredMethod(type, method);
+
+			var patches = Harmony.GetPatchInfo(original);
+			if (patches == null) // Patch if it hasn't been patched.
+				Patching.ManualInstance("Factory").Patch(original, new HarmonyMethod(typeof(FactoryPatches), method));
+		}
+	}
+
+	// Patches some stuff related to BombGenerator so we can handle instantiating components when DBML has finished loading them.
+	[HarmonyPatch]
+	static class GeneratorPatches
+	{
+		[HarmonyPatch(typeof(BombGenerator), "InstantiateComponent")]
+		static bool Prefix(BombGenerator __instance, BombFace selectedFace, BombComponent bombComponentPrefab, GeneratorSetting settings)
+		{
+			var bomb = __instance.GetValue<Bomb>("bomb");
+			var type = bombComponentPrefab.ComponentType;
+
+			// Let the timer component spawn normally and record the bomb's information.
+			if (type == ComponentTypeEnum.Timer)
+			{
+				allBombInfo.Add(bomb, new BombInfo(settings, selectedFace, __instance.GetValue<Random>("rand")));
+				return true;
+			}
+
+			// If we don't have information about a bomb, just let it go through.
+			if (!allBombInfo.TryGetValue(bomb, out BombInfo bombInfo))
+				return true;
+
+			// Once we're ready to instantiate the components, this allows us to call the original method again.
+			if (bombInfo.EnableOriginal)
+				return true;
+
+			// If the generator is trying to fill the bomb with empty components, clear the valid faces to skip over it.
+			if (type == ComponentTypeEnum.Empty)
+			{
+				__instance.GetValue<List<BombFace>>("validBombFaces").Clear();
+				return false;
+			}
+
+			// Start loading any fake modules.
+			if (bombComponentPrefab.GetComponent<FakeModule>() != null)
+				__instance.StartCoroutine(LoadModule(bombComponentPrefab, bombInfo));
+			else
+				bombInfo.Components.Add(bombComponentPrefab);
+
+			return false;
+		}
+
+		[HarmonyPatch(typeof(Bomb), "SetTotalTime")]
+		static void Prefix(Bomb __instance) => __instance.StartCoroutine(InstantiateComponents(__instance));
+	}
+	#pragma warning restore IDE0051, RCS1213
 }

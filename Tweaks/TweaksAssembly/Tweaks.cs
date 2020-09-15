@@ -59,6 +59,7 @@ class Tweaks : MonoBehaviour
 		AdvantageousWarning = gameObject.Traverse("UI", "AdvantageousWarning");
 		Tips.TipMessage = gameObject.Traverse("UI", "TipMessage");
 		BetterCasePicker.BombCaseGenerator = GetComponentInChildren<BombCaseGenerator>();
+		DemandBasedLoading.LoadingScreen = gameObject.Traverse<CanvasGroup>("UI", "LoadingModules");
 
 		CaseGeneratorWarning = MakeSettingWarning("CaseGenerator");
 		DBMLWarning = MakeSettingWarning("DemandBasedModLoading");
