@@ -17,7 +17,7 @@ public static class Tips
 		new Tip("Skip sitting in the dark before a bomb starts using the \"SkipGameplayDelay\" setting.", () => !Settings.SkipGameplayDelay, "settings-SkipGameplayDelay"),
 		new Tip("Enable the mods only key by default using the \"EnableModsOnlyKey\" setting.", () => !Settings.EnableModsOnlyKey, "settings-EnableModsOnlyKey"),
 		new Tip("Load modules on demand to save on bootup time and memory using the \"DemandBasedModLoading\" setting.", () => !Settings.DemandBasedModLoading, "settings-DemandBasedModLoading"),
-		new Tip("Automatically disable modules that are loaded on demand using the \"DisableDemandBasedMods\" setting.", () => !Settings.DisableDemandBasedMods, "settings-DisableDemandBasedMods"),
+		new Tip("Exclude modules from being loaded on demand using the \"DemandBasedModsExcludeList\" setting.", () => Settings.DemandBasedModsExcludeList.Count == 0, "settings-DemandBasedModsExcludeList"),
 		new Tip("Fix Foreign Exchange Rates not loading exchange rates using the \"FixFER\" setting.", () => !Settings.FixFER, "settings-FixFER"),
 		new Tip("See the current status of the bomb using the \"BombHUD\" setting.", () => !Settings.BombHUD, "settings-BombHUD"),
 		new Tip("See a bomb's edgework on screen using the \"ShowEdgework\" setting.", () => !Settings.ShowEdgework, "settings-ShowEdgework"),

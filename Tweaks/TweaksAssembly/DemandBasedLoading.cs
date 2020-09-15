@@ -269,7 +269,15 @@ static class DemandBasedLoading
 			var cantLoad = new List<string>();
 			foreach (KtaneModule module in json.KtaneModules.Concat(TranslatedModules))
 			{
-				if (module.SteamID == null || !(module.Type == "Regular" || module.Type == "Needy"))
+				// Don't load anything that:
+				// Doesn't have a Steam ID.
+				// Isn't a module.
+				// Is on the user's exclude list.
+				if (
+					module.SteamID == null ||
+					!(module.Type == "Regular" || module.Type == "Needy") ||
+					Tweaks.settings.DemandBasedModsExcludeList.Any(name => module.Name.Like(name))
+					)
 					continue;
 
 				var modPath = Path.Combine(modWorkshopPath, module.SteamID);
@@ -280,7 +288,7 @@ static class DemandBasedLoading
 				}
 
 				// Disable mods we are going to load on demand
-				if (Tweaks.settings.DisableDemandBasedMods && !disabledMods.Contains(modPath))
+				if (!disabledMods.Contains(modPath))
 				{
 					disabledMods.Add(modPath);
 					DisabledModsCount++;

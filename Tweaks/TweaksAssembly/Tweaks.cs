@@ -862,7 +862,7 @@ class Tweaks : MonoBehaviour
 
 					new Dictionary<string, object> { { "Text", "Demand Based Mod Loading" }, { "Type", "Section" } },
 					new Dictionary<string, object> { { "Key", "DemandBasedModLoading" }, { "Text", "Demand-based Mod Loading" }, { "Description", "Load only the modules on a bomb instead of loading all of them when starting up." } },
-					new Dictionary<string, object> { { "Key", "DisableDemandBasedMods" }, { "Text", "Disable Demand-based Mods" }, { "Description", "Disables mods that can be loaded on demand so they aren't load when the game starts.\nThis setting is not easily reversed without manually re-enabling these mods." } },
+					new Dictionary<string, object> { { "Key", "DemandBasedModsExcludelist" }, { "Text", "Exclude Demand-based Mods" }, { "Description", "Exclude mods from being loaded on demand based on module name." } },
 					new Dictionary<string, object> { { "Key", "DemandModLimit" }, { "Text", "Demand Mod Limit" }, { "Description", "Sets the limit of how many mods will be kept loaded after the bomb\nis over. Negative numbers will keep all mods loaded." } },
 				}
 			}
@@ -908,7 +908,7 @@ class TweakSettings
 	public bool BetterCasePicker = true;
 	public bool EnableModsOnlyKey = false;
 	public bool DemandBasedModLoading = false;
-	public bool DisableDemandBasedMods = false;
+	public List<string> DemandBasedModsExcludeList = new List<string>();
 	public int DemandModLimit = -1;
 	public bool FixFER = false;
 	public bool BombHUD = false;
