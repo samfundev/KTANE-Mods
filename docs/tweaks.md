@@ -18,6 +18,8 @@ This list is sorted with what I think are generally the most useful and relevant
 * Adds logging which is used to improve the [Logfile Analyzer](https://ktane.timwi.de/More/Logfile%20Analyzer.html).
 * Fixes Word Scramble so that the word "papers" is accepted.
 * Fixes the URL that Foreign Exchange Rates uses since the old one no longer works.
+* Fixes LVH to include exceptions in it's logs.
+* Adds colorblind support to Color Decoding.
 * Removes the maximum time limit in the freeplay briefcase.
 * Makes the minimum number of modules in the freeplay briefcase to 1.
 * Fixes little details about modules like centering the status light or background.
@@ -30,8 +32,8 @@ Most of these settings can be easily edited using the Mod Settings Editor found 
 * <b id="settings-BetterCasePicker">Better Case Picker</b> (Default: `true`) - Chooses the smallest case that fits instead of a random one.
 * <b id="settings-EnableModsOnlyKey">Enable Mods Only Key</b> (Default: `false`) - Turns the Mods Only key to be on by default.
 * <b id="settings-DemandBasedModLoading">Demand Based Mod Loading</b> (Default: `false`) - Load only the modules on a bomb instead of loading all of them when starting up. See the [DBML](#demand-based-mod-loading) section below.
-* <b id="settings-DisableDemandBasedMods">Disable Demand Based Mods</b> (Default: `false`) - Disables mods that can be loaded on demand so they aren't load when the game starts. This tricks the game into thinking that you've disabled these mods in the Mod Manager so this cannot be undone without manually re-enabling these mods.
-* <b id="settings-DemandModLimit">Demand Mod Limit</b> (Default: `-1`) - Sets the limit of how many mods will be kept loaded after the bomb is over. Negative numbers will keep all mods loaded..
+* <b id="settings-DemandBasedModsExcludeList">Demand Based Mods Exclude List</b> (Default: `false`) - Exclude modules by name from being loaded using DBML. Useful if you want to run a mission included with a module. If a mod contains multiple modules then it'll be disabled unless all of them are excluded from DBML. Capitalization doesn't matter and patterns can be used like in [HideTOC](#settings-HideTOC).
+* <b id="settings-DemandModLimit">Demand Mod Limit</b> (Default: `-1`) - Sets the limit of how many mods will be kept loaded after the bomb is over. Negative numbers will keep all mods loaded.
 * <b id="settings-FixFER">Fix FER</b> (Default: `false`) - Changes the URL that is queried by [Foreign Exchange Rates](https://steamcommunity.com/sharedfiles/filedetails/?id=743442301) since the old one is no longer operational. See the module’s [manual](https://ktane.timwi.de/HTML/Foreign%20Exchange%20Rates.html) for the new URL.
 * <b id="settings-BombHUD">Bomb HUD</b> (Default: `false`) - Adds a HUD in the top right corner showing information about the currently selected bomb.
 * <b id="settings-ShowEdgework">Show Edgework</b> (Default: false) - Adds a HUD to the top of the screen showing the edgework for the currently selected bomb.
@@ -61,6 +63,7 @@ Most of these settings can be easily edited using the Mod Settings Editor found 
 ]
 ```
 `red`, `#FF0000`, `rgb(255, 0, 0)` and `hsv(0, 255, 255)` show four different formats but are all the same color. You can use a minus sign (-) to specify a range between colors. So `red-green-blue` would pick any color between red and green or between green and blue. `random` will be a random color every time.
+* <b id="settings-Holdables">Holdables</b> (Default: `{}`) - Swaps and hides the holdables in the setup room. Setting a holdable to `false` will hide it. Setting it to the name of another holdable will swap it with the default position of that other holdable.
 
 # Advantageous Features
 If you enable BombHUD, ShowEdgework, use a Mode other than Normal or a MissionSeed other than -1 you won't be able to set records on leaderboards or change your stats.
