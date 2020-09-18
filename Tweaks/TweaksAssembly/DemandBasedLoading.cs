@@ -151,64 +151,6 @@ static class DemandBasedLoading
 	}
 #pragma warning restore CS0649
 
-	static readonly KtaneModule[] TranslatedModules = new[]
-	{
-		// Translated Vanilla
-		new KtaneModule
-		{
-			Name = "The Button Translated",
-			ModuleID = "BigButtonTranslated",
-			Type = "Regular",
-			SteamID = "850186070"
-		},
-		new KtaneModule
-		{
-			Name = "Who's on First Translated",
-			ModuleID = "WhosOnFirstTranslated",
-			Type = "Regular",
-			SteamID = "850186070"
-		},
-		new KtaneModule
-		{
-			Name = "Password Translated",
-			ModuleID = "PasswordsTranslated",
-			Type = "Regular",
-			SteamID = "850186070"
-		},
-		new KtaneModule
-		{
-			Name = "Morse Code Translated",
-			ModuleID = "MorseCodeTranslated",
-			Type = "Regular",
-			SteamID = "850186070"
-		},
-		new KtaneModule
-		{
-			Name = "Venting Gas Translated",
-			ModuleID = "VentGasTranslated",
-			Type = "Needy",
-			SteamID = "850186070"
-		},
-
-		// Russian Adjacent Letters
-		new KtaneModule
-		{
-			Name = "Adjacent Letters (Russian)",
-			ModuleID = "AdjacentLettersModule_Rus",
-			Type = "Regular",
-			SteamID = "806188270"
-		},
-
-		// Polish Colour Flash
-		new KtaneModule
-		{
-			Name = "Colour Flash PL",
-			ModuleID = "ColourFlashPL",
-			Type = "Regular",
-			SteamID = "2030249636"
-		},
-	};
-
 	static string SteamDirectory
 	{
 		get
@@ -296,7 +238,7 @@ static class DemandBasedLoading
 
 			var json = JsonConvert.DeserializeObject<WebsiteJSON>(request.downloadHandler.text);
 			var cantLoad = new List<string>();
-			foreach (KtaneModule module in json.KtaneModules.Concat(TranslatedModules))
+			foreach (KtaneModule module in json.KtaneModules)
 			{
 				// Don't load anything that:
 				// Doesn't have a Steam ID.
