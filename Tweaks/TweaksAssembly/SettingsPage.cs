@@ -136,6 +136,7 @@ class SettingsPage : MonoBehaviour
 		PinButton.gameObject.SetActive(true);
 		ForwardButton.gameObject.SetActive(true);
 		BackwardButton.gameObject.SetActive(true);
+		BackButton.gameObject.SetActive(true);
 
 		PinButton.OnInteract = () =>
 		{
