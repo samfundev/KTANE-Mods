@@ -66,8 +66,8 @@ static class Modes
 			bool missingWarning = false;
 			foreach (var entry in JObject.Parse(www.downloadHandler.text)["feed"]["entry"])
 			{
-				bool score = !string.IsNullOrEmpty(entry["gsx$resolvedscore"]["$t"]?.Value<string>());
-				bool multiplier = !string.IsNullOrEmpty(entry["gsx$resolvedbosspointspermodule"]["$t"]?.Value<string>());
+				bool score = !string.IsNullOrEmpty(entry["gsx$resolvedscore"]["$t"]?.Value<string>().Trim());
+				bool multiplier = !string.IsNullOrEmpty(entry["gsx$resolvedbosspointspermodule"]["$t"]?.Value<string>().Trim());
 
 				if (entry["gsx$moduleid"] == null)
 				{
