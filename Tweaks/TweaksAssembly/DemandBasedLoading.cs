@@ -25,7 +25,7 @@ static class DemandBasedLoading
 	static readonly List<string> loadOrder = new List<string>();
 	static readonly Dictionary<string, UnityEngine.Object[]> loadedObjects = new Dictionary<string, UnityEngine.Object[]>();
 
-	static bool BombLoaded => allBombInfo.Count == 0;
+	static bool BombsLoaded => allBombInfo.All(pair => pair.Value.Loaded);
 	static readonly Dictionary<Bomb, BombInfo> allBombInfo = new Dictionary<Bomb, BombInfo>();
 
 	class BombInfo
@@ -34,7 +34,8 @@ static class DemandBasedLoading
 		public readonly GeneratorSetting Settings;
 		public readonly BombFace TimerFace;
 		public readonly Random Rand;
-		public bool EnableOriginal;
+		public bool EnableOriginal; // Enables the original InstantiateComponent method.
+		public bool Loaded;
 
 		public BombInfo(GeneratorSetting settings, BombFace timerFace, Random rand)
 		{
@@ -498,8 +499,13 @@ static class DemandBasedLoading
 		while (validBombFaces.Count > 0)
 			bombGenerator.CallMethod("InstantiateComponent", validBombFaces[0], bombGenerator.emptyComponentPrefab, setting);
 
-		allBombInfo.Remove(bomb);
-		SceneManager.Instance.GameplayState.Bombs.Add(bomb);
+		bombInfo.Loaded = true;
+
+		if (BombsLoaded)
+		{
+			SceneManager.Instance.GameplayState.Bombs.AddRange(allBombInfo.Keys);
+			allBombInfo.Clear();
+		}
 	}
 
 	// TODO: We don't need to add a component to know which modules are the fake ones, we can just have a list.
@@ -529,19 +535,19 @@ static class DemandBasedLoading
 		[HarmonyPatch("Bomb", MethodType.Getter)]
 		static bool Prefix(ref Bomb __result)
 		{
-			if (!BombLoaded)
+			if (!BombsLoaded)
 				__result = allBombInfo.Keys.First();
 
-			return BombLoaded;
+			return BombsLoaded;
 		}
 
 		[HarmonyPatch("Bombs", MethodType.Getter)]
 		static bool Prefix(ref List<Bomb> __result)
 		{
-			if (!BombLoaded)
+			if (!BombsLoaded)
 				__result = new List<Bomb>();
 
-			return BombLoaded;
+			return BombsLoaded;
 		}
 	}
 
@@ -557,7 +563,7 @@ static class DemandBasedLoading
 		static IEnumerator BombDelayCoroutine(Action delayCallable)
 		{
 			// Do a WaitUntil and then wait 2 frames just like the original one.
-			yield return new WaitUntil(() => allBombInfo.Keys.Count == 0);
+			yield return new WaitUntil(() => BombsLoaded);
 			yield return null;
 			yield return null;
 			delayCallable();
