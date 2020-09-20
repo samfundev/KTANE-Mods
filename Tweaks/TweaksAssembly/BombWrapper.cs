@@ -415,7 +415,7 @@ class BombWrapper : MonoBehaviour
 			{ "bombTime", CurrentTimer },
 			{ "realTime", Time.unscaledTime - realTimeStart },
 			{ "solves", Bomb.GetSolvedComponentCount() },
-			{ "strikes", Bomb.NumStrikes + (Bomb.NumStrikes == Bomb.NumStrikesToLose - 1 ? 1 : 0) },
+			{ "strikes", Bomb.NumStrikes + (CurrentTimer > 0 ? 1 : 0) },
 		});
 	}
 
