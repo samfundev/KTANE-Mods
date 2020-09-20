@@ -474,6 +474,12 @@ static class DemandBasedLoading
 		var validBombFaces = new List<BombFace>(bomb.Faces.Where(face => face.ComponentSpawnPoints.Count != 0));
 		bombGenerator.SetValue("validBombFaces", validBombFaces);
 
+		List<KMBombInfo> knownBombInfos = new List<KMBombInfo>();
+		foreach (KMBombInfo item in UnityEngine.Object.FindObjectsOfType<KMBombInfo>())
+		{
+			knownBombInfos.Add(item);
+		}
+
 		var bombInfo = allBombInfo[bomb];
 		var timerFace = bombInfo.TimerFace;
 		var setting = bombInfo.Settings;
@@ -501,11 +507,27 @@ static class DemandBasedLoading
 
 		bombInfo.Loaded = true;
 
+		HookUpMultipleBombs(bomb, knownBombInfos);
+
 		if (BombsLoaded)
 		{
 			SceneManager.Instance.GameplayState.Bombs.AddRange(allBombInfo.Keys);
 			allBombInfo.Clear();
 		}
+	}
+
+	private static void HookUpMultipleBombs(Bomb bomb, List<KMBombInfo> knownBombInfos)
+	{
+		var type = ReflectionHelper.FindType("MultipleBombsAssembly.MultipleBombs");
+		if (type == null)
+			return;
+
+		var multipleBombs = UnityEngine.Object.FindObjectOfType(type);
+		if (multipleBombs == null)
+			return;
+
+		multipleBombs.CallMethod("redirectPresentBombInfos", bomb, knownBombInfos);
+		multipleBombs.CallMethod("processBombEvents", bomb);
 	}
 
 	// TODO: We don't need to add a component to know which modules are the fake ones, we can just have a list.
