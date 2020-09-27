@@ -13,6 +13,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: Tweaks
   title: Tweaks
+  author: 
   description: "[h1]About[/h1]\r\n\r\nThis mods adds small tweaks to the KTANE to
     make the game just a bit better.\r\n\r\n[h1]Tweaks[/h1]\r\n[list]\r\n[*] Picks
     the smallest case that fits the number of modules on the bomb.\r\n[*] Adds three
@@ -24,16 +25,15 @@ MonoBehaviour:
     by default.\r\n[*] Fixes the URL that the module Foreign Exchange Rates uses since
     the old one no longer works.\r\n[*] Instantly skips the gameplay loading screen
     as soon as possible.\r\n[*] Sets the fade time to be the same between scenes.\r\n[*]
-    [url=https://github.com/samfun123/KTANE-Mods/wiki/Tweaks-Documentation#features]\u2026
-    and more![/url]\r\n[/list]\r\n\r\nCheck out the [url=https://github.com/samfun123/KTANE-Mods/wiki/Tweaks-Documentation]documentation[/url]
+    [url=https://samfundev.github.io/KTANE-Mods/tweaks.html#features]\u2026 and more![/url]\r\n[/list]\r\n\r\nCheck
+    out the [url=https://samfundev.github.io/KTANE-Mods/tweaks.html]documentation[/url]
     for more information about settings, modes and other things Tweaks can do.\r\nGo
     here for a complete list of features and settings and documentation and stuff.\r\n\r\n[h1]Future
-    Tweaks[/h1]\r\n[list]\r\n[*] Add logging to modules that don't already have it.
-    (Orientation Cube, etc)\r\n[*] Save numbered copies of the logfile.\r\n[*] Fix
-    timer for longer bombs.\r\n[*] ??? (I'd love to hear your ideas!)\r\n[/list]\r\n\r\n[h1]Deprecated
-    Mods[/h1]\r\nThe following mods have been deprecated as their function has been
-    implemented in this mod. You should unsubscribe from them if you subscribe to
-    this one.\r\n[list]\r\n[*] [url=https://steamcommunity.com/sharedfiles/filedetails/?id=1161968414]BetterCasePicker[/url]\r\n[*]
+    Tweaks[/h1]\r\n[list]\r\n[*] Fix timer for longer bombs.\r\n[*] ??? (I'd love
+    to hear your ideas!)\r\n[/list]\r\n\r\n[h1]Deprecated Mods[/h1]\r\nThe following
+    mods have been deprecated as their function has been implemented in this mod.
+    You should unsubscribe from them if you subscribe to this one.\r\n[list]\r\n[*]
+    [url=https://steamcommunity.com/sharedfiles/filedetails/?id=1161968414]BetterCasePicker[/url]\r\n[*]
     [url=https://steamcommunity.com/sharedfiles/filedetails/?id=1130249244]BombTimeExtender[/url]\r\n[/list]\r"
   version: 
   outputFolder: C:\Program Files (x86)\Steam\steamapps\common\Keep Talking and Nobody
