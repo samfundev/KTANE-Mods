@@ -374,7 +374,7 @@ class SettingsPage : MonoBehaviour
 					listing.Pinned = !listing.Pinned;
 					if (listing.Pinned) Tweaks.userSettings.PinnedSettings.Add(fileName);
 					else Tweaks.userSettings.PinnedSettings.Remove(fileName);
-					Tweaks.modConfig.Settings = Tweaks.userSettings;
+					Tweaks.modConfig.Write(Tweaks.userSettings);
 
 					UpdateScreen();
 				}

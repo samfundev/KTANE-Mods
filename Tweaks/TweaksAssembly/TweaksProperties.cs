@@ -26,13 +26,13 @@
 		AddProperty("TimeModeStartingTime", new Property(() => Modes.settings.TimeModeStartingTime, value =>
 		{
 			Modes.settings.TimeModeStartingTime = (float) value;
-			Modes.modConfig.Settings = Modes.settings;
+			Modes.modConfig.Write(Modes.settings);
 			StartCoroutine(Tweaks.ModifyFreeplayDevice(false));
 		}));
         AddProperty("ZenModeTimePenalty", new Property(() => Modes.settings.ZenModeTimePenalty, value =>
         {
             Modes.settings.ZenModeTimePenalty = (float) value;
-            Modes.modConfig.Settings = Modes.settings;
+            Modes.modConfig.Write(Modes.settings);
         }));
 	}
 }

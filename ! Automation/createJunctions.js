@@ -49,7 +49,7 @@ process.chdir("..");
 (async function() {
 	let files = await fs.readdir(".", undefined);
 	for (let file of files) {
-		if (file != "! Template Project" && (file.startsWith("! ") || file.startsWith("."))) continue;
+		if (file != "! Template Project" && (file.startsWith("! ") || file.startsWith(".") || file == "docs")) continue;
 
 		let stats = await fs.stat(file);
 		if (!stats.isDirectory()) continue;

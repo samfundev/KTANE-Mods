@@ -16,7 +16,7 @@ public enum Mode
 static class Modes
 {
 	public static ModConfig<ModeSettings> modConfig = new ModConfig<ModeSettings>("ModeSettings");
-	public static ModeSettings settings = modConfig.Settings;
+	public static ModeSettings settings = modConfig.Read();
 	public static float Multiplier = settings.TimeModeStartingMultiplier;
     public static float timePenalty = 1.0f;
     public static float initialTime;

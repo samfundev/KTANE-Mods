@@ -40,7 +40,7 @@
 		ModdedAPI.AddProperty("ZenModeTimePenalty", () => Modes.settings.ZenModeTimePenalty, value =>
 		{
 			Modes.settings.ZenModeTimePenalty = (float) value;
-			Modes.modConfig.Settings = Modes.settings;
+			Modes.modConfig.Write(Modes.settings);
 		});
 	}
 

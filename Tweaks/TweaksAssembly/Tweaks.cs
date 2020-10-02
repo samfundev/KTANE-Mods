@@ -102,7 +102,7 @@ class Tweaks : MonoBehaviour
 		};
 		watcher.Changed += (object source, FileSystemEventArgs e) =>
 		{
-			if (ModConfig<TweakSettings>.SerializeSettings(userSettings) == ModConfig<TweakSettings>.SerializeSettings(modConfig.Settings)) return;
+			if (ModConfig<TweakSettings>.SerializeSettings(userSettings) == ModConfig<TweakSettings>.SerializeSettings(modConfig.Read())) return;
 
 			UpdateSettings();
 			UpdateSettingWarnings();
@@ -136,8 +136,8 @@ class Tweaks : MonoBehaviour
 			UpdateSettings();
 			UpdateSettingWarnings();
 
-			Modes.settings = Modes.modConfig.Settings;
-			Modes.modConfig.Settings = Modes.settings;
+			Modes.settings = Modes.modConfig.Read();
+			Modes.modConfig.Write(Modes.settings);
 
 			if ((scene.name == "mainScene" || scene.name == "gameplayScene") && changeFadeTime) SceneManager.Instance.RapidFadeInTime = settings.FadeTime;
 
@@ -595,7 +595,7 @@ class Tweaks : MonoBehaviour
 				if (CurrentMode != Mode.Time) return;
 
 				Modes.settings.TimeModeStartingTime = freeplayDevice.CurrentSettings.Time / 60;
-				Modes.modConfig.Settings = Modes.settings;
+				Modes.modConfig.Write(Modes.settings);
 			};
 
 			freeplayDevice.TimeDecrement.OnPush += delegate { ReflectedTypes.IsInteractingField.SetValue(freeplayDevice.TimeDecrement, true); };
@@ -605,7 +605,7 @@ class Tweaks : MonoBehaviour
 				if (CurrentMode != Mode.Time) return;
 
 				Modes.settings.TimeModeStartingTime = freeplayDevice.CurrentSettings.Time / 60;
-				Modes.modConfig.Settings = Modes.settings;
+				Modes.modConfig.Write(Modes.settings);
 			};
 		}
 	}
@@ -700,12 +700,12 @@ class Tweaks : MonoBehaviour
 	public static void UpdateSettings(bool readSettings = true)
 	{
 		if (readSettings)
-			userSettings = modConfig.Settings;
+			userSettings = modConfig.Read();
 
-		modConfig.Settings = userSettings; // Write any settings that the user doesn't have in their settings file.
+		modConfig.Write(userSettings); // Write any settings that the user doesn't have in their settings file.
 
 		// Apply overrides
-		settings = modConfig.Settings;
+		settings = modConfig.Read();
 
 		if (settings.DisableAdvantageous)
 		{
@@ -742,7 +742,7 @@ class Tweaks : MonoBehaviour
 		bool demandSettingChanged = DemandBasedSettingCache != settings.DemandBasedModLoading;
 		bool demandModsDisabled = DemandBasedLoading.DisabledModsCount >= 50;
 
-		bool warningsEnabled = CurrentState == KMGameInfo.State.Setup && !modConfig.FailedRead;
+		bool warningsEnabled = CurrentState == KMGameInfo.State.Setup && modConfig.SuccessfulRead;
 
 		CaseGeneratorWarning.SetActive(warningsEnabled && CaseGeneratorSettingCache != settings.CaseGenerator);
 
