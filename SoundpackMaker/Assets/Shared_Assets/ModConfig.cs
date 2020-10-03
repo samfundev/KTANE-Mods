@@ -4,6 +4,8 @@ using System;
 using System.IO;
 using UnityEngine;
 
+#pragma warning disable RCS1128
+
 class ModConfig<T> where T : new()
 {
 	public ModConfig(string filename, Action<Exception> onRead = null)
@@ -47,10 +49,13 @@ class ModConfig<T> where T : new()
 					File.WriteAllText(settingsPath, SerializeSettings(new T()));
 				}
 
-				T deserialized = JsonConvert.DeserializeObject<T>(File.ReadAllText(settingsPath)) ?? new T();
+				T deserialized = JsonConvert.DeserializeObject<T>(File.ReadAllText(settingsPath));
+				if (deserialized == null)
+					deserialized = new T();
 
 				SuccessfulRead = true;
-				OnRead?.Invoke(null);
+				if (OnRead != null)
+					OnRead.Invoke(null);
 				return deserialized;
 			}
 		}
@@ -60,7 +65,8 @@ class ModConfig<T> where T : new()
 			Debug.LogException(e);
 
 			SuccessfulRead = false;
-			OnRead?.Invoke(e);
+			if (OnRead != null)
+				OnRead.Invoke(e);
 			return new T();
 		}
 	}
