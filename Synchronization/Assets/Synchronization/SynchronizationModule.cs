@@ -25,6 +25,7 @@ public class SynchronizationModule : MonoBehaviour
 	Light SelectedLight;
 	int[] SyncMethod;
 	readonly int[] InitialSpeeds = new int[9];
+	Coroutine StartupRoutine;
 
 	static int idCounter = 1;
 	int moduleID;
@@ -160,7 +161,7 @@ public class SynchronizationModule : MonoBehaviour
 		DisplayText.text = DisplayNumber.ToString();
 		Log("Displayed a {0}", DisplayNumber);
 
-		StartCoroutine(Startup());
+		StartupRoutine = StartCoroutine(Startup());
 		Module.OnActivate += Activate;
 	}
 
@@ -427,6 +428,8 @@ public class SynchronizationModule : MonoBehaviour
 
 	void Activate()
 	{
+		StopCoroutine(StartupRoutine);
+
 		SyncButton.OnInteract += () =>
 		{
 			if (Lights.Where(l => l.speed != 0).Select(l => l.speed).Distinct().Count() == 1 && !Solved)
