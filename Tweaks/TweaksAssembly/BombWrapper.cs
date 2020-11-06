@@ -90,7 +90,8 @@ class BombWrapper : MonoBehaviour
 						totalModulesMultiplier = 0;
 					}
 
-					var points = ComponentValue + Bomb.BombComponents.Count * totalModulesMultiplier;
+					var modules = Bomb.GetSolvableComponentCount();
+					var points = ComponentValue + modules * totalModulesMultiplier;
 					float finalMultiplier = Mathf.Min(Modes.Multiplier, Modes.settings.TimeModeMaxMultiplier);
 					float time = (float) (points * finalMultiplier * Modes.settings.TimeModePointMultiplier);
 					float finalTime = Math.Max(Modes.settings.TimeModeMinimumTimeGained, time);
@@ -99,7 +100,7 @@ class BombWrapper : MonoBehaviour
 					string alertText = "";
 					if (Math.Round(totalModulesMultiplier, 3) != 0)
 					{
-						alertText += $"{ComponentValue} + {totalModulesMultiplier:0.###} <size=36>x</size> {Bomb.BombComponents.Count} mods = {points:0}\n";
+						alertText += $"{ComponentValue} + {totalModulesMultiplier:0.###} <size=36>x</size> {modules} mods = {points:0}\n";
 					}
 
 					string multiplierText = Math.Round(Modes.settings.TimeModePointMultiplier, 3) == 1 ? "" : $"<size=36>x</size> {Modes.settings.TimeModePointMultiplier:0.###} ";
