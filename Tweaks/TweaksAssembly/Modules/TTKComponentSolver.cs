@@ -53,8 +53,7 @@ public class TTKComponentSolver
 		KMAudio keyAudio = (KMAudio) _keyAudioField.GetValue(module.GetComponent(_componentType));
 		int time = (int) _targetTimeField.GetValue(module.GetComponent(_componentType));
 
-		var solvedModules = currentBomb.BombComponents.Where(component => component.IsSolvable);
-		var remaining = currentBomb.BombComponents.Where(component => component.IsSolvable && !solvedModules.Contains(component))
+		var remaining = currentBomb.BombComponents.Where(component => component.IsSolvable && !component.IsSolved)
 			.Select(component => component.GetModuleDisplayName())
 			.ToList();
 
@@ -74,7 +73,7 @@ public class TTKComponentSolver
 			keyAudio.PlaySoundAtTransform("WrongKeyTurnFK", module.transform);
 			yield return null;
 			if (passCheck) goto skip;
-			if (!(bool) _solvedField.GetValue(module.GetComponent(_componentType)))
+			if ((bool) _solvedField.GetValue(module.GetComponent(_componentType)))
 			{
 				yield break;
 			}
@@ -154,7 +153,8 @@ public class TTKComponentSolver
 		{
 			int time = Mathf.FloorToInt(currentBomb.GetTimer().TimeRemaining);
 			if (((!Tweaks.CurrentMode.Equals(Mode.Zen) && time < expectedTime) || (Tweaks.CurrentMode.Equals(Mode.Zen) && time > expectedTime)) &&
-				!(bool) _solvedField.GetValue(module.GetComponent(_componentType)))
+				!(bool) _solvedField.GetValue(module.GetComponent(_componentType)) &&
+				Tweaks.CurrentModeCache != Mode.Time)
 			{
 				module.HandleStrike();
 			}
