@@ -49,7 +49,8 @@ namespace TweaksAssembly.Patching
 
 		static bool Prepare()
 		{
-			method = AccessTools.Method("LogfileUploader:HandleLog");
+			var type = ReflectionHelper.FindType("LogfileUploader");
+			method = type?.GetMethod("HandleLog", BindingFlags.NonPublic | BindingFlags.Instance);
 			return method != null;
 		}
 
