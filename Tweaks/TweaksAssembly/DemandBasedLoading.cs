@@ -530,6 +530,11 @@ static class DemandBasedLoading
 		{
 			SceneManager.Instance.GameplayState.Bombs.AddRange(allBombInfo.Keys);
 			allBombInfo.Clear();
+
+			// This fixes the bomb not getting picked up correctly if clicked on before loading is finished.
+			var holdable = KTInputManager.Instance.SelectableManager.GetCurrentFloatingHoldable();
+			if (holdable)
+				holdable.Defocus(false, false);
 		}
 	}
 
