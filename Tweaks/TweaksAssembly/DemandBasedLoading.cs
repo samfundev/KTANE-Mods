@@ -36,6 +36,7 @@ static class DemandBasedLoading
 		public readonly Random Rand;
 		public bool EnableOriginal; // Enables the original InstantiateComponent method.
 		public bool Loaded;
+		public List<WidgetZone> WidgetZones;
 
 		public BombInfo(GeneratorSetting settings, BombFace timerFace, Random rand)
 		{
@@ -55,7 +56,7 @@ static class DemandBasedLoading
 			Time.timeScale = 0;
 			Tweaks.Instance.StartCoroutine(GetModules());
 
-			Patching.EnsurePatch("DBML", typeof(GameplayStatePatches), typeof(GeneratorPatches));
+			Patching.EnsurePatch("DBML", typeof(GameplayStatePatches), typeof(GeneratorPatches), typeof(WidgetGeneratorPatch));
 			FactoryPatches.PatchAll();
 		}
 		else
@@ -345,6 +346,10 @@ static class DemandBasedLoading
 
 	private static IEnumerator LoadModule(BombComponent fakeModule, BombInfo bombInfo)
 	{
+		// To preserve the order that the BombComponents were picked in, insert a null value and keep track of it's index to be replaced later.
+		int componentIndex = bombInfo.Components.Count;
+		bombInfo.Components.Add(null);
+
 		modsLoading++;
 		Time.timeScale = 0;
 
@@ -440,7 +445,7 @@ static class DemandBasedLoading
 				mod.AddServiceObject(gameObject);
 			}
 
-			bombInfo.Components.Add(realModule.GetComponent<BombComponent>());
+			bombInfo.Components[componentIndex] = realModule.GetComponent<BombComponent>();
 		}
 		else
 		{
@@ -484,6 +489,8 @@ static class DemandBasedLoading
 		var timerFace = bombInfo.TimerFace;
 		var setting = bombInfo.Settings;
 		bombInfo.EnableOriginal = true;
+		bombGenerator.SetValue("rand", bombInfo.Rand); // Bring back the real Random object.
+		UnityEngine.Random.InitState(bomb.Seed); // Loading AudioClips triggers RNG calls so we need to reset the RNG to before that happened.
 		foreach (var bombComponent in bombInfo.Components.OrderByDescending(component => component.RequiresTimerVisibility))
 		{
 			BombFace face = null;
@@ -504,6 +511,15 @@ static class DemandBasedLoading
 
 		while (validBombFaces.Count > 0)
 			bombGenerator.CallMethod("InstantiateComponent", validBombFaces[0], bombGenerator.emptyComponentPrefab, setting);
+
+		// To ensure that the widgets get placed in the right position, we need to temporarily revert the bomb's size.
+		bomb.visualTransform.localScale = Vector3.one;
+
+		WidgetGenerator generator = bombGenerator.GetComponent<WidgetGenerator>();
+		generator.SetValue("zones", bombInfo.WidgetZones);
+		generator.GenerateWidgets(bomb.WidgetManager, setting.OptionalWidgetCount);
+
+		bomb.visualTransform.localScale = new Vector3(bomb.Scale, bomb.Scale, bomb.Scale);
 
 		bombInfo.Loaded = true;
 
@@ -533,6 +549,16 @@ static class DemandBasedLoading
 	// TODO: We don't need to add a component to know which modules are the fake ones, we can just have a list.
 	class FakeModule : MonoBehaviour
 	{
+	}
+
+	private class FakeRandom : Random
+	{
+		// chosen by fair dice roll.
+		// guaranteed to be random.
+		public override int Next(int minValue, int maxValue)
+		{
+			return 0;
+		}
 	}
 
 	#pragma warning disable IDE0051, RCS1213
@@ -627,6 +653,20 @@ static class DemandBasedLoading
 			if (type == ComponentTypeEnum.Timer)
 			{
 				allBombInfo.Add(bomb, new BombInfo(settings, selectedFace, __instance.GetValue<Random>("rand")));
+
+				void logCallback(string condition, string _, LogType __)
+				{
+					if (!condition.StartsWith("[BombGenerator] Bomb component list: "))
+						return;
+
+ 					// Replace the Random object with a fake one, so that we can make the consistent RNG calls later.
+					__instance.SetValue("rand", new FakeRandom());
+
+					Application.logMessageReceived -= logCallback;
+				}
+
+				Application.logMessageReceived += logCallback;
+
 				return true;
 			}
 
@@ -656,6 +696,23 @@ static class DemandBasedLoading
 
 		[HarmonyPatch(typeof(Bomb), "SetTotalTime")]
 		static void Prefix(Bomb __instance) => __instance.StartCoroutine(InstantiateComponents(__instance));
+	}
+
+	[HarmonyPatch(typeof(WidgetGenerator))]
+	static class WidgetGeneratorPatch
+	{
+		[HarmonyPatch("Init")]
+		static void Postfix(List<GameObject> areas, WidgetGenerator __instance)
+		{
+			var info = allBombInfo.First(pair => pair.Key.WidgetAreas == areas).Value;
+			info.WidgetZones = __instance.GetValue<List<WidgetZone>>("zones");
+		}
+
+		[HarmonyPatch("GenerateWidgets")]
+		static bool Prefix(WidgetManager widgetManager)
+		{
+			return allBombInfo.Any(pair => pair.Key.WidgetManager == widgetManager && pair.Value.EnableOriginal);
+		}
 	}
 	#pragma warning restore IDE0051, RCS1213
 }
