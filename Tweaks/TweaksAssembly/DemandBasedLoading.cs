@@ -13,6 +13,7 @@ using UnityEngine.Networking;
 using UnityEngine.UI;
 using TweaksAssembly.Patching;
 using Random = System.Random;
+using System.Reflection;
 
 static class DemandBasedLoading
 {
@@ -56,7 +57,7 @@ static class DemandBasedLoading
 			Time.timeScale = 0;
 			Tweaks.Instance.StartCoroutine(GetModules());
 
-			Patching.EnsurePatch("DBML", typeof(GameplayStatePatches), typeof(GeneratorPatches), typeof(WidgetGeneratorPatch));
+			Patching.EnsurePatch("DBML", typeof(GameplayStatePatches), typeof(GeneratorPatches), typeof(WidgetGeneratorPatch), typeof(MultipleBombsPatch));
 			FactoryPatches.PatchAll();
 		}
 		else
@@ -602,6 +603,8 @@ static class DemandBasedLoading
 	// Patches Factory to wait for DBML and fixes a bug with SetSelectableLayer.
 	static class FactoryPatches
 	{
+		static readonly List<Bomb> NotActivated = new List<Bomb>();
+
 		static bool QuickDelayCoroutine(Action delayCallable, ref IEnumerator __result)
 		{
 			__result = BombDelayCoroutine(delayCallable);
@@ -614,7 +617,24 @@ static class DemandBasedLoading
 			yield return new WaitUntil(() => BombsLoaded);
 			yield return null;
 			yield return null;
+
+			NotActivated.AddRange(SceneManager.Instance.GameplayState.Bombs);
+
 			delayCallable();
+		}
+
+		static bool ActivateBomb(object __instance)
+		{
+			var bomb = __instance.GetValue<Bomb>("InternalBomb");
+			if (NotActivated.Contains(bomb))
+			{
+				NotActivated.Remove(bomb);
+				return true;
+			}
+			else
+			{
+				return false;
+			}
 		}
 
 		// If there is a _selectableArea, run the original method.
@@ -624,6 +644,7 @@ static class DemandBasedLoading
 		{
 			PatchMethod(ReflectedTypes.FactoryRoomType, "QuickDelayCoroutine");
 			PatchMethod(ReflectionHelper.FindType("FactoryAssembly.FactoryBomb"), "SetSelectableLayer");
+			PatchMethod(ReflectionHelper.FindType("FactoryAssembly.FactoryBomb"), "ActivateBomb");
 		}
 
 		static void PatchMethod(Type type, string method)
@@ -636,6 +657,26 @@ static class DemandBasedLoading
 			var patches = Harmony.GetPatchInfo(original);
 			if (patches == null) // Patch if it hasn't been patched.
 				Patching.ManualInstance("Factory").Patch(original, new HarmonyMethod(typeof(FactoryPatches), method));
+		}
+	}
+
+	[HarmonyPatch]
+	static class MultipleBombsPatch
+	{
+		static MethodBase method;
+
+		static bool Prepare()
+		{
+			var type = ReflectionHelper.FindType("MultipleBombsAssembly.MultipleBombs");
+			method = type?.GetMethod("processBombEvents", BindingFlags.NonPublic | BindingFlags.Instance);
+			return method != null;
+		}
+
+		static MethodBase TargetMethod() => method;
+
+		static bool Prefix(Bomb bomb)
+		{
+			return allBombInfo[bomb].EnableOriginal;
 		}
 	}
 
