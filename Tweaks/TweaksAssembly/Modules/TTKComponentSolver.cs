@@ -73,7 +73,7 @@ public class TTKComponentSolver
 			keyAudio.PlaySoundAtTransform("WrongKeyTurnFK", module.transform);
 			yield return null;
 			if (passCheck) goto skip;
-			if ((bool) _solvedField.GetValue(module.GetComponent(_componentType)))
+			if (!(bool) _solvedField.GetValue(module.GetComponent(_componentType)))
 			{
 				yield break;
 			}
