@@ -2,24 +2,22 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using UnityEngine;
 using Newtonsoft.Json;
 
-public class TTKComponentSolver
+public class TTKComponentSolver : ModuleTweak
 {
 	//When I created startTime/initialTime, my idea was that Zen mode would start at 0:01 at default, and a starting time would need to be specified via a setting.
 	//Then I realized I should be using the starting time from the mission/freeplay binder. So it's not needed.
-	public TTKComponentSolver(KMBombModule bombModule, Bomb bomb, float startTime)
+	public TTKComponentSolver(BombComponent bombComponent, KMBombModule bombModule, float startTime) : base(bombComponent, "TurnKeyModule")
 	{
 		module = bombModule;
-		currentBomb = bomb;
+		currentBomb = bombComponent.Bomb;
 		initialTime = startTime;
 
 		if (Tweaks.TwitchPlaysActive) return; // Don't modify TTKs if TP is active.
 		if (Tweaks.CurrentMode.Equals(Mode.Zen) && initialTime < 600) initialTime *= 10;
-		_lock = (MonoBehaviour) _lockField.GetValue(module.GetComponent(_componentType));
-		if (SceneManager.Instance.GameplayState.Bombs != null) _lock?.StartCoroutine(ReWriteTTK());
+		if (SceneManager.Instance.GameplayState.Bombs != null) bombComponent.StartCoroutine(ReWriteTTK());
 		module.OnActivate = OnActivate;
 	}
 
@@ -31,25 +29,24 @@ public class TTKComponentSolver
 	private void OnActivate()
 	{
 		string serial = QueryWidgets<string>(KMBombInfo.QUERYKEY_GET_SERIAL_NUMBER).First()["serial"];
-		TextMesh textMesh = (TextMesh) _displayField.GetValue(module.GetComponent(_componentType));
-		_activatedField.SetValue(module.GetComponent(_componentType), true);
+		TextMesh textMesh = component.GetValue<TextMesh>("Display");
+		component.SetValue("bActivated", true);
 
 		if (string.IsNullOrEmpty(_previousSerialNumber) || !_previousSerialNumber.Equals(serial) || _keyTurnTimes.Count == 0)
 		{
 			if (!string.IsNullOrEmpty(_previousSerialNumber) && _previousSerialNumber.Equals(serial))
 			{
-				Animator keyAnimator = (Animator) _keyAnimatorField.GetValue(module.GetComponent(_componentType));
-				KMAudio keyAudio = (KMAudio) _keyAudioField.GetValue(module.GetComponent(_componentType));
+				Animator keyAnimator = component.GetValue<Animator>("KeyAnimator");
+				KMAudio keyAudio = component.GetValue<KMAudio>("mAudio");
 				module.HandlePass();
-				_keyUnlockedField.SetValue(module.GetComponent(_componentType), true);
-				_solvedField.SetValue(module.GetComponent(_componentType), true);
+				component.SetValue("bUnlocked", true);
 				keyAnimator.SetBool("IsUnlocked", true);
 				keyAudio.PlaySoundAtTransform("TurnTheKeyFX", module.transform);
 				textMesh.text = "88:88";
 				return;
 			}
 			_keyTurnTimes.Clear();
-			for (int i = (Tweaks.CurrentMode.Equals(Mode.Zen) ? 45 : 3); i < (Tweaks.CurrentMode.Equals(Mode.Zen) ? initialTime : (currentBomb.GetTimer().TimeRemaining - 45)); i += 3)
+			for (int i = Tweaks.CurrentMode.Equals(Mode.Zen) ? 45 : 3; i < (Tweaks.CurrentMode.Equals(Mode.Zen) ? initialTime : (currentBomb.GetTimer().TimeRemaining - 45)); i += 3)
 			{
 				_keyTurnTimes.Add(i);
 			}
@@ -61,7 +58,7 @@ public class TTKComponentSolver
 			_keyTurnTimes = _keyTurnTimes.Shuffle().ToList();
 			_previousSerialNumber = serial;
 		}
-		_targetTimeField.SetValue(module.GetComponent(_componentType), _keyTurnTimes[0]);
+		component.SetValue("mTargetSecond", _keyTurnTimes[0]);
 
 		string display = $"{_keyTurnTimes[0] / 60:00}:{_keyTurnTimes[0] % 60:00}";
 		_keyTurnTimes.RemoveAt(0);
@@ -71,22 +68,22 @@ public class TTKComponentSolver
 
 	private IEnumerator ReWriteTTK()
 	{
-		yield return new WaitUntil(() => (bool) _activatedField.GetValue(module.GetComponent(_componentType)));
+		yield return new WaitUntil(() => component.GetValue<bool>("bActivated"));
 		yield return new WaitForSeconds(0.1f);
-		_stopAllCorotinesMethod.Invoke(module.GetComponent(_componentType), null);
+		component.CallMethod("StopAllCoroutines");
 
-		int expectedTime = (int) _targetTimeField.GetValue(module.GetComponent(_componentType));
+		int expectedTime = component.GetValue<int>("mTargetSecond");
 		if (Math.Abs(expectedTime - currentBomb.GetTimer().TimeRemaining) < 30)
 		{
 			yield return new WaitForSeconds(0.1f);
 			yield break;
 		}
 
-		while (!module.GetComponent<BombComponent>().IsSolved)
+		while (!bombComponent.IsSolved)
 		{
 			int time = Mathf.FloorToInt(currentBomb.GetTimer().TimeRemaining);
 			if (((!Tweaks.CurrentMode.Equals(Mode.Zen) && time < expectedTime) || (Tweaks.CurrentMode.Equals(Mode.Zen) && time > expectedTime)) &&
-				!(bool) _solvedField.GetValue(module.GetComponent(_componentType)) &&
+				!component.GetValue<bool>("bUnlocked") &&
 				Tweaks.CurrentModeCache != Mode.Time)
 			{
 				module.HandleStrike();
@@ -95,36 +92,9 @@ public class TTKComponentSolver
 		}
 	}
 
-	static TTKComponentSolver()
-	{
-		_componentType = ReflectionHelper.FindType("TurnKeyModule");
-		_lockField = _componentType.GetField("Lock", BindingFlags.Public | BindingFlags.Instance);
-		_activatedField = _componentType.GetField("bActivated", BindingFlags.NonPublic | BindingFlags.Instance);
-		_solvedField = _componentType.GetField("bUnlocked", BindingFlags.NonPublic | BindingFlags.Instance);
-		_targetTimeField = _componentType.GetField("mTargetSecond", BindingFlags.NonPublic | BindingFlags.Instance);
-		_stopAllCorotinesMethod = _componentType.GetMethod("StopAllCoroutines", BindingFlags.Public | BindingFlags.Instance);
-		_keyAnimatorField = _componentType.GetField("KeyAnimator", BindingFlags.Public | BindingFlags.Instance);
-		_displayField = _componentType.GetField("Display", BindingFlags.Public | BindingFlags.Instance);
-		_keyUnlockedField = _componentType.GetField("bUnlocked", BindingFlags.NonPublic | BindingFlags.Instance);
-		_keyAudioField = _componentType.GetField("mAudio", BindingFlags.NonPublic | BindingFlags.Instance);
-		_keyTurnTimes = new List<int>();
-	}
+	private static List<int> _keyTurnTimes = new List<int>();
+	private static string _previousSerialNumber;
 
-	private static readonly Type _componentType = null;
-	private static readonly FieldInfo _lockField = null;
-	private static readonly FieldInfo _activatedField = null;
-	private static readonly FieldInfo _solvedField = null;
-	private static readonly FieldInfo _targetTimeField = null;
-	private static readonly FieldInfo _keyAnimatorField = null;
-	private static readonly FieldInfo _displayField = null;
-	private static readonly FieldInfo _keyUnlockedField = null;
-	private static readonly FieldInfo _keyAudioField = null;
-	private static readonly MethodInfo _stopAllCorotinesMethod = null;
-
-	private static List<int> _keyTurnTimes = null;
-	private static string _previousSerialNumber = null;
-
-	private readonly MonoBehaviour _lock = null;
 	private readonly KMBombModule module;
 	private readonly Bomb currentBomb;
 	private readonly float initialTime;
