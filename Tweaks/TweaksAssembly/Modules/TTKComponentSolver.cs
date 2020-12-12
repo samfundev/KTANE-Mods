@@ -23,70 +23,6 @@ public class TTKComponentSolver
 		module.OnActivate = OnActivate;
 	}
 
-	private bool IsTargetTurnTimeCorrect(int turnTime)
-	{
-		return turnTime < 0 || turnTime == (int) _targetTimeField.GetValue(module.GetComponent(_componentType));
-	}
-
-	private bool CanTurnEarlyWithoutStrike(int turnTime)
-	{
-		int time = (int) _targetTimeField.GetValue(module.GetComponent(_componentType));
-		int timeRemaining = (int) currentBomb.GetTimer().TimeRemaining;
-		if (Tweaks.CurrentMode.Equals(Mode.Zen) && timeRemaining > time) return false;
-		if (Tweaks.CurrentMode.Equals(Mode.Zen))
-			return (int) _targetTimeField.GetValue(module.GetComponent(_componentType)) >= time && IsTargetTurnTimeCorrect(turnTime);
-		return false;
-	}
-
-	private bool OnKeyTurn(int turnTime = -1)
-	{
-		if (!active) return false;
-		bool result = CanTurnEarlyWithoutStrike(turnTime);
-		_lock.StartCoroutine(DelayKeyTurn(!result));
-		return false;
-	}
-
-	private IEnumerator DelayKeyTurn(bool restoreBombTimer, bool causeStrikeIfWrongTime = true)
-	{
-		var passCheck = false;
-		Animator keyAnimator = (Animator) _keyAnimatorField.GetValue(module.GetComponent(_componentType));
-		KMAudio keyAudio = (KMAudio) _keyAudioField.GetValue(module.GetComponent(_componentType));
-		int time = (int) _targetTimeField.GetValue(module.GetComponent(_componentType));
-
-		var remaining = currentBomb.BombComponents.Where(component => component.IsSolvable && !component.IsSolved)
-			.Select(component => component.GetModuleDisplayName())
-			.ToList();
-
-		if (!remaining.Exists(x => !x.Equals("Turn The Key")) && remaining.Contains("Turn The Key"))
-		{
-			passCheck = true;
-		}
-		if (!restoreBombTimer)
-		{
-			currentBomb.GetTimer().TimeRemaining = time + 0.5f + Time.deltaTime;
-			yield return null;
-		}
-		else if (causeStrikeIfWrongTime && time != (int) Mathf.Floor(currentBomb.GetTimer().TimeRemaining))
-		{
-			module.HandleStrike();
-			keyAnimator.SetTrigger("WrongTurn");
-			keyAudio.PlaySoundAtTransform("WrongKeyTurnFK", module.transform);
-			yield return null;
-			if (passCheck) goto skip;
-			if (!(bool) _solvedField.GetValue(module.GetComponent(_componentType)))
-			{
-				yield break;
-			}
-		}
-		skip:
-		module.HandlePass();
-		_keyUnlockedField.SetValue(module.GetComponent(_componentType), true);
-		_solvedField.SetValue(module.GetComponent(_componentType), true);
-		keyAnimator.SetBool("IsUnlocked", true);
-		keyAudio.PlaySoundAtTransform("TurnTheKeyFX", module.transform);
-		yield return null;
-	}
-
 	public IEnumerable<Dictionary<string, T>> QueryWidgets<T>(string queryKey, string queryInfo = null)
 	{
 		return currentBomb.WidgetManager.GetWidgetQueryResponses(queryKey, queryInfo).Select(str => JsonConvert.DeserializeObject<Dictionary<string, T>>(str));
@@ -131,8 +67,6 @@ public class TTKComponentSolver
 		_keyTurnTimes.RemoveAt(0);
 
 		textMesh.text = display;
-		//Doesn't work
-		active = true;
 	}
 
 	private IEnumerator ReWriteTTK()
@@ -141,7 +75,6 @@ public class TTKComponentSolver
 		yield return new WaitForSeconds(0.1f);
 		_stopAllCorotinesMethod.Invoke(module.GetComponent(_componentType), null);
 
-		((KMSelectable) _lock).OnInteract = () => OnKeyTurn();
 		int expectedTime = (int) _targetTimeField.GetValue(module.GetComponent(_componentType));
 		if (Math.Abs(expectedTime - currentBomb.GetTimer().TimeRemaining) < 30)
 		{
@@ -190,7 +123,6 @@ public class TTKComponentSolver
 
 	private static List<int> _keyTurnTimes = null;
 	private static string _previousSerialNumber = null;
-	private bool active = false;
 
 	private readonly MonoBehaviour _lock = null;
 	private readonly KMBombModule module;
