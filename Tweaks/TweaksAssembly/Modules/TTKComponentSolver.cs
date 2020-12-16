@@ -14,9 +14,10 @@ public class TTKComponentSolver : ModuleTweak
 		module = bombModule;
 		currentBomb = bombComponent.Bomb;
 		initialTime = startTime;
+		zenMode = Tweaks.CurrentMode == Mode.Zen;
 
 		if (Tweaks.TwitchPlaysActive) return; // Don't modify TTKs if TP is active.
-		if (Tweaks.CurrentMode.Equals(Mode.Zen) && initialTime < 600) initialTime *= 10;
+		if (zenMode && initialTime < 600) initialTime *= 10;
 		if (SceneManager.Instance.GameplayState.Bombs != null) bombComponent.StartCoroutine(ReWriteTTK());
 		module.OnActivate = OnActivate;
 	}
@@ -46,7 +47,7 @@ public class TTKComponentSolver : ModuleTweak
 				return;
 			}
 			_keyTurnTimes.Clear();
-			for (int i = Tweaks.CurrentMode.Equals(Mode.Zen) ? 45 : 3; i < (Tweaks.CurrentMode.Equals(Mode.Zen) ? initialTime : (currentBomb.GetTimer().TimeRemaining - 45)); i += 3)
+			for (int i = zenMode ? 45 : 3; i < (zenMode ? initialTime : (currentBomb.GetTimer().TimeRemaining - 45)); i += 3)
 			{
 				_keyTurnTimes.Add(i);
 			}
@@ -73,16 +74,28 @@ public class TTKComponentSolver : ModuleTweak
 		component.CallMethod("StopAllCoroutines");
 
 		int expectedTime = component.GetValue<int>("mTargetSecond");
-		if (Math.Abs(expectedTime - currentBomb.GetTimer().TimeRemaining) < 30)
+		TimerComponent timer = currentBomb.GetTimer();
+		if (Math.Abs(expectedTime - timer.TimeRemaining) < 30)
 		{
 			yield return new WaitForSeconds(0.1f);
 			yield break;
 		}
 
+		SetupLongPress(component.GetValue<KMSelectable>("Lock"), 1, () => component.CallMethod("OnKeyTurn"), () => {
+			var remaining = timer.TimeRemaining;
+			if (!(zenMode ? expectedTime - 75 > remaining : remaining > expectedTime + 75))
+				return;
+
+			DarkTonic.MasterAudio.MasterAudio.PlaySound3DAtTransformAndForget("bb-press-release", component.transform, 1f, null, 0f, null);
+
+			var offset = 45 + UnityEngine.Random.Range(0, 31);
+			timer.TimeRemaining = expectedTime + (zenMode ? -offset : offset);
+		});
+
 		while (!bombComponent.IsSolved)
 		{
-			int time = Mathf.FloorToInt(currentBomb.GetTimer().TimeRemaining);
-			if (((!Tweaks.CurrentMode.Equals(Mode.Zen) && time < expectedTime) || (Tweaks.CurrentMode.Equals(Mode.Zen) && time > expectedTime)) &&
+			int time = Mathf.FloorToInt(timer.TimeRemaining);
+			if (((!zenMode && time < expectedTime) || (zenMode && time > expectedTime)) &&
 				!component.GetValue<bool>("bUnlocked") &&
 				Tweaks.CurrentModeCache != Mode.Time)
 			{
@@ -92,10 +105,38 @@ public class TTKComponentSolver : ModuleTweak
 		}
 	}
 
+	private void SetupLongPress(KMSelectable selectable, float time, Action press, Action longPress)
+	{
+		var held = false;
+		IEnumerator LongPress()
+		{
+			yield return new WaitForSeconds(time);
+
+			held = true;
+			longPress();
+		}
+
+		Coroutine pressCoroutine = null;
+		selectable.OnInteract = () => {
+			pressCoroutine = selectable.StartCoroutine(LongPress());
+			return false;
+		};
+
+		selectable.OnInteractEnded = () => {
+			if (pressCoroutine == null || held)
+				return;
+
+			selectable.StopCoroutine(pressCoroutine);
+
+			press();
+		};
+	}
+
 	private static List<int> _keyTurnTimes = new List<int>();
 	private static string _previousSerialNumber;
 
 	private readonly KMBombModule module;
 	private readonly Bomb currentBomb;
 	private readonly float initialTime;
+	private readonly bool zenMode;
 }

@@ -229,7 +229,7 @@ class BombWrapper : MonoBehaviour
 					// TTK is our favorite Zen mode compatible module
 					// Of course, everything here is repurposed from Twitch Plays.
 					case "TurnTheKey":
-						new TTKComponentSolver(bombModule, Bomb, Tweaks.CurrentMode.Equals(Mode.Zen) ? Modes.initialTime : timerComponent.TimeRemaining);
+						new TTKComponentSolver(component, bombModule, Tweaks.CurrentMode.Equals(Mode.Zen) ? Modes.initialTime : timerComponent.TimeRemaining);
 						break;
 
 					// Correct some mispositioned objects in older modules

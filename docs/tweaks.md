@@ -18,6 +18,7 @@ This list is sorted with what I think are generally the most useful and relevant
 * Adds logging which is used to improve the [Logfile Analyzer](https://ktane.timwi.de/More/Logfile%20Analyzer.html).
 * Fixes Word Scramble so that the word "papers" is accepted.
 * Fixes the URL that Foreign Exchange Rates uses since the old one no longer works.
+* Fixes Turn The Key so that times above 20 minutes can be picked and allows you to skip time forward by holding down the key.
 * Fixes LVH to include exceptions in it's logs.
 * Adds colorblind support to Color Decoding.
 * Removes the maximum time limit in the freeplay briefcase.
