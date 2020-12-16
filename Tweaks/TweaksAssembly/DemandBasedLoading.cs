@@ -631,15 +631,8 @@ static class DemandBasedLoading
 		static bool ActivateBomb(object __instance)
 		{
 			var bomb = __instance.GetValue<Bomb>("InternalBomb");
-			if (NotActivated.Contains(bomb))
-			{
-				NotActivated.Remove(bomb);
-				return true;
-			}
-			else
-			{
-				return false;
-			}
+
+			return !allBombInfo.TryGetValue(bomb, out BombInfo bombInfo) || bombInfo.EnableOriginal;
 		}
 
 		// If there is a _selectableArea, run the original method.
