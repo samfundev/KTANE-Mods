@@ -309,12 +309,10 @@ public class CheapCheckoutModule : MonoBehaviour
 
 				break;
 			case "Wednesday":
-				int a = (int) (price % 10),
-					b = (int) (price * 10) % 10,
-					c = (int) (price * 100) % 10;
+				var digits = price.ToString().Where(char.IsDigit).Select(character => int.Parse(character.ToString()));
 
-				string highest = Math.Max(Math.Max(a, b), c).ToString();
-				string lowest = Math.Min(Math.Min(a, b), c).ToString();
+				string highest = digits.Max().ToString();
+				string lowest = digits.Min().ToString();
 				var result = price.ToString("N2").Select(charDigit =>
 				{
 					string digit = charDigit.ToString();
