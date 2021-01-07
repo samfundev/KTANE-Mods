@@ -118,6 +118,7 @@ public class TTKComponentSolver : ModuleTweak
 
 		Coroutine pressCoroutine = null;
 		selectable.OnInteract = () => {
+			held = false;
 			pressCoroutine = selectable.StartCoroutine(LongPress());
 			return false;
 		};
