@@ -259,6 +259,8 @@ class Tweaks : MonoBehaviour
 				GameplayState.BombSeedToUse = -1;
 
 				UpdateSettingWarnings();
+
+				UpdateBombCreator();
 			}
 			else if (state == KMGameInfo.State.Transitioning)
 			{
@@ -714,6 +716,17 @@ class Tweaks : MonoBehaviour
 			settings.Mode = Mode.Normal;
 			settings.ShowEdgework = false;
 		}
+
+		UpdateBombCreator();
+	}
+
+	private static void UpdateBombCreator()
+	{
+		var bombCreator = GameObject.Find("BombCreator(Clone)");
+		if (bombCreator == null)
+			return;
+
+		bombCreator.Traverse("TimeSetting", "TwitchModeButton").SetActive(TwitchPlaysActive || !settings.DisableAdvantageous);
 	}
 
 	public void Update()
