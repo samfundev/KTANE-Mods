@@ -13,6 +13,7 @@ using Assets.Scripts.Mods.Mission;
 using Assets.Scripts.Props;
 using TweaksAssembly.Patching;
 using System.Text.RegularExpressions;
+using System.Reflection;
 
 [RequireComponent(typeof(KMService))]
 [RequireComponent(typeof(KMGameInfo))]
@@ -47,6 +48,8 @@ class Tweaks : MonoBehaviour
 
 	GameObject AdvantageousWarning;
 	bool AdvantageousFeaturesEnabled => settings.BombHUD || settings.ShowEdgework || CurrentMode != Mode.Normal || settings.MissionSeed != -1;
+
+	public static Action<KMGameInfo.State, KMGameInfo.State> OnStateChanged;
 
 	public void Awake()
 	{
@@ -112,6 +115,8 @@ class Tweaks : MonoBehaviour
 
 		// Setup the leaderboard controller to block the leaderboard submission requests.
 		LeaderboardController.Install();
+
+		GetTweaks();
 
 		// Create a fake case with a bunch of anchors to trick the game when using CaseGenerator.
 		TweaksCaseGeneratorCase = new GameObject("TweaksCaseGenerator");
@@ -187,17 +192,14 @@ class Tweaks : MonoBehaviour
 		// Handle state changes
 		GameInfo.OnStateChange += (KMGameInfo.State state) =>
 		{
+			OnStateChanged(CurrentState, state);
+
 			// Transitioning away from another state
 			if (state == KMGameInfo.State.Transitioning)
 			{
 				if (CurrentState == KMGameInfo.State.Setup)
 				{
 					DemandBasedLoading.DisabledModsCount = 0;
-				}
-
-				if (CurrentState == KMGameInfo.State.Gameplay)
-				{
-					BetterCasePicker.BombGenerator = null;
 				}
 
 				if (CurrentState != KMGameInfo.State.Gameplay)
@@ -213,9 +215,6 @@ class Tweaks : MonoBehaviour
 			{
 				if (AdvantageousFeaturesEnabled)
 					LeaderboardController.DisableLeaderboards();
-
-				BetterCasePicker.RestoreGameCommands();
-				BetterCasePicker.HandleCaseGeneration();
 
 				TwitchPlaysActiveCache = TwitchPlaysActive;
 				CurrentModeCache = CurrentMode;
@@ -296,6 +295,13 @@ class Tweaks : MonoBehaviour
 			}
 		};
 	}
+
+	private static Tweak[] GetTweaks() => Assembly
+				.GetExecutingAssembly()
+				.GetTypes()
+				.Where(type => typeof(Tweak).IsAssignableFrom(type) && !type.IsAbstract)
+				.Select(type => (Tweak) Activator.CreateInstance(type))
+				.ToArray();
 
 	// TODO: Remove this
 	/*

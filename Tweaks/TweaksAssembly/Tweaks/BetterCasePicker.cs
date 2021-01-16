@@ -2,20 +2,27 @@
 using Assets.Scripts.Missions;
 using System.Collections.Generic;
 using System.Linq;
+using static KMGameInfo;
 
-static class BetterCasePicker
+class BetterCasePicker : Tweak
 {
 	public static BombCaseGenerator BombCaseGenerator;
-	public static GameObject CaseParent;
+	static GameObject CaseParent;
 
-	public static BombGenerator BombGenerator;
+	public override void OnStateChange(State previousState, State state)
+	{
+		if (state == State.Gameplay)
+		{
+			RestoreGameCommands();
+			HandleCaseGeneration();
+		}
+	}
 
-	public static void HandleCaseGeneration()
+	static void HandleCaseGeneration()
 	{
 		Tweaks.FixRNGSeed();
 
 		BombGenerator bombGenerator = Object.FindObjectOfType<BombGenerator>();
-		BombGenerator = bombGenerator;
 
 		if (bombGenerator.BombPrefabOverride == null) // No point in doing anything if they aren't even going to use the ObjectPool.
 		{
@@ -77,7 +84,7 @@ static class BetterCasePicker
 	}
 
 	static GameObject previousGeneratedCase;
-	public static void HandleGeneratorSetting(GeneratorSetting generatorSetting, ObjectPool prefabPool)
+	static void HandleGeneratorSetting(GeneratorSetting generatorSetting, ObjectPool prefabPool)
 	{
 		bool frontFaceOnly = generatorSetting.FrontFaceOnly;
 		int componentCount = generatorSetting.ComponentPools.Where(pool => pool.ModTypes == null || pool.ModTypes.Count == 0 || !(pool.ModTypes.Contains("Factory Mode") || pool.ModTypes[0].StartsWith("Multiple Bombs"))).Sum(pool => pool.Count) + 1;
@@ -142,7 +149,7 @@ static class BetterCasePicker
 
 	static readonly Dictionary<KMGameCommands, KMGameCommands.CreateBombDelegate> previousDelegates = new Dictionary<KMGameCommands, KMGameCommands.CreateBombDelegate>();
 	static readonly Dictionary<KMGameCommands, KMGameCommands.CreateBombDelegate> addedDelegates = new Dictionary<KMGameCommands, KMGameCommands.CreateBombDelegate>();
-	public static void RestoreGameCommands()
+	static void RestoreGameCommands()
 	{
 		foreach (var pair in previousDelegates)
 			pair.Key.OnCreateBomb += pair.Value;
