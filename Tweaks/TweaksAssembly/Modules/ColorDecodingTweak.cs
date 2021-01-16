@@ -32,7 +32,7 @@ class ColorDecodingTweak : ModuleTweak
 
 	private void UpdateColorblind()
 	{
-		static void makeText(GameObject cell, string letter, bool display)
+		void makeText(GameObject cell, string letter, bool display)
 		{
 			var text = cell.transform.Find("ColorblindText")?.gameObject;
 			if (text == null)

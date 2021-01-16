@@ -1,43 +1,31 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{93AB8051-1012-4B9A-B55D-5A7AC1DC3047}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>TweaksAssembly</RootNamespace>
     <AssemblyName>TweaksAssembly</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFramework>net35</TargetFramework>
     <FileAlignment>512</FileAlignment>
+    <LangVersion>7.3</LangVersion>
+    <CodeAnalysisRuleSet>tweaksassembly.ruleset</CodeAnalysisRuleSet>
+    <OutputPath>..\Assets\CustomAssemblies\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>..\Assets\CustomAssemblies\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>tweaksassembly.ruleset</CodeAnalysisRuleSet>
-    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>..\Assets\CustomAssemblies\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>tweaksassembly.ruleset</CodeAnalysisRuleSet>
-    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
     <GameFolder Condition="'$(GameFolder)' == ''">C:\Program Files (x86)\Steam\steamapps\common\Keep Talking and Nobody Explodes\</GameFolder>
     <Copy Condition="'$(Copy)' == ''">copy</Copy>
     <Unity Condition="'$(Unity)' == ''">C:\Program Files\Unity\Editor\Data\Managed\</Unity>
   </PropertyGroup>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="$(Copy) &quot;$(TargetPath)&quot; &quot;$(GameFolder)mods\Tweaks\$(TargetFileName)&quot;" />
+  </Target>
   <ItemGroup>
     <Reference Include="0Harmony">
       <HintPath>.\0Harmony.dll</HintPath>
@@ -95,45 +83,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BetterCasePicker.cs" />
-    <Compile Include="BombCaseGenerator.cs" />
-    <Compile Include="BombStatus.cs" />
-    <Compile Include="DemandBasedLoading.cs" />
-    <Compile Include="GeneralExtensions.cs" />
-    <Compile Include="LeaderboardController.cs" />
-    <Compile Include="MainThreadQueue.cs" />
-    <Compile Include="ModConfig.cs" />
-    <Compile Include="ModdedAPI.cs" />
-    <Compile Include="Modules\ModuleLogging.cs" />
-    <Compile Include="Modules\KeypadLogging.cs" />
-    <Compile Include="Modules\SeaShellsLogging.cs" />
-    <Compile Include="Modules\WiresLogging.cs" />
-    <Compile Include="Modules\ProbingLogging.cs" />
-    <Compile Include="Modules\EmojiMathLogging.cs" />
-    <Compile Include="Modules\ModuleTweak.cs" />
-    <Compile Include="ModSelectorExtension.cs" />
-    <Compile Include="SettingsPage.cs" />
-    <Compile Include="Modules\WordScramblePatch.cs" />
-    <Compile Include="Modules\ColorDecodingTweak.cs" />
-    <Compile Include="Patching.cs" />
-    <Compile Include="PropertiesBehaviour.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ReflectedTypes.cs" />
-    <Compile Include="ReflectionHelper.cs" />
-    <Compile Include="BombWrapper.cs" />
-    <Compile Include="Modes.cs" />
-    <Compile Include="Modules\TTKComponentSolver.cs" />
-    <Compile Include="Tips.cs" />
-    <Compile Include="Tweaks.cs" />
-    <Compile Include="TweaksAPI.cs" />
-    <Compile Include="TweaksProperties.cs" />
-    <Compile Include="ColorblindMode.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="TweaksAssembly.ruleset" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <PostBuildEvent>$(Copy) "$(TargetPath)" "$(GameFolder)/mods/Tweaks/$(TargetFileName)"</PostBuildEvent>
-  </PropertyGroup>
 </Project>

@@ -42,9 +42,9 @@ public class ProbingLogging : ModuleLogging
 
     public ProbingLogging(BombComponent bombComponent) : base(bombComponent, "ProbingModule", "Probing")
     {
-        mWiresField ??= (mWiresField = componentType.GetField("mWires", NonPublicInstance));
-        mTargetWireAField ??= (mTargetWireAField = componentType.GetField("mTargetWireA", NonPublicInstance));
-        mTargetWireBField ??= (mTargetWireBField = componentType.GetField("mTargetWireB", NonPublicInstance));
+        mWiresField = mWiresField ?? (mWiresField = componentType.GetField("mWires", NonPublicInstance));
+        mTargetWireAField = mTargetWireAField ?? (mTargetWireAField = componentType.GetField("mTargetWireA", NonPublicInstance));
+        mTargetWireBField = mTargetWireBField ?? (mTargetWireBField = componentType.GetField("mTargetWireB", NonPublicInstance));
 
         bombInfo = bombComponent.GetComponent<KMBombInfo>();
         mNumStrikes = bombInfo.GetStrikes();

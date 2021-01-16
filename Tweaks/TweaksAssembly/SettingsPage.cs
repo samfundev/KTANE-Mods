@@ -905,15 +905,23 @@ class Listing
 		this.Description = Description;
 	}
 
-	public static ListingType? TypeFromValue(object value) => value switch
+	public static ListingType? TypeFromValue(object value)
 	{
-		string _ => ListingType.String,
-		double _ => ListingType.Number,
-		long _ => ListingType.Number,
-		bool _ => ListingType.Checkbox,
-		JArray _ => ListingType.Array,
-		_ => null,
-	};
+		switch (value)
+		{
+			case string _:
+				return ListingType.String;
+			case double _:
+			case long _:
+				return ListingType.Number;
+			case bool _:
+				return ListingType.Checkbox;
+			case JArray _:
+				return ListingType.Array;
+			default:
+				return null;
+		}
+	}
 
 	internal void Setup()
 	{
@@ -1176,7 +1184,7 @@ class ArrayInput : SettingsInput
 					{
 						SettingsPage.Instance.CurrentListings.Add(new Listing(ListingType.Submenu, pair.Key)
 						{
-							Action = (_) =>
+							Action = (__) =>
 							{
 								CurrentValue.Add(pair.Value);
 								SettingsPage.Instance.PopScreen();
@@ -1216,9 +1224,9 @@ class ArrayInput : SettingsInput
 				for (int j = 0; j < CurrentValue.Count; j++)
 				{
 					var i = j;
-					var listing = SettingsPage.Instance.CurrentListings[i];
+					var itemListing = SettingsPage.Instance.CurrentListings[i];
 
-					listing.TypeSelectable.OnInteract = () =>
+					itemListing.TypeSelectable.OnInteract = () =>
 					{
 						switch (currentMode)
 						{
