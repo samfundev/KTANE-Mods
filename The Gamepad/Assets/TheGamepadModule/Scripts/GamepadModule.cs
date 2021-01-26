@@ -305,7 +305,7 @@ public class GamepadModule : MonoBehaviour
 
         if (a == 1 + d)
         {
-            DebugMsg(a + " = 1 + " + d + ". Swapping 3 <-> 4 & 5 <-> 7.");
+            DebugMsg(a + " = 1 + " + d + ". Swapping 3 <-> 4 & 6 <-> 8.");
             solution = SwapCharacters(SwapCharacters(solution, 5, 7), 2, 3);
         }
 
