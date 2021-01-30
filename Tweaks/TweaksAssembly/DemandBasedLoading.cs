@@ -453,6 +453,8 @@ static class DemandBasedLoading
 			Tweaks.Log($"Unable to get the real module for {ModuleID} ({SteamID}). IDs found: {moduleIDs.Select(id => $"\"{id}\"").Join(", ")}. This shouldn't happen, please contact the developer of Tweaks.");
 
 			LeaderboardController.DisableLeaderboards();
+
+			bombInfo.Components[componentIndex] = fakeModule;
 		}
 
 		modsLoading--;
@@ -535,6 +537,16 @@ static class DemandBasedLoading
 			var holdable = KTInputManager.Instance.SelectableManager.GetCurrentFloatingHoldable();
 			if (holdable)
 				holdable.Defocus(false, false);
+		}
+
+		// Solve any fake modules
+		foreach (BombComponent component in bomb.BombComponents)
+		{
+			if (component.GetComponent<FakeModule>() != null)
+			{
+				component.IsSolved = true;
+				component.Bomb.OnPass(component);
+			}
 		}
 	}
 
