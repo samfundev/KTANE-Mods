@@ -212,7 +212,7 @@ class SettingsPage : MonoBehaviour
 
 	string CleanupSettingsFileName(string fileName)
 	{
-		return Regex.Replace(fileName.Substring(0, 1).ToUpperInvariant() + fileName.Substring(1), "-settings$", "");
+		return fileName.Length == 0 ? fileName : Regex.Replace(fileName.Substring(0, 1).ToUpperInvariant() + fileName.Substring(1), "-settings$", "");
 	}
 
 	void ReadSettings()
