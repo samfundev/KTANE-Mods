@@ -81,7 +81,7 @@ class BombStatus : MonoBehaviour
 		{
 			string formattedTime = currentBomb.GetFullFormattedTime;
 			TimerPrefab.text = formattedTime;
-			TimerShadowPrefab.text = formattedTime.Select(character => character == ':' ? character : '8').Join("");
+			TimerShadowPrefab.text = formattedTime.Select(character => character == ':' || character == '.' ? ':' : '8').Join("");
 			UpdateConfidence();
 		}
 
