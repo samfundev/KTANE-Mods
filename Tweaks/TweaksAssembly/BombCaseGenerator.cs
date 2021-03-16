@@ -117,14 +117,14 @@ public class BombCaseGenerator : MonoBehaviour
 		}
 
         // Generate The module backings and anchors
-        for (int x = 0; x < size.x; x++)
+        for (int y = 0; y < size.y; y++)
         {
-            for (int y = 0; y < size.y; y++)
+            for (int x = 0; x < size.x; x++)
             {
                 GameObject front_backing = Instantiate(Bomb_Backing);    // Grab the prefab
                 Transform f = front_backing.GetComponent<Transform>();
                 f.SetParent(casing.Faces_F);
-                f.Translate(new Vector3(offset * (x - halfX + 0.5f), offset * (y - halfY + 0.5f), -0.06f));
+                f.Translate(new Vector3(offset * (x - halfX + 0.5f), -offset * (y - halfY + 0.5f), -0.06f));
                 f.name = "Bomb_Foam_" + x + "_" + y + "_F";
                 Transform f_anchor = new GameObject().GetComponent<Transform>();    // We need to rotate the anchor relative to the backing, so we need a new transform
                 f_anchor.position = f.position;
@@ -138,7 +138,7 @@ public class BombCaseGenerator : MonoBehaviour
                 GameObject rear_backing = Instantiate(Bomb_Backing);
                 Transform r = rear_backing.GetComponent<Transform>();
                 r.SetParent(casing.Faces_R);
-                r.Translate(new Vector3(offset * (x - halfX + 0.5f), offset * (y - halfY + 0.5f), 0.06f));
+                r.Translate(new Vector3(-offset * (x - halfX + 0.5f), -offset * (y - halfY + 0.5f), 0.06f));
                 r.Rotate(new Vector3(0, 180, 0));
                 r.name = "Bomb_Foam_" + x + "_" + y + "_R";
                 Transform r_anchor = new GameObject().GetComponent<Transform>();

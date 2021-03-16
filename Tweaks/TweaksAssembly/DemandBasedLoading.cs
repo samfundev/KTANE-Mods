@@ -515,6 +515,12 @@ static class DemandBasedLoading
 		while (validBombFaces.Count > 0)
 			bombGenerator.CallMethod("InstantiateComponent", validBombFaces[0], bombGenerator.emptyComponentPrefab, setting);
 
+		// We need to re-Init() the bomb face selectables so that the components get their correct X and Y positions for Gamepad support.
+		foreach (Selectable selectable in bomb.Faces.Select(face => face.GetComponent<Selectable>()))
+		{
+			selectable.Init();
+		}
+
 		// To ensure that the widgets get placed in the right position, we need to temporarily revert the bomb's size.
 		bomb.visualTransform.localScale = Vector3.one;
 
