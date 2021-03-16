@@ -7,6 +7,8 @@ using UnityEngine;
 
 public static class GeneralExtensions
 {
+	public static bool EqualsAny(this object obj, params object[] targets) => targets.Contains(obj);
+
 	public static string FormatTime(this float seconds)
 	{
 		bool wasNegative = seconds < 0;
