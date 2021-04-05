@@ -216,13 +216,34 @@ static class DemandBasedLoading
 	static IEnumerator GetModules()
 	{
 		var steamDirectory = SteamDirectory;
+		var repositoryBackup = Path.Combine(Application.persistentDataPath, "RepositoryBackup.json");
+
 		UnityWebRequest request = UnityWebRequest.Get("https://ktane.timwi.de/json/raw");
 
 		yield return request.SendWebRequest();
 
+		string repositoryJSON = null;
 		if (request.isNetworkError)
 		{
 			Tweaks.Log("Unable to load the repository:", request.error);
+
+			if (File.Exists(repositoryBackup))
+			{
+				repositoryJSON = File.ReadAllText(repositoryBackup);
+			}
+			else
+			{
+				Tweaks.Log("Could not find a repository backup.");
+			}
+		}
+		else
+		{
+			repositoryJSON = request.downloadHandler.text;
+		}
+
+		if (repositoryJSON == null)
+		{
+			Tweaks.Log("Could not get module information.");
 		}
 		else if (steamDirectory == null)
 		{
@@ -230,6 +251,9 @@ static class DemandBasedLoading
 		}
 		else
 		{
+			// Save a backup of the repository
+			File.WriteAllText(repositoryBackup, repositoryJSON);
+
 			var disabledMods = ModSettingsManager.Instance.ModSettings.DisabledModPaths.ToList();
 			modWorkshopPath = Path.GetFullPath(new[] { steamDirectory, "steamapps", "workshop", "content", "341800" }.Aggregate(Path.Combine));
 
