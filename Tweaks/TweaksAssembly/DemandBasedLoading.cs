@@ -14,6 +14,8 @@ using UnityEngine.UI;
 using TweaksAssembly.Patching;
 using Random = System.Random;
 using System.Reflection;
+using log4net;
+using log4net.Core;
 
 static class DemandBasedLoading
 {
@@ -28,6 +30,7 @@ static class DemandBasedLoading
 
 	static bool BombsLoaded => allBombInfo.All(pair => pair.Value.Loaded);
 	static readonly Dictionary<Bomb, BombInfo> allBombInfo = new Dictionary<Bomb, BombInfo>();
+	static readonly Queue<Bomb> bombQueue = new Queue<Bomb>();
 
 	class BombInfo
 	{
@@ -304,7 +307,7 @@ static class DemandBasedLoading
 					var bombModule = fakeModule.AddComponent<KMBombModule>();
 					fakeBombComponent.SetValue("module", bombModule);
 					fakeBombComponent.enabled = false;
-					fakeBombComponent.ComponentType = Assets.Scripts.Missions.ComponentTypeEnum.Mod;
+					fakeBombComponent.ComponentType = ComponentTypeEnum.Mod;
 					bombModule.ModuleType = module.ModuleID;
 					bombModule.ModuleDisplayName = module.Name;
 				}
@@ -314,7 +317,7 @@ static class DemandBasedLoading
 					var needyModule = fakeModule.AddComponent<KMNeedyModule>();
 					fakeNeedyComponent.SetValue("module", needyModule);
 					fakeNeedyComponent.enabled = false;
-					fakeNeedyComponent.ComponentType = Assets.Scripts.Missions.ComponentTypeEnum.NeedyMod;
+					fakeNeedyComponent.ComponentType = ComponentTypeEnum.NeedyMod;
 					needyModule.ModuleType = module.ModuleID;
 					needyModule.ModuleDisplayName = module.Name;
 				}
@@ -498,10 +501,14 @@ static class DemandBasedLoading
 
 	private static IEnumerator InstantiateComponents(Bomb bomb)
 	{
-		yield return new WaitUntil(() => modsLoading == 0);
+		yield return new WaitUntil(() => modsLoading == 0 && bombQueue.Count != 0 && bombQueue.Peek() == bomb);
 
 		var bombGenerator = SceneManager.Instance.GameplayState.GetValue<BombGenerator>("bombGenerator");
 		bombGenerator.SetValue("bomb", bomb);
+		var logger = bombGenerator.GetValue<ILog>("logger");
+
+		// Enable logging again
+		((log4net.Repository.Hierarchy.Logger) logger.Logger).Level = null;
 
 		var validBombFaces = new List<BombFace>(bomb.Faces.Where(face => face.ComponentSpawnPoints.Count != 0));
 		bombGenerator.SetValue("validBombFaces", validBombFaces);
@@ -518,11 +525,34 @@ static class DemandBasedLoading
 		bombInfo.EnableOriginal = true;
 		bombGenerator.SetValue("rand", bombInfo.Rand); // Bring back the real Random object.
 		UnityEngine.Random.InitState(bomb.Seed); // Loading AudioClips triggers RNG calls so we need to reset the RNG to before that happened.
+
+		// Emulate logging messages
+		logger.InfoFormat("Generating bomb with seed {0}", bomb.Seed);
+		logger.InfoFormat("Generator settings: {0}", setting.ToString());
+
+		foreach (var component in bombInfo.Components)
+		{
+			logger.InfoFormat("Selected {0} ({1})", Modes.GetModuleID(component), component);
+		}
+
+		var requiresTimer = bombInfo.Components.Where(component => component.RequiresTimerVisibility).Select(Modes.GetModuleID).ToArray();
+		var anyFace = bombInfo.Components.Where(component => !component.RequiresTimerVisibility).Select(Modes.GetModuleID).ToArray();
+		logger.DebugFormat("Bomb component list: RequiresTimerVisibility [{0}], AnyFace: [{1}]", string.Join(", ", requiresTimer), string.Join(", ", anyFace));
+
+		logger.DebugFormat("Instantiating RequiresTimerVisibility components on {0}", timerFace);
+
+		// Spawn components
+		bool loggedRemaining = false;
 		foreach (var bombComponent in bombInfo.Components.OrderByDescending(component => component.RequiresTimerVisibility))
 		{
 			BombFace face = null;
 			if (bombComponent.RequiresTimerVisibility && timerFace.ComponentSpawnPoints.Count != 0)
 				face = timerFace;
+			else if (!loggedRemaining)
+			{
+				logger.Debug("Instantiating remaining components on any valid face.");
+				loggedRemaining = true;
+			}
 
 			if (face == null && validBombFaces.Count != 0)
 				face = validBombFaces[bombInfo.Rand.Next(0, validBombFaces.Count)];
@@ -536,6 +566,7 @@ static class DemandBasedLoading
 			bombGenerator.CallMethod("InstantiateComponent", face, bombComponent, setting);
 		}
 
+		logger.Debug("Filling remaining spaces with empty components.");
 		while (validBombFaces.Count > 0)
 			bombGenerator.CallMethod("InstantiateComponent", validBombFaces[0], bombGenerator.emptyComponentPrefab, setting);
 
@@ -544,6 +575,8 @@ static class DemandBasedLoading
 		{
 			selectable.Init();
 		}
+
+		logger.Debug("Generating Widgets");
 
 		// To ensure that the widgets get placed in the right position, we need to temporarily revert the bomb's size.
 		bomb.visualTransform.localScale = Vector3.one;
@@ -557,6 +590,8 @@ static class DemandBasedLoading
 		bombInfo.Loaded = true;
 
 		HookUpMultipleBombs(bomb, knownBombInfos);
+
+		bombQueue.Dequeue();
 
 		if (BombsLoaded)
 		{
@@ -609,7 +644,7 @@ static class DemandBasedLoading
 		}
 	}
 
-	#pragma warning disable IDE0051, RCS1213
+#pragma warning disable IDE0051, RCS1213
 	// Most mods look at the Bombs field of the GameplayState to see when the bombs have finished spawning.
 	// These Harmony patches will make the Bombs field be an empty list until modules have finished loading.
 	[HarmonyPatch(typeof(GameplayState))]
@@ -619,8 +654,12 @@ static class DemandBasedLoading
 		static bool Prefix(GeneratorSetting generatorSetting, HoldableSpawnPoint spawnPoint, int seed, ref Bomb __result)
 		{
 			var gameplayState = SceneManager.Instance.GameplayState;
+			var bombGenerator = gameplayState.GetValue<BombGenerator>("bombGenerator");
 
-			__result = gameplayState.GetValue<BombGenerator>("bombGenerator").CreateBomb(generatorSetting, spawnPoint, seed, BombTypeEnum.Default);
+			((log4net.Repository.Hierarchy.Logger) bombGenerator.GetValue<ILog>("logger").Logger).Level = Level.Notice;
+
+			__result = bombGenerator.CreateBomb(generatorSetting, spawnPoint, seed, BombTypeEnum.Default);
+			bombQueue.Enqueue(__result);
 
 			if (modsLoading == 0)
 				gameplayState.Bombs.Add(__result);
@@ -740,7 +779,7 @@ static class DemandBasedLoading
 					if (!condition.StartsWith("[BombGenerator] Bomb component list: "))
 						return;
 
- 					// Replace the Random object with a fake one, so that we can make the consistent RNG calls later.
+					// Replace the Random object with a fake one, so that we can make the consistent RNG calls later.
 					__instance.SetValue("rand", new FakeRandom());
 
 					Application.logMessageReceived -= logCallback;
@@ -795,5 +834,5 @@ static class DemandBasedLoading
 			return allBombInfo.Any(pair => pair.Key.WidgetManager == widgetManager && pair.Value.EnableOriginal);
 		}
 	}
-	#pragma warning restore IDE0051, RCS1213
+#pragma warning restore IDE0051, RCS1213
 }
