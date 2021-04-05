@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 static class ReflectedTypes
@@ -97,6 +98,7 @@ static class ReflectedTypes
 			foreach (FieldInfo fieldInfo in GetAllFields(component.GetType(), BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
 			{
 				var name = fieldInfo.Name.ToLowerInvariant();
+				name = Regex.Replace(name, "<(.+)>k__BackingField", "$1", RegexOptions.IgnoreCase);
 				if (fieldInfo.FieldType == typeof(int) && (name.EndsWith("moduleid") || string.Equals(name, "thisloggingid") || name.StartsWith("lognum")))
 				{
 					targetComponent = component;
