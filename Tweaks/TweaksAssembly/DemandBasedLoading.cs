@@ -16,6 +16,7 @@ using Random = System.Random;
 using System.Reflection;
 using log4net;
 using log4net.Core;
+using System.Reflection.Emit;
 
 static class DemandBasedLoading
 {
@@ -774,19 +775,6 @@ static class DemandBasedLoading
 			{
 				allBombInfo.Add(bomb, new BombInfo(settings, selectedFace, __instance.GetValue<Random>("rand")));
 
-				void logCallback(string condition, string _, LogType __)
-				{
-					if (!condition.StartsWith("[BombGenerator] Bomb component list: "))
-						return;
-
-					// Replace the Random object with a fake one, so that we can make the consistent RNG calls later.
-					__instance.SetValue("rand", new FakeRandom());
-
-					Application.logMessageReceived -= logCallback;
-				}
-
-				Application.logMessageReceived += logCallback;
-
 				return true;
 			}
 
@@ -812,6 +800,26 @@ static class DemandBasedLoading
 				bombInfo.Components.Add(bombComponentPrefab);
 
 			return false;
+		}
+
+		// This transpiler adds `this.rand = new FakeRandom()` right after the game logs out that it going instantiate modules.
+		// This is where DBML is going to pick up on work, so we need the RNG state right before it does this.
+		[HarmonyPatch(typeof(BombGenerator), "CreateBomb")]
+		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+		{
+			var targetMethod = typeof(ILog).GetMethod("DebugFormat", new[] { typeof(string), typeof(object) });
+			foreach (var instruction in instructions)
+			{
+				yield return instruction;
+
+				// Replace the Random object with a fake one, so that we can make the consistent RNG calls later.
+				if (instruction.Calls(targetMethod))
+				{
+					yield return new CodeInstruction(OpCodes.Ldarg_0);
+					yield return new CodeInstruction(OpCodes.Newobj, AccessTools.Constructor(typeof(FakeRandom)));
+					yield return new CodeInstruction(OpCodes.Stfld, AccessTools.Field(typeof(BombGenerator), "rand"));
+				}
+			}
 		}
 
 		[HarmonyPatch(typeof(Bomb), "SetTotalTime")]
