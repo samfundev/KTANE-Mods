@@ -168,6 +168,8 @@ public class BombCaseGenerator : MonoBehaviour
 			string[] colorParts = colorString.Split(new[] { "-" }, System.StringSplitOptions.RemoveEmptyEntries);
 			List<Color> colors = new List<Color>();
 
+			if (colorParts.Length == 0) continue; // If there is no color parts, then the string was empty so we can skip over it.
+
 			foreach (string colorPart in colorParts)
 			{
 				if (TryParseColor(colorPart, out Color color)) colors.Add(color);
