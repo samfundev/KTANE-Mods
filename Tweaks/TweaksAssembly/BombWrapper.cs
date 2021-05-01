@@ -276,7 +276,7 @@ class BombWrapper : MonoBehaviour
 
 			ModuleTweak moduleTweak = null;
 			string moduleType = bombModule != null ? bombModule.ModuleType : component.ComponentType.ToString();
-			if (moduleTweaks.ContainsKey(moduleType) && (moduleType != "WordScrambleModule" || Tweaks.settings.ModuleTweaks))
+			if (moduleTweaks.ContainsKey(moduleType) && (!moduleType.EqualsAny("WordScrambleModule", "TurnKeyAdvancedModule") || Tweaks.settings.ModuleTweaks))
 			{
 				moduleTweak = moduleTweaks[moduleType](component);
 			}
