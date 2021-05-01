@@ -252,6 +252,7 @@ class BombWrapper : MonoBehaviour
 					case "babaIsWho":
 					case "colorfulDials":
 					case "scalarDials":
+					case "strikeSolve":
 						// This fixes the position of the status light
 						component.GetComponentInChildren<StatusLightParent>().transform.localPosition = new Vector3(0.075167f, 0.01986f, 0.076057f);
 						break;
