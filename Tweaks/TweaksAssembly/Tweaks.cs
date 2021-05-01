@@ -168,7 +168,7 @@ class Tweaks : MonoBehaviour
 
 					ReflectedTypes.UpdateTypes();
 
-					ReflectedTypes.CurrencyAPIEndpointField?.SetValue(null, settings.FixFER ? "http://api.exchangeratesapi.io" : "http://api.fixer.io");
+					ReflectedTypes.CurrencyAPIEndpointField?.SetValue(null, settings.FixFER ? "https://api.ratesapi.io/api" : "http://api.fixer.io");
 
 					if (
 						AdvantageousFeaturesEnabled &&
