@@ -253,8 +253,6 @@ class Tweaks : MonoBehaviour
 				GetComponentInChildren<ModSelectorExtension>().FindAPI();
 				TweaksAPI.SetTPProperties(!TwitchPlaysActive);
 
-				Patching.EnsurePatch("LogfileViewerHotkey", typeof(LogfileUploaderPatch));
-
 				GameplayState.BombSeedToUse = -1;
 
 				UpdateSettingWarnings();

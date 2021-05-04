@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using HarmonyLib;
 
 namespace TweaksAssembly.Patching
@@ -40,30 +39,4 @@ namespace TweaksAssembly.Patching
 			return instances[id];
 		}
 	}
-
-	#pragma warning disable IDE0051
-	[HarmonyPatch]
-	static class LogfileUploaderPatch
-	{
-		static MethodBase method;
-
-		static bool Prepare()
-		{
-			var type = ReflectionHelper.FindType("LogfileUploader");
-			method = type?.GetMethod("HandleLog", BindingFlags.NonPublic | BindingFlags.Instance);
-			return method != null;
-		}
-
-		static MethodBase TargetMethod() => method;
-
-		static void Postfix(object __instance, string stackTrace)
-		{
-			if (string.IsNullOrEmpty(stackTrace) || !__instance.GetValue<bool>("loggingEnabled"))
-				return;
-
-			__instance.SetValue("Log", __instance.GetValue<string>("Log") + stackTrace + "\n");
-			__instance.SetValue("LastBombLog", __instance.GetValue<string>("LastBombLog") + stackTrace + "\n");
-		}
-	}
-	#pragma warning restore IDE0051
 }
