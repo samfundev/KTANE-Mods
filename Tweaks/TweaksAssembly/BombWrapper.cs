@@ -166,12 +166,13 @@ class BombWrapper : MonoBehaviour
 					Bomb.NumStrikes = -1;
 				}
 
-				OnStrike(source);
+				bool finalStrike = OnStrike(source);
 
 				// These mode modifications need to happen after the game handles the strike since they change the timer rate.
 				if (Tweaks.CurrentMode == Mode.Zen)
 				{
 					Bomb.NumStrikesToLose++;
+					finalStrike = false;
 
 					ZenModeTimerRate = Mathf.Max(ZenModeTimerRate - Mathf.Abs(Modes.settings.ZenModeTimerSpeedUp), -Mathf.Abs(Modes.settings.ZenModeTimerMaxSpeed));
 					timerComponent.SetRateModifier(ZenModeTimerRate);
@@ -190,7 +191,7 @@ class BombWrapper : MonoBehaviour
 
 				Tweaks.LogJSON("LFAEvent", eventInfo);
 
-				return false;
+				return finalStrike;
 			};
 		}
 
