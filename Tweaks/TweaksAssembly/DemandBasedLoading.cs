@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -626,8 +626,12 @@ static class DemandBasedLoading
 		if (multipleBombs == null)
 			return;
 
-		multipleBombs.CallMethod("redirectPresentBombInfos", bomb, knownBombInfos);
-		multipleBombs.CallMethod("processBombEvents", bomb);
+		var gameplayStateManager = multipleBombs.GetValue<object>("gameManager").GetValue<object>("CurrentState");
+		if (gameplayStateManager == null)
+			return;
+
+		gameplayStateManager.CallMethod("redirectNewBombInfos", bomb, knownBombInfos);
+		gameplayStateManager.CallMethod("processBombEvents", bomb);
 	}
 
 	// TODO: We don't need to add a component to know which modules are the fake ones, we can just have a list.
@@ -747,7 +751,7 @@ static class DemandBasedLoading
 
 		static bool Prepare()
 		{
-			var type = ReflectionHelper.FindType("MultipleBombsAssembly.MultipleBombs");
+			var type = ReflectionHelper.FindType("MultipleBombsAssembly.GameplayStateManager");
 			method = type?.GetMethod("processBombEvents", BindingFlags.NonPublic | BindingFlags.Instance);
 			return method != null;
 		}
