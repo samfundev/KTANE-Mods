@@ -267,7 +267,7 @@ static class DemandBasedLoading
 
 			var loadedBombComponents = ModManager.Instance.GetValue<Dictionary<string, BombComponent>>("loadedBombComponents");
 
-			var json = JsonConvert.DeserializeObject<WebsiteJSON>(request.downloadHandler.text);
+			var json = JsonConvert.DeserializeObject<WebsiteJSON>(repositoryJSON);
 			var cantLoad = new List<string>();
 			foreach (KtaneModule module in json.KtaneModules)
 			{
