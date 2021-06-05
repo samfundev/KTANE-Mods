@@ -11,9 +11,9 @@ using Assets.Scripts.Settings;
 using Assets.Scripts.BombBinder;
 using Assets.Scripts.Mods.Mission;
 using Assets.Scripts.Props;
-using TweaksAssembly.Patching;
 using System.Text.RegularExpressions;
 using System.Reflection;
+using Assets.Scripts.Platform;
 
 [RequireComponent(typeof(KMService))]
 [RequireComponent(typeof(KMGameInfo))]
@@ -85,6 +85,10 @@ class Tweaks : MonoBehaviour
 
 		FreeplayDevice.MAX_SECONDS_TO_SOLVE = float.MaxValue;
 		FreeplayDevice.MIN_MODULE_COUNT = 1;
+
+		// Force the graphics quality to "Mod Quality", otherwise features might not render correctly.
+		QualitySettings.SetQualityLevel(2);
+		AbstractPlatformUtil.Instance.OriginalQualityLevel = 2;
 
 		if (settings.EnableModsOnlyKey)
 		{
