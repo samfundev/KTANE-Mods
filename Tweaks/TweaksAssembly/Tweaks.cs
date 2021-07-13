@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -71,6 +71,10 @@ class Tweaks : MonoBehaviour
 		modConfig = new ModConfig<TweakSettings>("TweakSettings", OnReadError);
 		UpdateSettings();
 		StartCoroutine(Modes.LoadDefaultSettings());
+
+		HarmonyPatchInfo.HarmonyTexture = GetComponent<TweaksStorage>().HarmonyTexture;
+		Patching.EnsurePatch("Harmony", typeof(ModInfoPatch), typeof(WorkshopPatch), typeof(ContinueButtonPatch),
+			typeof(ManualButtonPatch), typeof(InstructionPatch), typeof(ModManagerPatch), typeof(ChangeButtonText));
 
 		DemandBasedLoading.EverLoadedModules = !settings.DemandBasedModLoading;
 		DemandBasedSettingCache = settings.DemandBasedModLoading;
@@ -863,6 +867,7 @@ class Tweaks : MonoBehaviour
 					},
 					new Dictionary<string, object> { { "Key", "FadeTime" }, { "Text", "Fade Time" }, { "Description", "The number seconds should it take to fade in and out of scenes." } },
 					new Dictionary<string, object> { { "Key", "InstantSkip" }, { "Text", "Instant Skip" }, { "Description", "Skips the gameplay loading screen as soon as possible." } },
+					new Dictionary<string, object> {{"Key", "AutoSkipFinalizeScreen"}, {"Text", "Auto-skip Finalize Screen"}, {"Description", "Automatically skips the Harmony Manager loading the enabled mods."}},
 					new Dictionary<string, object> { { "Key", "SkipGameplayDelay" }, { "Text", "Skip Gameplay Delay" }, { "Description", "Skips the delay at the beginning of a round when the lights are out." } },
 					new Dictionary<string, object> { { "Key", "BetterCasePicker" }, { "Text", "Better Case Picker" }, { "Description", "Chooses the smallest case that fits instead of a random one." } },
 					new Dictionary<string, object> { { "Key", "EnableModsOnlyKey" }, { "Text", "Enable Mods Only Key" }, { "Description", "Turns the Mods Only key to be on by default." } },
@@ -922,6 +927,7 @@ class TweakSettings
 {
 	public float FadeTime = 1f;
 	public bool InstantSkip = true;
+	public bool AutoSkipFinalizeScreen = false;
 	public bool SkipGameplayDelay = false;
 	public bool BetterCasePicker = true;
 	public bool EnableModsOnlyKey = false;
