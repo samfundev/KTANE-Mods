@@ -12,6 +12,8 @@ class ColorDecodingTweak : ModuleTweak
 		{ new Color32(0x7C, 0x11, 0x9A, 0xFF), "P" }
 	};
 
+	private readonly List<GameObject> colorblindText = new List<GameObject>();
+
 	public ColorDecodingTweak(BombComponent bombComponent) : base(bombComponent, "ColorDecoding")
 	{
 		if (!ColorblindMode.IsActive("Color Decoding"))
@@ -28,6 +30,15 @@ class ColorDecodingTweak : ModuleTweak
 				return false;
 			};
 		}
+
+		bombComponent.OnPass += (_) => {
+			foreach (var text in colorblindText)
+			{
+				text.SetActive(false);
+			}
+
+			return false;
+		};
 	}
 
 	private void UpdateColorblind()
@@ -39,6 +50,7 @@ class ColorDecodingTweak : ModuleTweak
 			{
 				text = new GameObject("ColorblindText");
 				text.transform.SetParent(cell.transform, false);
+				colorblindText.Add(text);
 			}
 
 			var mesh = text?.GetComponent<TextMesh>();
