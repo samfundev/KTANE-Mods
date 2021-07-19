@@ -63,6 +63,27 @@ namespace TweaksAssembly.Patching
             return false;
         }
     }
+    
+    [HarmonyPatch(typeof(ModManager), "ReloadModMetaData")]
+    [HarmonyPriority(Priority.First)]
+    public static class ReloadPatch
+    {
+	    private static Dictionary<string, ModInfo> InstalledModInfos;
+	    public static void ResetDict()
+	    {
+		    if (InstalledModInfos == null)
+			    return;
+		    ModManager.Instance.InstalledModInfos.Clear();
+		    foreach(var pair in InstalledModInfos)
+			    ModManager.Instance.InstalledModInfos.Add(pair.Key, pair.Value);
+	    }
+        
+	    public static void Prefix(ModManager __instance)
+	    {
+		    if (HarmonyPatchInfo.ModInfoFile == "modInfo_Harmony.json")
+			    InstalledModInfos = __instance.InstalledModInfos.ToDictionary(p => p.Key, p => p.Value);
+	    }
+    }
 
     [HarmonyPatch(typeof(ModManagerManualInstructionScreen), "HandleContinue")]
     [HarmonyPriority(Priority.First)]

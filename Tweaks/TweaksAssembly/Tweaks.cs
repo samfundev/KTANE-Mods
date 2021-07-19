@@ -14,6 +14,8 @@ using Assets.Scripts.Props;
 using System.Text.RegularExpressions;
 using System.Reflection;
 using Assets.Scripts.Platform;
+using TweaksAssembly.Patching;
+using HarmonyLib;
 
 [RequireComponent(typeof(KMService))]
 [RequireComponent(typeof(KMGameInfo))]
@@ -72,9 +74,12 @@ class Tweaks : MonoBehaviour
 		UpdateSettings();
 		StartCoroutine(Modes.LoadDefaultSettings());
 
-		HarmonyPatchInfo.HarmonyTexture = GetComponent<TweaksStorage>().HarmonyTexture;
-		Patching.EnsurePatch("Harmony", typeof(ModInfoPatch), typeof(WorkshopPatch), typeof(ContinueButtonPatch),
-			typeof(ManualButtonPatch), typeof(InstructionPatch), typeof(ModManagerPatch), typeof(ChangeButtonText));
+		if (!Harmony.HasAnyPatches("qkrisi.harmonymod"))
+		{
+			HarmonyPatchInfo.HarmonyTexture = GetComponent<TweaksStorage>().HarmonyTexture;
+			Patching.EnsurePatch("Harmony", typeof(ModInfoPatch), typeof(WorkshopPatch), typeof(ReloadPatch), typeof(ContinueButtonPatch),
+				typeof(ManualButtonPatch), typeof(InstructionPatch), typeof(ModManagerPatch), typeof(ChangeButtonText));
+		}
 
 		DemandBasedLoading.EverLoadedModules = !settings.DemandBasedModLoading;
 		DemandBasedSettingCache = settings.DemandBasedModLoading;
@@ -241,6 +246,7 @@ class Tweaks : MonoBehaviour
 			}
 			else if (state == KMGameInfo.State.Setup)
 			{
+				ReloadPatch.ResetDict();
 				if (ReflectedTypes.LoadedModsField.GetValue(ModManager.Instance) is Dictionary<string, Mod> loadedMods)
 				{
 					Mod tweaksMod = loadedMods.Values.FirstOrDefault(mod => mod.ModID == "Tweaks");
