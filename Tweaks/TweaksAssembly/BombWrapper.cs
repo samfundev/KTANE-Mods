@@ -251,9 +251,8 @@ class BombWrapper : MonoBehaviour
 					case "primeEncryption":
 					case "memorableButtons":
 					case "babaIsWho":
-					case "colorfulDials":
-					case "scalarDials":
 					case "strikeSolve":
+					case "vexillology":
 						// This fixes the position of the status light
 						component.GetComponentInChildren<StatusLightParent>().transform.localPosition = new Vector3(0.075167f, 0.01986f, 0.076057f);
 						break;
@@ -270,7 +269,6 @@ class BombWrapper : MonoBehaviour
 				switch (bombModule.ModuleType)
 				{
 					case "babaIsWho":
-					case "needlesslyComplicatedButton":
 						component.GetComponent<Selectable>().Highlight.transform.localPosition = Vector3.zero;
 						break;
 				}

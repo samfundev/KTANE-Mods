@@ -22,6 +22,7 @@ public class MinesweeperModule : MonoBehaviour
 
 	public List<Sprite> Sprites;
 
+	bool lightOn;
 	bool loggedLegend;
 	static int idCounter = 1;
 	int moduleID;
@@ -399,6 +400,7 @@ public class MinesweeperModule : MonoBehaviour
 			yield return null;
 		}
 
+		lightOn = true;
 		Module.HandlePass();
 		UpdateSelectable();
 	}
@@ -1028,5 +1030,6 @@ public class MinesweeperModule : MonoBehaviour
 		}
 
 		StartCoroutine(SolveModule());
+		while (!lightOn) yield return true;
 	}
 }
