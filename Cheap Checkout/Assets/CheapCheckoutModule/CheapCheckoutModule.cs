@@ -28,6 +28,7 @@ public class CheapCheckoutModule : MonoBehaviour
 	string DOW = "";
 	bool waiting;
 	bool solved;
+	bool lightOn;
 	readonly List<List<string>> Receipt = new List<List<string>>();
 
 	static int idCounter = 1;
@@ -586,6 +587,7 @@ public class CheapCheckoutModule : MonoBehaviour
 						BombAudio.PlaySoundAtTransform("module_solved", transform);
 						StartCoroutine(Wait(3f, () =>
 						{
+							lightOn = true;
 							DebugMsg("Module solved!");
 							BombModule.HandlePass();
 
@@ -748,5 +750,6 @@ public class CheapCheckoutModule : MonoBehaviour
 		}
 
 		yield return ProcessTwitchCommand("submit " + (Paid - Total).ToString());
+		while (!lightOn) yield return true;
 	}
 }

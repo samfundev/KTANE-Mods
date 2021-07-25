@@ -423,5 +423,6 @@ public class SkewedModule : MonoBehaviour
 	IEnumerator TwitchHandleForcedSolve()
 	{
 		yield return ProcessTwitchCommand(string.Concat(Solution[0], Solution[1], Solution[2]));
+		while (!solved) yield return true;
 	}
 }

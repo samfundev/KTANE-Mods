@@ -654,6 +654,7 @@ class EncryptedEquations : MonoBehaviour
 	public IEnumerator TwitchHandleForcedSolve()
 	{
 		yield return ProcessTwitchCommand("submit " + (CurrentEquation.ValueUndefined ? "" : CurrentEquation.Value.ToThousandths()));
+		while (isAnimating) yield return true;
 	}
 }
 
