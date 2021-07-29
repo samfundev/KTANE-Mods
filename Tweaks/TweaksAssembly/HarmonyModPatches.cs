@@ -64,7 +64,7 @@ namespace TweaksAssembly.Patching
 			return false;
 		}
 	}
-	
+
 	[HarmonyPatch(typeof(ModManager), "ReloadModMetaData")]
 	[HarmonyPriority(Priority.First)]
 	public static class ReloadPatch
@@ -78,7 +78,7 @@ namespace TweaksAssembly.Patching
 			foreach(var pair in InstalledModInfos)
 				ModManager.Instance.InstalledModInfos.Add(pair.Key, pair.Value);
 		}
-		
+
 		public static void Prefix(ModManager __instance)
 		{
 			if (HarmonyPatchInfo.ModInfoFile == "modInfo_Harmony.json")
@@ -163,7 +163,7 @@ namespace TweaksAssembly.Patching
 						.text = "Manage Harmony mods";
 					screen.OpenManualFolderButton.GetComponentInChildren<TextMeshProUGUI>(true).text =
 						"Skip Harmony manager";
-					MonoBehaviour.Destroy(screen.GetComponentInChildren<RawImage>());
+					Object.Destroy(screen.GetComponentInChildren<RawImage>());
 					var texts = screen.GetComponentsInChildren<TextMeshProUGUI>(true);
 					texts[1].text =
 						"Click this button if you'd like to skip the Harmony mod manager and load the Harmony mods that according to the previous configuration!";
@@ -190,7 +190,7 @@ namespace TweaksAssembly.Patching
 				if (ManualButtonPatch.AutoCloseManager)
 					MenuScreen.ReturnToGameButton.OnInteract();
 			}
-			else if(__instance is ManageModsScreen ManagerScreen)
+			else if (__instance is ManageModsScreen ManagerScreen)
 				ManagerScreen.GetComponentInChildren<TextMeshProUGUI>().text = "Manage installed Harmony mods";
 		}
 	}
