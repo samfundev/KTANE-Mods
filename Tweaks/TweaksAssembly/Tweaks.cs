@@ -77,7 +77,7 @@ class Tweaks : MonoBehaviour
 		if (!Harmony.HasAnyPatches("qkrisi.harmonymod"))
 		{
 			HarmonyPatchInfo.HarmonyTexture = GetComponent<TweaksStorage>().HarmonyTexture;
-			Patching.EnsurePatch("Harmony", typeof(ModInfoPatch), typeof(WorkshopPatch), typeof(ReloadPatch), typeof(ContinueButtonPatch),
+			Patching.EnsurePatch("Harmony", typeof(ModInfoPatch), typeof(WorkshopPatch), typeof(ReloadPatch), typeof(SetupPatch),
 				typeof(ManualButtonPatch), typeof(InstructionPatch), typeof(ModManagerPatch), typeof(ChangeButtonText));
 		}
 
