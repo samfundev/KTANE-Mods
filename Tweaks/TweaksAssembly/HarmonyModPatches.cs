@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Reflection;
 using System.Reflection.Emit;
 using System.IO;
 using System.Linq;
@@ -8,15 +7,13 @@ using Assets.Scripts.Services;
 using Assets.Scripts.Settings;
 using HarmonyLib;
 using TMPro;
-using UnityEngine;
-using UnityEngine.UI;
+using Assets.Scripts.Mods.Screens;
 
 namespace TweaksAssembly.Patching
 {
 	internal static class HarmonyPatchInfo
 	{
 		public static string ModInfoFile = "modInfo.json";
-		public static Texture HarmonyTexture;
 
 		public static bool ToggleModInfo()
 		{
@@ -95,17 +92,23 @@ namespace TweaksAssembly.Patching
 		public static bool Prefix()
 		{
 			bool cont = HarmonyPatchInfo.ToggleModInfo();
-			ManualButtonPatch.AutoCloseManager = false;
 			if (cont)
 			{
 				InitialLoadCompleted = true;
 				return true;
 			}
 
-			// Make the game think this is a first load so that the UseModAlways setting can apply again.
-			typeof(ModManagerState).GetField("isFirstLoad", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, true);
-			// "Re-enter" the Mod Manager
-			SceneManager.Instance.ModManagerState.EnterTransitionComplete();
+			// "Re-enter" the Mod Manager to manage harmony mods
+			if (Tweaks.settings.ManageHarmonyMods && (!PlayerSettingsManager.Instance.PlayerSettings.UseModsAlways || InitialLoadCompleted))
+			{
+				ModManagerScreenManager.Instance.OpenManageInstalledModsScreen();
+			}
+			else
+			{
+				ModManager.Instance.EnableMods();
+				ModManagerScreenManager.Instance.OpenModLoadingScreenAndReturnToGame();
+			}
+
 			return false;
 		}
 	}
@@ -114,15 +117,9 @@ namespace TweaksAssembly.Patching
 	[HarmonyPriority(Priority.First)]
 	internal static class ManualButtonPatch
 	{
-		public static bool AutoCloseManager;
-
 		public static bool Prefix()
 		{
-			bool value = SetupPatch.Prefix();
-			if (value)
-				return true;
-			AutoCloseManager = true;
-			return false;
+			return SetupPatch.Prefix();
 		}
 	}
 
@@ -130,20 +127,19 @@ namespace TweaksAssembly.Patching
 	[HarmonyPriority(Priority.First)]
 	internal static class InstructionPatch
 	{
+		public static bool HasShownOnce;
+
 		public static bool Prefix(out bool __result)
 		{
-			__result = !PlayerSettingsManager.Instance.PlayerSettings.UseModsAlways || SetupPatch.InitialLoadCompleted;
-			return false;
-		}
-	}
+			if (PlayerSettingsManager.Instance.PlayerSettings.UseModsAlways || HarmonyPatchInfo.ModInfoFile == "modInfo.json")
+				__result = false;
+			else
+			{
+				__result = !HasShownOnce;
+				HasShownOnce = true;
+			}
 
-	[HarmonyPatch(typeof(ModManagerHoldable), "GoToModManagerState")]
-	[HarmonyPriority(Priority.First)]
-	internal static class ModManagerPatch
-	{
-		public static void Prefix()
-		{
-			ChangeButtonText.AllowAutoContinue = false;
+			return false;
 		}
 	}
 
@@ -151,47 +147,16 @@ namespace TweaksAssembly.Patching
 	[HarmonyPriority(Priority.First)]
 	internal static class ChangeButtonText
 	{
-		public static bool AllowAutoContinue = true;
-
 		public static void Postfix(MenuScreen __instance)
 		{
-			if (HarmonyPatchInfo.ModInfoFile == "modInfo.json")
+			if (HarmonyPatchInfo.ModInfoFile == "modInfo_Harmony.json" && __instance is ManageModsScreen ManagerScreen)
 			{
-				if (__instance is ModManagerManualInstructionScreen screen)
-				{
-					screen.ContinueButton.GetComponentInChildren<TextMeshProUGUI>(true)
-						.text = "Manage Harmony mods";
-					screen.OpenManualFolderButton.GetComponentInChildren<TextMeshProUGUI>(true).text =
-						"Skip Harmony manager";
-					Object.Destroy(screen.GetComponentInChildren<RawImage>());
-					var texts = screen.GetComponentsInChildren<TextMeshProUGUI>(true);
-					texts[1].text =
-						"Click this button if you'd like to skip the Harmony mod manager and load the Harmony mods that according to the previous configuration!";
-					texts[5].text =
-						"Or click this button if you'd like to select which Harmony mods should be enabled or disabled!";
-					texts[5].transform.localPosition = new Vector3(texts[5].transform.localPosition.x + 190,
-						texts[5].transform.localPosition.y - 90, texts[5].transform.localPosition.z);
-					if (Tweaks.settings.AutoSkipFinalizeScreen)
-						screen.OpenManualFolderButton.OnInteract();
-				}
-			}
-			else if (ManualButtonPatch.AutoCloseManager && __instance is ModManagerManualInstructionScreen ManualScreen)
-				ManualScreen.ContinueButton.OnInteract();
-			else if (__instance is ModManagerMainMenuScreen MenuScreen)
-			{
-				MenuScreen.SteamWorkshopBrowserButton.gameObject.SetActive(false);
-				MenuScreen.GetComponentInChildren<TextMeshProUGUI>().text = "Harmony Mod Manager";
-				var image = MenuScreen.GetComponentInChildren<RawImage>();
-				image.texture = HarmonyPatchInfo.HarmonyTexture;
-				image.transform.localScale = new Vector3(image.transform.localScale.x + 1,
-					image.transform.localScale.y, image.transform.localScale.z);
-				MenuScreen.ManageModsButton.GetComponentInChildren<TextMeshProUGUI>(true).text =
-					"Manage Harmony mods";
-				if (ManualButtonPatch.AutoCloseManager)
-					MenuScreen.ReturnToGameButton.OnInteract();
-			}
-			else if (__instance is ManageModsScreen ManagerScreen)
 				ManagerScreen.GetComponentInChildren<TextMeshProUGUI>().text = "Manage installed Harmony mods";
+				ManagerScreen.BackButton.OnInteract = () => {
+					ModManagerScreenManager.Instance.OpenModLoadingScreenAndReturnToGame();
+					return false;
+				};
+			}
 		}
 	}
 }

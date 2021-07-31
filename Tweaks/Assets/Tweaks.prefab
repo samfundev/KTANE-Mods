@@ -1372,7 +1372,6 @@ GameObject:
   - component: {fileID: 114820551977261236}
   - component: {fileID: 114476729585178434}
   - component: {fileID: 114185708029586830}
-  - component: {fileID: 114896487176763920}
   m_Layer: 0
   m_Name: Tweaks
   m_TagString: Untagged
@@ -6718,18 +6717,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShaderNames:
   - GUI/KT 3D Text
---- !u!114 &114896487176763920
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1753844279872294}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: -234249795, guid: f9655ca10095c2c45b4f86c01198f02e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  HarmonyTexture: {fileID: 2800000, guid: 409387a4068e84f94acfb31f0058db57, type: 3}
 --- !u!114 &114902843554147134
 MonoBehaviour:
   m_ObjectHideFlags: 1
