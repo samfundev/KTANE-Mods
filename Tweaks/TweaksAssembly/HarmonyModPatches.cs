@@ -105,7 +105,6 @@ namespace TweaksAssembly.Patching
 			}
 			else
 			{
-				ModManager.Instance.EnableMods();
 				ModManagerScreenManager.Instance.OpenModLoadingScreenAndReturnToGame();
 			}
 
