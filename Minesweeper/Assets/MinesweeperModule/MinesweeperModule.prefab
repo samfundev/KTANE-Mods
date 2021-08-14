@@ -1696,7 +1696,7 @@ GameObject:
   - component: {fileID: 114000010467810778}
   - component: {fileID: 114000014053564564}
   - component: {fileID: 114000013705306240}
-  - component: {fileID: 114806840712697728}
+  - component: {fileID: 114921037981786064}
   m_Layer: 0
   m_Name: MinesweeperModule
   m_TagString: Untagged
@@ -15573,8 +15573,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bbb3261d600ba6c4c9eecd29e4fcd6e1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Bomb: {fileID: 114000010467810778}
-  Module: {fileID: 114000013987448014}
+  BombInfo: {fileID: 114000010467810778}
   Audio: {fileID: 114000014053564564}
   ModuleSelectable: {fileID: 114000013210471804}
   ModeToggle: {fileID: 1000011118805872}
@@ -16113,7 +16112,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShaderNames:
   - KT/Mobile/DiffuseTint
---- !u!114 &114806840712697728
+--- !u!114 &114921037981786064
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -16121,10 +16120,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 1000011563687038}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c1cfb889a07d5fd4e9baed7960bb397f, type: 3}
+  m_Script: {fileID: 11500000, guid: ef33a92670eb27c4c87cac7a6d059956, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _colorblindMode: 0
+  TwitchHelpMessage: Dig the initial color with !{0} dig blue. Dig the cell in column
+    1 row 2 with !{0} dig 1 2. Flag the cell on column 3 row 4 with !{0} flag 3 4.
+    Add \"hold\" to the end of a command to hold down on a cell. You can use negative
+    numbers to count from the end of that row/column. Chain commands with a semicolon.
 --- !u!212 &212000010005853782
 SpriteRenderer:
   m_ObjectHideFlags: 1

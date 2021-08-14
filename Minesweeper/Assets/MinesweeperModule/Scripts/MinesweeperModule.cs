@@ -1,15 +1,14 @@
 ﻿using UnityEngine;
-using System;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using Random = UnityEngine.Random;
 using BombInfoExtensions;
+using KeepCoding;
 
-public class MinesweeperModule : MonoBehaviour
+public class MinesweeperModule : ModuleScript
 {
-	public KMBombInfo Bomb;
-	public KMBombModule Module;
+	public KMBombInfo BombInfo;
 	public KMAudio Audio;
 
 	public KMSelectable ModuleSelectable;
@@ -22,16 +21,16 @@ public class MinesweeperModule : MonoBehaviour
 
 	public List<Sprite> Sprites;
 
-	bool lightOn;
+	public bool LightOn;
 	bool loggedLegend;
-	static int idCounter = 1;
-	int moduleID;
+
+	private List<GameObject> colorblindLabels = new List<GameObject>();
 
 	Vector2 GridSize = new Vector2(8, 10);
 
-	readonly MSGrid Game = new MSGrid();
+	internal readonly MSGrid Game = new MSGrid();
 
-	class MSGrid
+	internal class MSGrid
 	{
 		public List<Cell> Cells = new List<Cell>();
 		public List<List<Cell>> Board = new List<List<Cell>>();
@@ -82,7 +81,7 @@ public class MinesweeperModule : MonoBehaviour
 		}
 	}
 
-	class Cell
+	internal class Cell
 	{
 		public int _x;
 		public int _y;
@@ -250,22 +249,12 @@ public class MinesweeperModule : MonoBehaviour
 	}
 
 	// Helper functions.
-	void Log(object data)
-	{
-		Debug.LogFormat("[Minesweeper #{0}] {1}", new object[] { moduleID, data });
-	}
-
-	void Log(object data, params object[] formatting)
-	{
-		Log(string.Format(data.ToString(), formatting));
-	}
-
 	int Mod(int x, int m)
 	{
 		return (x % m + m) % m;
 	}
 
-	readonly Dictionary<string, Color> Colors = new Dictionary<string, Color>()
+	internal readonly Dictionary<string, Color> Colors = new Dictionary<string, Color>()
 	{
 		{"red",    Color.red},
 		{"orange", new Color(1, 0.5f, 0)},
@@ -296,11 +285,11 @@ public class MinesweeperModule : MonoBehaviour
 		"black"
 	};
 
-	Cell StartingCell = null;
-	bool StartFound = false;
+	internal Cell StartingCell = null;
+	internal bool StartFound = false;
 	List<Cell> Picks = null;
 
-	void ModuleStarted()
+	public override void OnActivate()
 	{
 		pick_colors:
 		Picks = new List<Cell>() { StartingCell };
@@ -313,7 +302,7 @@ public class MinesweeperModule : MonoBehaviour
 
 		Picks.Sort((Cell x, Cell y) => Game.Cells.IndexOf(x) < Game.Cells.IndexOf(y) ? -1 : 1);
 
-		int digit = Bomb.GetSerialNumberNumbers().ElementAt(1);
+		int digit = BombInfo.GetSerialNumberNumbers().ElementAt(1);
 		int number = digit;
 		if (number == 0)
 		{
@@ -322,7 +311,7 @@ public class MinesweeperModule : MonoBehaviour
 		number = (number - 1) % total;
 
 		int G = total - Picks.IndexOf(StartingCell);
-		int S = Bomb.GetSerialNumberLetters().First() - 64;
+		int S = BombInfo.GetSerialNumberLetters().First() - 64;
 		int sol = Mod(G - S - 1, total) + 1;
 		if (sol == 7)
 		{
@@ -332,7 +321,6 @@ public class MinesweeperModule : MonoBehaviour
 		string solName = numToName[sol]; // This is the solution color's name.
 		unpickedNames.Remove(solName);
 
-		bool colorblind = GetComponent<KMColorblindMode>().ColorblindModeActive;
 		foreach (Cell cell in Picks)
 		{
 			string name;
@@ -347,7 +335,9 @@ public class MinesweeperModule : MonoBehaviour
 			cell.Color = name;
 
 			char letter = name == "black" ? 'K' : name[0];
-			if (colorblind) Instantiate(ColorblindLabel, cell._object.transform).GetComponent<TextMesh>().text = letter.ToString();
+			var label = Instantiate(ColorblindLabel, cell._object.transform).GetComponent<TextMesh>();
+			label.text = letter.ToString();
+			colorblindLabels.Add(label.gameObject);
 		}
 
 		Log("Color order: " + Picks.Select((a) => a.Color).Aggregate((a, b) => a + ", " + b) + ".");
@@ -357,14 +347,22 @@ public class MinesweeperModule : MonoBehaviour
 			Log("Which is actually 10 instead of 0.");
 		}
 		Log("The cell color we need to use is {0} which stands for {1}.", solName, sol);
-		Log("The first letter in the serial is {0} which stands for {1}", Bomb.GetSerialNumberLetters().First(), S);
+		Log("The first letter in the serial is {0} which stands for {1}", BombInfo.GetSerialNumberLetters().First(), S);
 		Log("The offset from the the bottom right corner is {0}.", ((sol + S) - 1) % total + 1);
 		Log("Which makes the starting cell the {0} cell.", StartingCell.Color);
 
 		UpdateSelectable();
 	}
 
-	IEnumerable TimedAnimation(float length)
+	public override void OnColorblindChanged(bool enabled)
+	{
+		foreach (var label in colorblindLabels)
+		{
+			label.SetActive(enabled);
+		}
+	}
+
+	internal IEnumerable TimedAnimation(float length)
 	{
 		float startTime = Time.time;
 		float alpha = 0;
@@ -375,7 +373,7 @@ public class MinesweeperModule : MonoBehaviour
 		}
 	}
 
-	IEnumerator SolveModule()
+	internal IEnumerator SolveModule()
 	{
 		foreach (Cell c in Game.Cells)
 		{
@@ -400,8 +398,7 @@ public class MinesweeperModule : MonoBehaviour
 			yield return null;
 		}
 
-		lightOn = true;
-		Module.HandlePass();
+		Solve();
 		UpdateSelectable();
 	}
 
@@ -494,29 +491,20 @@ public class MinesweeperModule : MonoBehaviour
 		}
 	}
 
-	bool Digging = true;
+	internal bool Digging = true;
 	bool Held = false;
 	Coroutine _playClick = null;
 
 	public void Start()
 	{
-		moduleID = idCounter++;
-
-		Module.OnActivate += ModuleStarted;
-
 		Slider = ModeToggle.transform.Find("Slider").gameObject;
 
-		bool motionControls = false;
-		try {
-			motionControls = ReflectionHelper.FindType("KTInputManager").GetValue<object>("Instance").CallMethod<bool>("IsMotionControlMode");
-		} catch (Exception exception) {
-			Log("Failed to see if motion controls are enabled: " + exception);
-		}
-
-		foreach (KMSelectable selectable in ModuleSelectable.Children) {
-			var boxCollider = ((BoxCollider) selectable.SelectableColliders[0]);
+		bool motionControls = KeepCoding.Game.KTInputManager.CurrentControlType == KeepCoding.Game.ControlType.Motion;
+		foreach (KMSelectable selectable in ModuleSelectable.Children)
+		{
+			var boxCollider = (BoxCollider) selectable.SelectableColliders[0];
 			var size = boxCollider.size;
-			size.y = 1;
+			size.y = motionControls ? 24 : 1;
 			boxCollider.size = size;
 		}
 
@@ -590,7 +578,7 @@ public class MinesweeperModule : MonoBehaviour
 								else
 								{
 									Log("Dug the " + cell.Color + " cell instead of " + StartingCell.Color + " for the correct starting cell.");
-									Module.HandleStrike();
+									Strike();
 								}
 							}
 						}
@@ -610,7 +598,7 @@ public class MinesweeperModule : MonoBehaviour
 												c.Dug = true;
 												c.Flagged = true;
 												c.UpdateSprite();
-												Module.HandleStrike();
+												Strike();
 												LogBoard();
 												break;
 											}
@@ -629,7 +617,7 @@ public class MinesweeperModule : MonoBehaviour
 										cell.Dug = true;
 										cell.Flagged = true;
 										cell.UpdateSprite();
-										Module.HandleStrike();
+										Strike();
 										LogBoard();
 									}
 									else
@@ -665,7 +653,7 @@ public class MinesweeperModule : MonoBehaviour
 		if (attempts == 1000)
 		{
 			Log("Unable to create a board after 1000 attempts. Automatically solving the module.");
-			Module.HandlePass();
+			Solve();
 			return;
 		}
 
@@ -783,253 +771,11 @@ public class MinesweeperModule : MonoBehaviour
 
 	GameObject Slider = null;
 	float sliderAlpha = 0;
-	float targetAlpha = 0;
+	internal float targetAlpha = 0;
 	public void Update()
 	{
 		sliderAlpha = Mathf.Lerp(sliderAlpha, targetAlpha, 0.1f);
 
 		Slider.transform.localPosition = new Vector3(0, 2, -2.5f + 5f * sliderAlpha);
-	}
-
-	private class TPAction
-	{
-		public TPAction(Cell cell, bool held)
-		{
-			_cell = cell;
-			_held = held;
-			actionType = "interact";
-		}
-
-		public TPAction(Cell cell, bool digging, bool held)
-		{
-			_cell = cell;
-			_digging = digging;
-			_held = held;
-			actionType = "setInteract";
-		}
-
-		public TPAction(string color)
-		{
-			_color = color;
-			actionType = "digColor";
-		}
-
-		public string actionType;
-		public Cell _cell;
-		public bool _digging;
-		public bool _held;
-		public string _color;
-	}
-
-	private bool EqualsAny(object obj, params object[] targets)
-	{
-		return targets.Contains(obj);
-	}
-
-	public readonly string TwitchHelpMessage = "Dig the initial color with !{0} dig blue. Dig the cell in column 1 row 2 with !{0} dig 1 2. Flag the cell on column 3 row 4 with !{0} flag 3 4. Add \"hold\" to the end of a command to hold down on a cell. You can use negative numbers to count from the end of that row/column. Chain commands with a semicolon.";
-
-	public IEnumerator ProcessTwitchCommand(string command)
-	{
-		string[] chainedCommands = command.Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries);
-		if (chainedCommands.Length > 1)
-		{
-			var commandRoutines = chainedCommands.Select(ProcessTwitchCommand).ToArray();
-			var invalidCommand = Array.Find(commandRoutines, routine => !routine.MoveNext());
-			if (invalidCommand != null)
-			{
-				yield return "sendtochaterror The command \"" + chainedCommands[Array.IndexOf(commandRoutines, invalidCommand)] + "\" is invalid.";
-				yield break;
-			}
-
-			yield return null;
-			foreach (IEnumerator routine in commandRoutines)
-			{
-				do
-				{
-					yield return routine.Current;
-				}
-				while (routine.MoveNext());
-			}
-
-			yield break;
-		}
-
-		string[] split = command.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-		bool digging = split.Length >= 1 && EqualsAny(split[0], "dig", "d");
-		if (StartFound)
-		{
-			bool holding = EqualsAny(split.Last(), "hold", "holding", "h");
-			if (EqualsAny(split.Length, 3, 4) && EqualsAny(split[0], "dig", "flag", "d", "f"))
-			{
-				if (holding != (split.Length == 4)) yield break;
-
-				int x;
-				int y;
-				if (int.TryParse(split[1], out x) && int.TryParse(split[2], out y))
-				{
-					if (x < 0) x += 9;
-					if (y < 0) y += 11;
-					Cell cell = Game.GetCell(x - 1, y - 1);
-					if (cell == null) yield break;
-
-					yield return null;
-					if (digging != Digging)
-					{
-						ModeToggle.GetComponent<KMSelectable>().OnInteract();
-						yield return new WaitForSeconds(0.1f);
-					}
-
-					cell._selectable.OnInteract();
-					if (holding) yield return new WaitForSeconds(0.3f);
-					cell._selectable.OnInteractEnded();
-					yield return new WaitForSeconds(0.1f);
-				}
-			}
-			else if (EqualsAny(split.Length, 2, 3))
-			{
-				if (holding != (split.Length == 3)) yield break;
-
-				int x;
-				int y;
-				if (int.TryParse(split[0], out x) && int.TryParse(split[1], out y))
-				{
-					if (x < 0) x += 9;
-					if (y < 0) y += 11;
-					Cell cell = Game.GetCell(x - 1, y - 1);
-					if (cell == null) yield break;
-
-					yield return null;
-					cell._selectable.OnInteract();
-					if (holding) yield return new WaitForSeconds(0.3f);
-					cell._selectable.OnInteractEnded();
-					yield return new WaitForSeconds(0.1f);
-				}
-			}
-		}
-		else if (split.Length == 2 && digging && Colors.Keys.Contains(split[1]))
-		{
-			yield return null;
-			foreach (Cell cell in Game.Cells)
-			{
-				if (cell.Color == split[1])
-				{
-					cell.Click();
-					yield return new WaitForSeconds(0.1f);
-				}
-			}
-
-			StartCoroutine(TwitchPlaysFormat());
-		}
-	}
-
-	IEnumerator TwitchPlaysFormat()
-	{
-		Vector3[] GuidePositions = new Vector3[2];
-		Vector3[] GuideScales = new Vector3[2];
-
-		for (int n = 0; n < Guides.Length; n++)
-		{
-			GameObject guide = Guides[n];
-			GuidePositions[n] = guide.transform.localPosition;
-			GuideScales[n] = guide.transform.localScale;
-			guide.SetActive(true);
-		}
-
-		foreach (float alpha in TimedAnimation(1))
-		{
-			float curvedAlpha = -Mathf.Pow(2, -10 * alpha) + 1;
-			for (int n = 0; n < Guides.Length; n++)
-			{
-				GameObject guide = Guides[n];
-
-				Vector3 guidePosition = GuidePositions[n];
-				guide.transform.localPosition = Vector3.Lerp(guidePosition, guidePosition + new Vector3(0, 0, -0.0075f), curvedAlpha);
-				guide.transform.localScale = Vector3.Lerp(Vector3.zero, GuideScales[n], curvedAlpha);
-			}
-
-			Vector3 localPosition = Grid.transform.localPosition;
-			localPosition.z = -0.0075f * curvedAlpha;
-			Grid.transform.localPosition = localPosition;
-			yield return null;
-		}
-	}
-
-	public IEnumerator TwitchHandleForcedSolve()
-	{
-		if (!StartFound)
-		{
-			StartingCell.Click();
-			yield return new WaitForSeconds(0.1f);
-		}
-
-		List<Cell> Unused = Game.Cells.Where(cell => cell.Number != 0 && cell.Dug).ToList(); // Cells that have a number in them but haven't been used by the solver yet.
-		List<Cell> Used = new List<Cell>(); // Store the used cells temporarily until the loop is over.
-		List<Cell> UnusedTemp = new List<Cell>(); // Store the new unused cells temporarily until the loop is over.
-
-		bool Changed = true;
-		while (Unused.Count > 0 && Changed && !Game.Solved)
-		{
-			Changed = false;
-
-			foreach (Cell cell in Unused)
-			{
-				int Flagged = 0;
-				int Covered = 0;
-				foreach (Cell adj in cell.Around)
-				{
-					if (!adj.Dug)
-					{
-						Covered++;
-					}
-
-					if (adj.Flagged)
-					{
-						Flagged++;
-					}
-				}
-
-				bool DigAll = Flagged == cell.Number;
-				bool FlagAll = Covered == cell.Number;
-				if (DigAll || FlagAll)
-				{
-					Changed = true;
-					Used.Add(cell);
-					if (FlagAll)
-						Audio.PlaySoundAtTransform("Flag-" + Random.Range(1, 9).ToString("D2"), transform);
-
-					foreach (Cell adj in cell.Around)
-					{
-						if (!adj.Dug)
-						{
-							targetAlpha = DigAll ? 0 : 1;
-
-							if (DigAll)
-							{
-								yield return adj.AnimatedDig();
-								UnusedTemp.AddRange(adj.AllDug.Where(uncoveredCell => !uncoveredCell.Mine && uncoveredCell.Number != 0));
-							}
-							else if (FlagAll)
-							{
-								adj.Flagged = true;
-							}
-							adj.UpdateSprite();
-							yield return new WaitForSeconds(0.05f);
-						}
-					}
-				}
-			}
-
-			foreach (Cell cell in Used)
-			{
-				Unused.Remove(cell);
-			}
-			Used.Clear();
-
-			Unused.AddRange(UnusedTemp);
-			UnusedTemp.Clear();
-		}
-
-		StartCoroutine(SolveModule());
-		while (!lightOn) yield return true;
 	}
 }
