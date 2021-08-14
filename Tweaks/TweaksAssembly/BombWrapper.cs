@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Collections;
@@ -104,7 +104,7 @@ class BombWrapper : MonoBehaviour
 					}
 
 					string multiplierText = Math.Round(Modes.settings.TimeModePointMultiplier, 3) == 1 ? "" : $"<size=36>x</size> {Modes.settings.TimeModePointMultiplier:0.###} ";
-					alertText += $"{points:0} points <size=36>x</size> {finalMultiplier:0.#} {multiplierText}= {(time > 0 ? "+" : "")}{time.FormatTime()}\n";
+					alertText += $"{points:0} point{(Math.Round(points) == 1 ? "" : "s")} <size=36>x</size> {finalMultiplier:0.#} {multiplierText}= {(time > 0 ? "+" : "")}{time.FormatTime()}\n";
 
 					if (time < Modes.settings.TimeModeMinimumTimeGained)
 					{
@@ -306,6 +306,24 @@ class BombWrapper : MonoBehaviour
 				}
 			}
 		}
+	}
+
+	public static void AwardPoints(BombComponent bombComponent, double points)
+	{
+		var wrapper = Tweaks.bombWrappers.First(wrap => wrap.Bomb.BombComponents.Contains(bombComponent));
+
+		var modules = wrapper.Bomb.GetSolvableComponentCount();
+		float finalMultiplier = Mathf.Min(Modes.Multiplier, Modes.settings.TimeModeMaxMultiplier);
+		float time = (float) (points * finalMultiplier * Modes.settings.TimeModePointMultiplier);
+
+		// Show the alert
+		string multiplierText = Math.Round(Modes.settings.TimeModePointMultiplier, 3) == 1 ? "" : $"<size=36>x</size> {Modes.settings.TimeModePointMultiplier:0.###} ";
+		string alertText = $"{points:0} point{(Math.Round(points) == 1 ? "" : "s")} <size=36>x</size> {finalMultiplier:0.#} {multiplierText}= {(time > 0 ? " + " : "")}{time.FormatTime()}\n";
+		alertText += bombComponent.GetModuleDisplayName();
+
+		wrapper.AddAlert(alertText.Replace(' ', ' '), Color.green); // Replace all spaces with nbsp since we don't want the line to wrap.
+
+		wrapper.CurrentTimer += time;
 	}
 
 	public void OnDestroy()
