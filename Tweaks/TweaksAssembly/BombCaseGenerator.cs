@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -184,7 +184,7 @@ public class BombCaseGenerator : MonoBehaviour
 			return Color.Lerp(colors[index], colors[index + 1], Random.value);
 		}
 
-		return Color.black;
+		return Random.ColorHSV();
 	}
 
 	bool TryParseColor(string colorString, out Color color)
@@ -199,7 +199,7 @@ public class BombCaseGenerator : MonoBehaviour
 		}
 		else if (colorString == "random")
 		{
-			color = new Color(Random.value, Random.value, Random.value);
+			color = Random.ColorHSV();
 			return true;
 		}
 		else
