@@ -234,13 +234,21 @@ class BombWrapper : MonoBehaviour
 						new TTKComponentSolver(component, bombModule, Tweaks.CurrentMode.Equals(Mode.Zen) ? Modes.initialTime : timerComponent.TimeRemaining);
 						break;
 
-					// Correct some mispositioned objects in older modules
+					// Correct some mispositioned objects in some regular modules
 					case "ForeignExchangeRates":
 					case "resistors":
 					case "CryptModule":
 					case "LEDEnc":
 						// This fixes the position of the module itself (but keeps the status light in its original location, which fixes it)
 						component.transform.Find("Model").transform.localPosition = new Vector3(0.004f, 0, 0);
+						break;
+					case "ColourFlash":
+					case "ColourFlashES":
+					case "ColourFlashPL":
+						// This fixes the position of the module itself (but keeps the status light in its original location)
+						component.transform.Find("ModuleBackground").transform.localPosition = Vector3.zero;
+						// This fixes the position of the status light
+						component.GetComponentInChildren<StatusLightParent>().transform.localPosition = new Vector3(0.075167f, 0.01986f, 0.076057f);
 						break;
 					case "Listening":
 						// This fixes the Y-coordinate of the position of the status light
@@ -249,19 +257,72 @@ class BombWrapper : MonoBehaviour
 					case "TwoBits":
 					case "errorCodes":
 					case "primeEncryption":
-					case "memorableButtons":
 					case "babaIsWho":
-					case "strikeSolve":
-					case "vexillology":
+					case "combinationLock":
 						// This fixes the position of the status light
 						component.GetComponentInChildren<StatusLightParent>().transform.localPosition = new Vector3(0.075167f, 0.01986f, 0.076057f);
+						break;
+					case "matrix":
+						// This fixes the position of the module itself
+						for (int i = 0; i < component.transform.childCount; i++)
+							component.transform.GetChild(i).transform.localPosition -= new Vector3(0, 0.0053061005f, 0);
+						break;
+					case "memorableButtons":
+					case "strikeSolve":
+						// This fixes the position of the module itself
+						for (int i = 0; i < component.transform.childCount; i++)
+							component.transform.GetChild(i).transform.localPosition -= new Vector3(0, 0.0053061005f, 0);
+						// This fixes the position of the status light
+						component.GetComponentInChildren<StatusLightParent>().transform.localPosition = new Vector3(0.075167f, 0.01986f, 0.076057f);
+						break;
+					case "vexillology":
+						// This fixes the position of the module itself
+						for (int i = 0; i < component.transform.childCount; i++)
+							component.transform.GetChild(i).transform.localPosition -= new Vector3(0, 0.0053061005f, 0);
+						// This fixes the position of the status light
+						component.GetComponentInChildren<StatusLightParent>().transform.localPosition = new Vector3(0.075167f, 0.01986f, 0.076057f);
+						// This fixes the module selectable being pass through
+						component.GetComponent<Selectable>().IsPassThrough = false;
 						break;
 					case "tWords":
 					case "moon":
 					case "sun":
+					case "jackOLantern":
+						// This fixes the scale of the light components
+						Light[] lights = component.GetComponentsInChildren<Light>();
+						for (int i = 0; i < lights.Length; i++)
+							lights[i].range *= component.transform.lossyScale.x;
+						break;
 					case "jewelVault":
 						// This fixes the scale of the light components
-						component.GetComponentInChildren<Light>().range *= component.transform.lossyScale.x;
+						lights = component.GetComponentsInChildren<Light>();
+						for (int i = 0; i < lights.Length; i++)
+							lights[i].range *= component.transform.lossyScale.x;
+						// This fixes the scale of the light components that could not be received using the first method
+						string[] lightSuffixes = { "Top", "1", "2", "3", "4" };
+						for (int i = 0; i < 5; i++)
+							component.transform.Find("hinge/wheelHolder/outerWheel/centre/centralOrb/yellowLights/yellowLight" + lightSuffixes[i]).GetComponent<Light>().range *= component.transform.lossyScale.x;
+						for (int i = 0; i < 5; i++)
+							component.transform.Find("hinge/wheelHolder/outerWheel/centre/centralOrb/redLights/redLight" + lightSuffixes[i]).GetComponent<Light>().range *= component.transform.lossyScale.x;
+						for (int i = 0; i < 5; i++)
+							component.transform.Find("hinge/wheelHolder/outerWheel/centre/centralOrb/greenLights/greenLight" + lightSuffixes[i]).GetComponent<Light>().range *= component.transform.lossyScale.x;
+						for (int i = 0; i < 5; i++)
+							component.transform.Find("hinge/wheelHolder/outerWheel/centre/centralOrb/blueLights/blueLight" + lightSuffixes[i]).GetComponent<Light>().range *= component.transform.lossyScale.x;
+						for (int i = 0; i < 5; i++)
+							component.transform.Find("hinge/wheelHolder/outerWheel/centre/centralOrb/pinkLights/pinkLight" + lightSuffixes[i]).GetComponent<Light>().range *= component.transform.lossyScale.x;
+						break;
+					case "sphere":
+						// This fixes the scale of the light components
+						lights = component.GetComponentsInChildren<Light>();
+						for (int i = 0; i < lights.Length; i++)
+							lights[i].range *= component.transform.lossyScale.x;
+						// This fixes the scale of the light components that could not be received using the first method
+						for (int i = 0; i < 11; i++)
+							component.transform.Find("stageLights/Light" + (i + 1) + "/Spotlight").GetComponent<Light>().range *= component.transform.lossyScale.x;
+						for (int i = 0; i < 19; i++)
+							component.transform.Find("interactionLights/Light" + (i + 1) + "/Spotlight").GetComponent<Light>().range *= component.transform.lossyScale.x;
+						component.transform.Find("interactionLights/Light10a/Spotlight").GetComponent<Light>().range *= component.transform.lossyScale.x;
+						component.transform.Find("interactionLights/Light10b/Spotlight").GetComponent<Light>().range *= component.transform.lossyScale.x;
 						break;
 				}
 
@@ -269,8 +330,61 @@ class BombWrapper : MonoBehaviour
 				switch (bombModule.ModuleType)
 				{
 					case "babaIsWho":
+					case "memorableButtons":
+					case "strikeSolve":
+					case "vexillology":
 						component.GetComponent<Selectable>().Highlight.transform.localPosition = Vector3.zero;
 						break;
+					case "matrix":
+						component.GetComponent<Selectable>().Highlight.transform.localPosition += new Vector3(0, 0.0053061005f, 0);
+						break;
+				}
+			}
+			else
+			{
+				KMNeedyModule needyModule = component.GetComponent<KMNeedyModule>();
+				if (needyModule != null && Tweaks.settings.ModuleTweaks)
+				{
+					// Correct some mispositioned objects in some needy modules
+					switch (needyModule.ModuleType)
+					{
+						case "Needy Math":
+							// This fixes z-fighting in the countdown screen by removing Unity's placeholder screen
+							component.transform.Find("Model/ScreenBackground").gameObject.SetActive(false);
+							// This fixes the positions of the question and answer displays
+							component.transform.Find("Model/ScreenBackgroundQuestion").transform.localEulerAngles = new Vector3(-2.3f, -180, 0);
+							component.transform.Find("Model/ScreenBackgroundAnswer").transform.localEulerAngles = new Vector3(-2.3f, -180, 0);
+							component.transform.Find("Model/MathDisplay").transform.localPosition = new Vector3(-0.0533f, 0.0234f, 0.0616f);
+							component.transform.Find("Model/MathDisplay").transform.localEulerAngles = new Vector3(86, -720, 0);
+							component.transform.Find("Model/MathDisplayAnswer").transform.localPosition = new Vector3(0.0542f, 0.0234f, 0.0616f);
+							component.transform.Find("Model/MathDisplayAnswer").transform.localEulerAngles = new Vector3(86, -720, 0);
+							break;
+						case "LightsOut":
+							// This fixes z-fighting in the countdown screen by removing Unity's placeholder screen
+							component.transform.Find("Screen").gameObject.SetActive(false);
+							break;
+						case "Filibuster":
+							// This fixes z-fighting in the countdown screen by removing Unity's placeholder screen
+							component.transform.Find("Model/Component_Needy_Background/Screen").gameObject.SetActive(false);
+							break;
+						case "needyMrsBob":
+							// This fixes z-fighting in the countdown screen by removing Unity's placeholder screen
+							component.transform.Find("ancillary/Component_Needy_Background/Screen").gameObject.SetActive(false);
+							break;
+						case "draw":
+						case "rapidButtons":
+							// This fixes z-fighting in the countdown screen by removing Unity's placeholder screen
+							component.transform.Find("Component_Needy_Background/Screen").gameObject.SetActive(false);
+							break;
+						case "simonSquawks":
+							// This fixes z-fighting in the countdown screen by removing Unity's placeholder screen
+							component.transform.Find("Ancillary/Component_Needy_Background/Screen").gameObject.SetActive(false);
+							break;
+						case "triangleButtons":
+							// This fixes z-fighting in the countdown screen by removing Unity's placeholder screen
+							component.transform.Find("Background/Screen").gameObject.SetActive(false);
+							break;
+					}
 				}
 			}
 
