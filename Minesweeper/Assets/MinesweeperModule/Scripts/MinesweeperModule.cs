@@ -24,7 +24,7 @@ public class MinesweeperModule : ModuleScript
 	public bool LightOn;
 	bool loggedLegend;
 
-	private List<GameObject> colorblindLabels = new List<GameObject>();
+	private readonly List<GameObject> colorblindLabels = new List<GameObject>();
 
 	Vector2 GridSize = new Vector2(8, 10);
 
@@ -358,7 +358,7 @@ public class MinesweeperModule : ModuleScript
 	{
 		foreach (var label in colorblindLabels)
 		{
-			label.SetActive(enabled);
+			label.SetActive(!StartFound && enabled);
 		}
 	}
 
@@ -571,6 +571,11 @@ public class MinesweeperModule : ModuleScript
 									foreach (Cell c in Game.Cells)
 									{
 										c._renderer.color = Color.white;
+									}
+
+									foreach (var label in colorblindLabels)
+									{
+										label.SetActive(false);
 									}
 
 									StartCoroutine(cell.AnimatedDig());

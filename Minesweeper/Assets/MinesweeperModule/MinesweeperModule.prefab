@@ -15597,6 +15597,7 @@ MonoBehaviour:
   - {fileID: 21300020, guid: 76f514ed57438a64a9878aa3c1967006, type: 3}
   - {fileID: 21300022, guid: 76f514ed57438a64a9878aa3c1967006, type: 3}
   - {fileID: 21300024, guid: 76f514ed57438a64a9878aa3c1967006, type: 3}
+  LightOn: 0
 --- !u!114 &114000013711512060
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -16127,6 +16128,9 @@ MonoBehaviour:
     1 row 2 with !{0} dig 1 2. Flag the cell on column 3 row 4 with !{0} flag 3 4.
     Add \"hold\" to the end of a command to hold down on a cell. You can use negative
     numbers to count from the end of that row/column. Chain commands with a semicolon.
+    Toggle colorblind support with !{0} colorblind.
+  TwitchManualCode: 
+  TwitchAbandonModule: []
 --- !u!212 &212000010005853782
 SpriteRenderer:
   m_ObjectHideFlags: 1
