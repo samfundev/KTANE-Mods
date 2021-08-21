@@ -1,8 +1,6 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using Assets.Scripts.Missions;
-using Newtonsoft.Json.Linq;
-using UnityEngine.Networking;
 
 public enum Mode
 {
@@ -57,19 +55,19 @@ static class Modes
 
 	public static IEnumerator LoadDefaultSettings()
 	{
-		UnityWebRequest www = UnityWebRequest.Get("https://spreadsheets.google.com/feeds/list/16lz2mCqRWxq__qnamgvlD0XwTuva4jIDW1VPWX49hzM/1/public/values?alt=json");
+		var sheet = new GoogleSheet("16lz2mCqRWxq__qnamgvlD0XwTuva4jIDW1VPWX49hzM");
 
-		yield return www.SendWebRequest();
+		yield return sheet;
 
-		if (!www.isNetworkError && !www.isHttpError)
+		if (sheet.Success)
 		{
 			bool missingWarning = false;
-			foreach (var entry in JObject.Parse(www.downloadHandler.text)["feed"]["entry"])
+			foreach (var entry in sheet.GetRows())
 			{
-				bool score = !string.IsNullOrEmpty(entry["gsx$resolvedscore"]["$t"]?.Value<string>().Trim());
-				bool multiplier = !string.IsNullOrEmpty(entry["gsx$resolvedbosspointspermodule"]["$t"]?.Value<string>().Trim());
+				bool score = !string.IsNullOrEmpty(entry["resolvedscore"].Trim());
+				bool multiplier = !string.IsNullOrEmpty(entry["resolvedbosspointspermodule"].Trim());
 
-				if (entry["gsx$moduleid"] == null)
+				if (entry["moduleid"] == null)
 				{
 					if ((score || multiplier) && !missingWarning)
 					{
@@ -80,14 +78,14 @@ static class Modes
 					continue;
 				}
 
-				string moduleID = entry["gsx$moduleid"].Value<string>("$t");
+				string moduleID = entry["moduleid"];
 				if (string.IsNullOrEmpty(moduleID) || moduleID == "ModuleID")
 					continue;
 
 				if (score)
-					DefaultComponentValues[moduleID] = entry["gsx$resolvedscore"].Value<double>("$t");
+					DefaultComponentValues[moduleID] = double.Parse(entry["resolvedscore"]);
 				if (multiplier)
-					DefaultTotalModulesMultiplier[moduleID] = entry["gsx$resolvedbosspointspermodule"].Value<double>("$t");
+					DefaultTotalModulesMultiplier[moduleID] = double.Parse(entry["resolvedbosspointspermodule"]);
 			}
 		}
 		else
