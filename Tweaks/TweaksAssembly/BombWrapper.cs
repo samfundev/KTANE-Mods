@@ -203,6 +203,7 @@ class BombWrapper : MonoBehaviour
 			{ "WordScrambleModule", bombComponent => new WordScramblePatch(bombComponent) },
 			{ "Color Decoding", bombComponent => new ColorDecodingTweak(bombComponent) },
 			{ "TurnTheKeyAdvanced", bombComponent => new TTKSTweak(bombComponent) },
+			{ "draw", bombComponent => new DrawTweak(bombComponent) },
 
 			{ "Wires", bombComponent => new WiresLogging(bombComponent) },
 			{ "Keypad", bombComponent => new KeypadLogging(bombComponent) }
@@ -224,6 +225,7 @@ class BombWrapper : MonoBehaviour
 		foreach (BombComponent component in Bomb.BombComponents)
 		{
 			KMBombModule bombModule = component.GetComponent<KMBombModule>();
+			KMNeedyModule needyModule = component.GetComponent<KMNeedyModule>();
 			if (bombModule != null && (bombModule.ModuleType == "TurnTheKey" || Tweaks.settings.ModuleTweaks))
 			{
 				switch (bombModule.ModuleType)
@@ -340,56 +342,52 @@ class BombWrapper : MonoBehaviour
 						break;
 				}
 			}
-			else
+			else if (needyModule != null && Tweaks.settings.ModuleTweaks)
 			{
-				KMNeedyModule needyModule = component.GetComponent<KMNeedyModule>();
-				if (needyModule != null && Tweaks.settings.ModuleTweaks)
+				// Correct some mispositioned objects in some needy modules
+				switch (needyModule.ModuleType)
 				{
-					// Correct some mispositioned objects in some needy modules
-					switch (needyModule.ModuleType)
-					{
-						case "Needy Math":
-							// This fixes z-fighting in the countdown screen by removing Unity's placeholder screen
-							component.transform.Find("Model/ScreenBackground").gameObject.SetActive(false);
-							// This fixes the positions of the question and answer displays
-							component.transform.Find("Model/ScreenBackgroundQuestion").transform.localEulerAngles = new Vector3(-2.3f, -180, 0);
-							component.transform.Find("Model/ScreenBackgroundAnswer").transform.localEulerAngles = new Vector3(-2.3f, -180, 0);
-							component.transform.Find("Model/MathDisplay").transform.localPosition = new Vector3(-0.0533f, 0.0234f, 0.0616f);
-							component.transform.Find("Model/MathDisplay").transform.localEulerAngles = new Vector3(86, -720, 0);
-							component.transform.Find("Model/MathDisplayAnswer").transform.localPosition = new Vector3(0.0542f, 0.0234f, 0.0616f);
-							component.transform.Find("Model/MathDisplayAnswer").transform.localEulerAngles = new Vector3(86, -720, 0);
-							break;
-						case "LightsOut":
-							// This fixes z-fighting in the countdown screen by removing Unity's placeholder screen
-							component.transform.Find("Screen").gameObject.SetActive(false);
-							break;
-						case "Filibuster":
-							// This fixes z-fighting in the countdown screen by removing Unity's placeholder screen
-							component.transform.Find("Model/Component_Needy_Background/Screen").gameObject.SetActive(false);
-							break;
-						case "needyMrsBob":
-							// This fixes z-fighting in the countdown screen by removing Unity's placeholder screen
-							component.transform.Find("ancillary/Component_Needy_Background/Screen").gameObject.SetActive(false);
-							break;
-						case "draw":
-						case "rapidButtons":
-							// This fixes z-fighting in the countdown screen by removing Unity's placeholder screen
-							component.transform.Find("Component_Needy_Background/Screen").gameObject.SetActive(false);
-							break;
-						case "simonSquawks":
-							// This fixes z-fighting in the countdown screen by removing Unity's placeholder screen
-							component.transform.Find("Ancillary/Component_Needy_Background/Screen").gameObject.SetActive(false);
-							break;
-						case "triangleButtons":
-							// This fixes z-fighting in the countdown screen by removing Unity's placeholder screen
-							component.transform.Find("Background/Screen").gameObject.SetActive(false);
-							break;
-					}
+					case "Needy Math":
+						// This fixes z-fighting in the countdown screen by removing Unity's placeholder screen
+						component.transform.Find("Model/ScreenBackground").gameObject.SetActive(false);
+						// This fixes the positions of the question and answer displays
+						component.transform.Find("Model/ScreenBackgroundQuestion").transform.localEulerAngles = new Vector3(-2.3f, -180, 0);
+						component.transform.Find("Model/ScreenBackgroundAnswer").transform.localEulerAngles = new Vector3(-2.3f, -180, 0);
+						component.transform.Find("Model/MathDisplay").transform.localPosition = new Vector3(-0.0533f, 0.0234f, 0.0616f);
+						component.transform.Find("Model/MathDisplay").transform.localEulerAngles = new Vector3(86, -720, 0);
+						component.transform.Find("Model/MathDisplayAnswer").transform.localPosition = new Vector3(0.0542f, 0.0234f, 0.0616f);
+						component.transform.Find("Model/MathDisplayAnswer").transform.localEulerAngles = new Vector3(86, -720, 0);
+						break;
+					case "LightsOut":
+						// This fixes z-fighting in the countdown screen by removing Unity's placeholder screen
+						component.transform.Find("Screen").gameObject.SetActive(false);
+						break;
+					case "Filibuster":
+						// This fixes z-fighting in the countdown screen by removing Unity's placeholder screen
+						component.transform.Find("Model/Component_Needy_Background/Screen").gameObject.SetActive(false);
+						break;
+					case "needyMrsBob":
+						// This fixes z-fighting in the countdown screen by removing Unity's placeholder screen
+						component.transform.Find("ancillary/Component_Needy_Background/Screen").gameObject.SetActive(false);
+						break;
+					case "draw":
+					case "rapidButtons":
+						// This fixes z-fighting in the countdown screen by removing Unity's placeholder screen
+						component.transform.Find("Component_Needy_Background/Screen").gameObject.SetActive(false);
+						break;
+					case "simonSquawks":
+						// This fixes z-fighting in the countdown screen by removing Unity's placeholder screen
+						component.transform.Find("Ancillary/Component_Needy_Background/Screen").gameObject.SetActive(false);
+						break;
+					case "triangleButtons":
+						// This fixes z-fighting in the countdown screen by removing Unity's placeholder screen
+						component.transform.Find("Background/Screen").gameObject.SetActive(false);
+						break;
 				}
 			}
 
 			ModuleTweak moduleTweak = null;
-			string moduleType = bombModule != null ? bombModule.ModuleType : component.ComponentType.ToString();
+			string moduleType = bombModule != null ? bombModule.ModuleType : needyModule != null ? needyModule.ModuleType : component.ComponentType.ToString();
 			if (moduleTweaks.ContainsKey(moduleType) && (!moduleType.EqualsAny("WordScrambleModule", "TurnKeyAdvancedModule") || Tweaks.settings.ModuleTweaks))
 			{
 				moduleTweak = moduleTweaks[moduleType](component);
