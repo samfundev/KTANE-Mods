@@ -603,8 +603,18 @@ class SettingsPage : MonoBehaviour
 			Transform Description = ListingObject.transform.Find("Description");
 			Description.GetComponent<TextMesh>().text = listing.Description;
 			Description.gameObject.SetActive(true);
-			Bounds bounds = Text.GetComponent<Renderer>().bounds;
-			Description.position = bounds.center + new Vector3(bounds.extents.x, 0, 0);
+
+			// Bounds are effected by rotation, so we need to be in a standard rotation to get a consistent size for the text.
+			var oldRotation = transform.parent.rotation;
+			transform.parent.eulerAngles = new Vector3(90, 0, 0);
+			Vector3 extends = Text.GetComponent<Renderer>().bounds.extents;
+			transform.parent.rotation = oldRotation;
+
+			// We don't want the rotation to change where the center of the text is, so we do it after resetting the rotation.
+			Vector3 center = Text.GetComponent<Renderer>().bounds.center;
+
+			// The rotation of the holdable needs to be taken into account when applying an offset.
+			Description.position = center + Text.rotation * new Vector3(extends.x, 0, 0);
 			Description.localPosition += new Vector3(0.01f, 0, 0);
 		}
 
