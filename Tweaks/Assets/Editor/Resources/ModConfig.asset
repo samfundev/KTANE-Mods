@@ -17,7 +17,7 @@ MonoBehaviour:
   description: "[h1]About[/h1]\r\n\r\nThis mods adds small tweaks to the KTANE to
     make the game just a bit better.\r\n\r\n[h1]Tweaks[/h1]\r\n[list]\r\n[*] Picks
     the smallest case that fits the number of modules on the bomb.\r\n[*] Adds three
-    new ways to solve bombs: Time, Zen and Steady Mode. Take a look at the \u201C[url=https://github.com/samfun123/KTANE-Mods/wiki/Tweaks-Documentation#modes]Modes[/url]\u201D
+    new ways to solve bombs: Time, Zen and Steady Mode. Take a look at the \u201C[url=https://samfundev.github.io/KTANE-Mods/tweaks.html#modes]Modes[/url]\u201D
     section in the documentation for more information.\r\n[*] Adds two separate HUDs,
     one showing the bomb status and the other showing edgework.\r\n[*] Allows the
     player to hide table of contents entries in the mission binder. [url=https://i.imgur.com/pN0WfJw.gif](See
