@@ -1,13 +1,13 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using Assets.Scripts.Missions;
 
 public enum Mode
 {
-    Normal,
-    Time,
-    //VS,
-    Zen,
+	Normal,
+	Time,
+	//VS,
+	Zen,
 	Steady
 }
 
@@ -16,19 +16,19 @@ static class Modes
 	public static ModConfig<ModeSettings> modConfig = new ModConfig<ModeSettings>("ModeSettings");
 	public static ModeSettings settings = modConfig.Read();
 	public static float Multiplier = settings.TimeModeStartingMultiplier;
-    public static float timePenalty = 1.0f;
-    public static float initialTime;
+	public static float timePenalty = 1.0f;
+	public static float initialTime;
 
 	public static Dictionary<string, double> DefaultComponentValues = new Dictionary<string, double>();
 	public static Dictionary<string, double> DefaultTotalModulesMultiplier = new Dictionary<string, double>();
 
-	#pragma warning disable 649
+#pragma warning disable 649
 	struct ModuleInfo
 	{
 		public string moduleID;
 		public int moduleScore;
 	}
-	#pragma warning restore 649
+#pragma warning restore 649
 
 	public static string GetModuleID(BombComponent bombComponent)
 	{
@@ -97,7 +97,7 @@ static class Modes
 
 class ModeSettings
 {
-    public float ZenModeTimePenalty = 0;
+	public float ZenModeTimePenalty = 0;
 	public float ZenModeTimePenaltyIncrease = 0;
 	public float ZenModeTimerSpeedUp = 0.25f;
 	public float ZenModeTimerMaxSpeed = 2;
@@ -113,6 +113,6 @@ class ModeSettings
 	public float TimeModeMinimumTimeLost = 15;
 	public float TimeModeMinimumTimeGained = 20;
 	public float TimeModePointMultiplier = 1;
-    public Dictionary<string, double> ComponentValues = new Dictionary<string, double>();
+	public Dictionary<string, double> ComponentValues = new Dictionary<string, double>();
 	public Dictionary<string, double> TotalModulesMultiplier = new Dictionary<string, double>();
 }

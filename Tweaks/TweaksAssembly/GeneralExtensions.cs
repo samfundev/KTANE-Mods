@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -57,7 +57,8 @@ public static class GeneralExtensions
 		return source.OrderBy(_ => UnityEngine.Random.value);
 	}
 
-	public static T GetKeySafe<T>(this Dictionary<string, object> dictionary, string key) {
+	public static T GetKeySafe<T>(this Dictionary<string, object> dictionary, string key)
+	{
 		return dictionary.ContainsKey(key) ? (T) dictionary[key] : default;
 	}
 

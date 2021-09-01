@@ -3,19 +3,19 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.SceneManagement;
-using Assets.Scripts.Progression;
-using Assets.Scripts.Settings;
+using System.Reflection;
+using System.Text.RegularExpressions;
 using Assets.Scripts.BombBinder;
 using Assets.Scripts.Mods.Mission;
-using Assets.Scripts.Props;
-using System.Text.RegularExpressions;
-using System.Reflection;
 using Assets.Scripts.Platform;
-using TweaksAssembly.Patching;
+using Assets.Scripts.Progression;
+using Assets.Scripts.Props;
+using Assets.Scripts.Settings;
 using HarmonyLib;
+using TweaksAssembly.Patching;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 [RequireComponent(typeof(KMService))]
 [RequireComponent(typeof(KMGameInfo))]
@@ -932,6 +932,7 @@ class Tweaks : MonoBehaviour
 	};
 }
 
+#pragma warning disable CS0649
 class TweakSettings
 {
 	public float FadeTime = 1f;

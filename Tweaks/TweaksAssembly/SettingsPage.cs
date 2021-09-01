@@ -1,13 +1,13 @@
-﻿using System;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using UnityEngine;
-using Newtonsoft.Json;
-using System.Text.RegularExpressions;
 using System.Reflection;
-using System.Collections;
+using System.Text.RegularExpressions;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using UnityEngine;
 
 // TODO: Can we do something about the lag spike when reading settings for the first time?
 // TODO: Consider wrapping the longer settings and making the listings twice as tall
@@ -623,8 +623,7 @@ class SettingsPage : MonoBehaviour
 
 		Transform TypeTransform = ListingObject.transform.Find(TypeString);
 		TypeTransform.gameObject.SetActive(true);
-		KMSelectable TypeSelectable = TypeTransform.GetComponent<KMSelectable>();
-		listing.TypeSelectable = TypeSelectable;
+		listing.TypeSelectable = TypeTransform.GetComponent<KMSelectable>();
 
 		listing.Object = ListingObject;
 

@@ -1,13 +1,13 @@
 using System.Collections.Generic;
-using System.Reflection.Emit;
 using System.IO;
 using System.Linq;
+using System.Reflection.Emit;
 using Assets.Scripts.Mods;
+using Assets.Scripts.Mods.Screens;
 using Assets.Scripts.Services;
 using Assets.Scripts.Settings;
 using HarmonyLib;
 using TMPro;
-using Assets.Scripts.Mods.Screens;
 
 namespace TweaksAssembly.Patching
 {
@@ -151,7 +151,8 @@ namespace TweaksAssembly.Patching
 			if (HarmonyPatchInfo.ModInfoFile == "modInfo_Harmony.json" && __instance is ManageModsScreen ManagerScreen)
 			{
 				ManagerScreen.GetComponentInChildren<TextMeshProUGUI>().text = "Manage installed Harmony mods";
-				ManagerScreen.BackButton.OnInteract = () => {
+				ManagerScreen.BackButton.OnInteract = () =>
+				{
 					ModManagerScreenManager.Instance.OpenModLoadingScreenAndReturnToGame();
 					return false;
 				};

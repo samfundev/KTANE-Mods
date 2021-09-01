@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -14,41 +14,41 @@ using System.Text.RegularExpressions;
 
 public class BombCaseGenerator : MonoBehaviour
 {
-    public GameObject Bomb_Backing;
-    public GameObject Empty_Bomb;
-    public GameObject Cross_Bar;
+	public GameObject Bomb_Backing;
+	public GameObject Empty_Bomb;
+	public GameObject Cross_Bar;
 
-    public float offset = 0.22f;
+	public float offset = 0.22f;
 
-    public GameObject GenerateCase(Vector2 size, Transform parent)
-    {
-        float halfX = size.x / 2;
+	public GameObject GenerateCase(Vector2 size, Transform parent)
+	{
+		float halfX = size.x / 2;
 		float halfY = size.y / 2;
-        GameObject bomb = Instantiate(Empty_Bomb, parent);
-        bomb.name = size.x + "x" + size.y + " Casing (" + (size.x * size.y * 2 - 1) + " modules)";
-        Casing casing = bomb.GetComponent<Casing>();
-        Transform visual_transform = casing.Visual;
-        KMBombFace front_face = casing.Front.GetComponent<KMBombFace>();
-        KMBombFace rear_face = casing.Back.GetComponent<KMBombFace>();
+		GameObject bomb = Instantiate(Empty_Bomb, parent);
+		bomb.name = size.x + "x" + size.y + " Casing (" + (size.x * size.y * 2 - 1) + " modules)";
+		Casing casing = bomb.GetComponent<Casing>();
+		Transform visual_transform = casing.Visual;
+		KMBombFace front_face = casing.Front.GetComponent<KMBombFace>();
+		KMBombFace rear_face = casing.Back.GetComponent<KMBombFace>();
 
-        front_face.Anchors = new List<Transform>();
-        front_face.Backings = new List<KMModuleBacking>();
-        front_face.GetComponent<KMSelectable>().ChildRowLength = (int) size.x;
-        rear_face.Anchors = new List<Transform>();
-        rear_face.Backings = new List<KMModuleBacking>();
-        rear_face.GetComponent<KMSelectable>().ChildRowLength = (int) size.x;
+		front_face.Anchors = new List<Transform>();
+		front_face.Backings = new List<KMModuleBacking>();
+		front_face.GetComponent<KMSelectable>().ChildRowLength = (int) size.x;
+		rear_face.Anchors = new List<Transform>();
+		rear_face.Backings = new List<KMModuleBacking>();
+		rear_face.GetComponent<KMSelectable>().ChildRowLength = (int) size.x;
 
-        casing.Distance_Collider.size = new Vector3(size.x * 0.23f, 0.20f, size.y * 0.23f);
-        casing.Selectable_Area.size = new Vector3(size.x * 0.24f, size.y * 0.24f, 0.22f);
-        casing.Selectable_Area.transform.Translate(0, -0.25f, 0);
+		casing.Distance_Collider.size = new Vector3(size.x * 0.23f, 0.20f, size.y * 0.23f);
+		casing.Selectable_Area.size = new Vector3(size.x * 0.24f, size.y * 0.24f, 0.22f);
+		casing.Selectable_Area.transform.Translate(0, -0.25f, 0);
 
-        casing.Highlight.localScale = new Vector3(size.x * 0.24f, size.y * 0.24f, 0.22f);
+		casing.Highlight.localScale = new Vector3(size.x * 0.24f, size.y * 0.24f, 0.22f);
 
-        // casing.Body.localScale = new Vector3(size * 0.23f, 0.18f, size * 0.23f);
+		// casing.Body.localScale = new Vector3(size * 0.23f, 0.18f, size * 0.23f);
 
-        const float crossbar_width = 0.025f;
-        const float widget_offset = 0.22f;
-        const float widget_constant_offset = crossbar_width + 0.00275f;
+		const float crossbar_width = 0.025f;
+		const float widget_offset = 0.22f;
+		const float widget_constant_offset = crossbar_width + 0.00275f;
 
 		//Make the widget anchors
 		for (int w = 0; w < size.x; w++)
@@ -73,26 +73,26 @@ public class BombCaseGenerator : MonoBehaviour
 		for (int w = 0; w < size.y; w++)
 		{
 			Transform Lface = new GameObject().GetComponent<Transform>();
-            Lface.Translate(new Vector3(0.0f, 0.0f, offset * (w - halfY + 0.5f)));
-            Lface.Rotate(-90, 90, 0);
-            Lface.SetParent(casing.W_Left);
-            Lface.localScale = new Vector3(0.12f, 0.03f, 0.17f);
-            Lface.name = "Left Face";
-            bomb.GetComponent<KMBomb>().WidgetAreas.Add(Lface.gameObject);
+			Lface.Translate(new Vector3(0.0f, 0.0f, offset * (w - halfY + 0.5f)));
+			Lface.Rotate(-90, 90, 0);
+			Lface.SetParent(casing.W_Left);
+			Lface.localScale = new Vector3(0.12f, 0.03f, 0.17f);
+			Lface.name = "Left Face";
+			bomb.GetComponent<KMBomb>().WidgetAreas.Add(Lface.gameObject);
 
-            Transform Rface = new GameObject().GetComponent<Transform>();
-            Rface.Translate(new Vector3(0.0f, 0.0f, offset * (w - halfY + 0.5f)));
-            Rface.Rotate(-90, -90, 0);
-            Rface.SetParent(casing.W_Right);
-            Rface.localScale = new Vector3(0.12f, 0.03f, 0.17f);
-            Rface.name = "Right Face";
-            bomb.GetComponent<KMBomb>().WidgetAreas.Add(Rface.gameObject);
-        }
+			Transform Rface = new GameObject().GetComponent<Transform>();
+			Rface.Translate(new Vector3(0.0f, 0.0f, offset * (w - halfY + 0.5f)));
+			Rface.Rotate(-90, -90, 0);
+			Rface.SetParent(casing.W_Right);
+			Rface.localScale = new Vector3(0.12f, 0.03f, 0.17f);
+			Rface.name = "Right Face";
+			bomb.GetComponent<KMBomb>().WidgetAreas.Add(Rface.gameObject);
+		}
 
-        casing.W_Bottom.Translate(new Vector3(0, 0, size.y * -widget_offset / 2 - widget_constant_offset),Space.World);
-        casing.W_Top.Translate(new Vector3(0, 0, size.y * widget_offset / 2 + widget_constant_offset), Space.World);
-        casing.W_Left.Translate(new Vector3(size.x * -widget_offset / 2 - widget_constant_offset, 0, 0), Space.World);
-        casing.W_Right.Translate(new Vector3(size.x * widget_offset / 2 + widget_constant_offset, 0, 0), Space.World);
+		casing.W_Bottom.Translate(new Vector3(0, 0, size.y * -widget_offset / 2 - widget_constant_offset), Space.World);
+		casing.W_Top.Translate(new Vector3(0, 0, size.y * widget_offset / 2 + widget_constant_offset), Space.World);
+		casing.W_Left.Translate(new Vector3(size.x * -widget_offset / 2 - widget_constant_offset, 0, 0), Space.World);
+		casing.W_Right.Translate(new Vector3(size.x * widget_offset / 2 + widget_constant_offset, 0, 0), Space.World);
 
 		//Generate the crossbars.
 		if (Cross_Bar.GetComponent<ExcludeFromTexturePack>() == null) Cross_Bar.AddComponent<ExcludeFromTexturePack>();
@@ -111,47 +111,47 @@ public class BombCaseGenerator : MonoBehaviour
 		for (int i = 0; i <= size.y; i++)
 		{
 			Transform CrossBar2 = Instantiate(Cross_Bar).GetComponent<Transform>();
-            CrossBar2.SetParent(visual_transform);
-            CrossBar2.localScale = new Vector3(size.x * 0.22f + crossbar_width * ((i == 0 || i == size.y) ? 1 : -1), 0.22f, crossbar_width) - new Vector3(0.0001f, 0.0001f, 0.0001f); // Subtracted 0.0001 to prevent Z-fighting.
-            CrossBar2.Translate(new Vector3(0, 0, offset * (i - halfY)));
+			CrossBar2.SetParent(visual_transform);
+			CrossBar2.localScale = new Vector3(size.x * 0.22f + crossbar_width * ((i == 0 || i == size.y) ? 1 : -1), 0.22f, crossbar_width) - new Vector3(0.0001f, 0.0001f, 0.0001f); // Subtracted 0.0001 to prevent Z-fighting.
+			CrossBar2.Translate(new Vector3(0, 0, offset * (i - halfY)));
 		}
 
-        // Generate The module backings and anchors
-        for (int y = 0; y < size.y; y++)
-        {
-            for (int x = 0; x < size.x; x++)
-            {
-                GameObject front_backing = Instantiate(Bomb_Backing);    // Grab the prefab
-                Transform f = front_backing.GetComponent<Transform>();
-                f.SetParent(casing.Faces_F);
-                f.Translate(new Vector3(offset * (x - halfX + 0.5f), -offset * (y - halfY + 0.5f), -0.06f));
-                f.name = "Bomb_Foam_" + x + "_" + y + "_F";
-                Transform f_anchor = new GameObject().GetComponent<Transform>();    // We need to rotate the anchor relative to the backing, so we need a new transform
-                f_anchor.position = f.position;
-                f_anchor.parent = f;
-                f_anchor.Translate(0, 0.03f, 0);    // Move the modules out of the backing
-                f_anchor.Rotate(new Vector3(0, 0, 0));
-                f_anchor.name = "Anchor";
-                front_face.Anchors.Add(f_anchor);
-                front_face.Backings.Add(front_backing.GetComponent<KMModuleBacking>());
-                // And do it all again for the back face
-                GameObject rear_backing = Instantiate(Bomb_Backing);
-                Transform r = rear_backing.GetComponent<Transform>();
-                r.SetParent(casing.Faces_R);
-                r.Translate(new Vector3(-offset * (x - halfX + 0.5f), -offset * (y - halfY + 0.5f), 0.06f));
-                r.Rotate(new Vector3(0, 180, 0));
-                r.name = "Bomb_Foam_" + x + "_" + y + "_R";
-                Transform r_anchor = new GameObject().GetComponent<Transform>();
-                r_anchor.position = r.position;
-                r_anchor.parent = r;
-                r_anchor.Translate(0, -0.03f, 0);
-                r_anchor.Rotate(new Vector3(0, 0, 180));
-                r_anchor.name = "Anchor";
-                rear_face.Anchors.Add(r_anchor);
-                rear_face.Backings.Add(rear_backing.GetComponent<KMModuleBacking>());
-            }
-        }
-        bomb.GetComponent<KMBomb>().Scale = Mathf.Min(2.2f / Mathf.Max(size.x, size.y), 1);
+		// Generate The module backings and anchors
+		for (int y = 0; y < size.y; y++)
+		{
+			for (int x = 0; x < size.x; x++)
+			{
+				GameObject front_backing = Instantiate(Bomb_Backing);    // Grab the prefab
+				Transform f = front_backing.GetComponent<Transform>();
+				f.SetParent(casing.Faces_F);
+				f.Translate(new Vector3(offset * (x - halfX + 0.5f), -offset * (y - halfY + 0.5f), -0.06f));
+				f.name = "Bomb_Foam_" + x + "_" + y + "_F";
+				Transform f_anchor = new GameObject().GetComponent<Transform>();    // We need to rotate the anchor relative to the backing, so we need a new transform
+				f_anchor.position = f.position;
+				f_anchor.parent = f;
+				f_anchor.Translate(0, 0.03f, 0);    // Move the modules out of the backing
+				f_anchor.Rotate(new Vector3(0, 0, 0));
+				f_anchor.name = "Anchor";
+				front_face.Anchors.Add(f_anchor);
+				front_face.Backings.Add(front_backing.GetComponent<KMModuleBacking>());
+				// And do it all again for the back face
+				GameObject rear_backing = Instantiate(Bomb_Backing);
+				Transform r = rear_backing.GetComponent<Transform>();
+				r.SetParent(casing.Faces_R);
+				r.Translate(new Vector3(-offset * (x - halfX + 0.5f), -offset * (y - halfY + 0.5f), 0.06f));
+				r.Rotate(new Vector3(0, 180, 0));
+				r.name = "Bomb_Foam_" + x + "_" + y + "_R";
+				Transform r_anchor = new GameObject().GetComponent<Transform>();
+				r_anchor.position = r.position;
+				r_anchor.parent = r;
+				r_anchor.Translate(0, -0.03f, 0);
+				r_anchor.Rotate(new Vector3(0, 0, 180));
+				r_anchor.name = "Anchor";
+				rear_face.Anchors.Add(r_anchor);
+				rear_face.Backings.Add(rear_backing.GetComponent<KMModuleBacking>());
+			}
+		}
+		bomb.GetComponent<KMBomb>().Scale = Mathf.Min(2.2f / Mathf.Max(size.x, size.y), 1);
 
 		foreach (KMSelectable selectable in bomb.GetComponentsInChildren<KMSelectable>())
 			selectable.gameObject.AddComponent<ModSelectable>();
@@ -159,7 +159,7 @@ public class BombCaseGenerator : MonoBehaviour
 		bomb.AddComponent<ModBomb>();
 
 		return bomb;
-    }
+	}
 
 	Color MakeCaseColor(List<string> colorStrings)
 	{
