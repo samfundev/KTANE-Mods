@@ -944,6 +944,7 @@ class TweakSettings
 	public bool DemandBasedModLoading = false;
 	public List<string> DemandBasedModsExcludeList = new List<string>();
 	public int DemandModLimit = -1;
+	public bool ReplaceObsoleteMods = true;
 	public bool BombHUD = false;
 	public bool ShowEdgework = false;
 	public bool DisableAdvantageous = false;
