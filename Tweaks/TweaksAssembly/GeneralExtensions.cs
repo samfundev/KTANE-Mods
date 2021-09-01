@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -89,6 +89,9 @@ public static class GeneralExtensions
 	/// <returns><c>true</c> if the string matches the given pattern; otherwise <c>false</c>.</returns>
 	public static bool Like(this string str, string pattern)
 	{
+		if (str == null)
+			return false;
+
 		return new Regex(
 			"^" + Regex.Escape(pattern).Replace(@"\*", ".*").Replace(@"\?", ".") + "$",
 			RegexOptions.IgnoreCase | RegexOptions.Singleline
