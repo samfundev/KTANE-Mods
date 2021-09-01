@@ -402,6 +402,9 @@ class SettingsPage : MonoBehaviour
 
 		foreach (Listing listing in info.Listings)
 		{
+			if (listing.Type == ListingType.Hidden)
+				continue;
+
 			if (listing.Type != ListingType.Section && listing.Key != null)
 			{
 				var path = info.Path;
@@ -885,7 +888,8 @@ enum ListingType
 	Number,
 	Dropdown,
 	Section,
-	Array
+	Array,
+	Hidden
 }
 
 class Listing

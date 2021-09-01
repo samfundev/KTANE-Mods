@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Diagnostics;
 using System.Linq;
@@ -18,7 +18,6 @@ public static class Tips
 		new Tip("Enable the mods only key by default using the \"EnableModsOnlyKey\" setting.", () => !Settings.EnableModsOnlyKey, "settings-EnableModsOnlyKey"),
 		new Tip("Load modules on demand to save on bootup time and memory using the \"DemandBasedModLoading\" setting.", () => !Settings.DemandBasedModLoading, "settings-DemandBasedModLoading"),
 		new Tip("Exclude modules from being loaded on demand using the \"DemandBasedModsExcludeList\" setting.", () => Settings.DemandBasedModsExcludeList.Count == 0, "settings-DemandBasedModsExcludeList"),
-		new Tip("Fix Foreign Exchange Rates not loading exchange rates using the \"FixFER\" setting.", () => !Settings.FixFER, "settings-FixFER"),
 		new Tip("See the current status of the bomb using the \"BombHUD\" setting.", () => !Settings.BombHUD, "settings-BombHUD"),
 		new Tip("See a bomb's edgework on screen using the \"ShowEdgework\" setting.", () => !Settings.ShowEdgework, "settings-ShowEdgework"),
 		new Tip("Temporarily disable advantageous features using the \"DisableAdvantageous\" setting.", () => !Settings.DisableAdvantageous, "settings-DisableAdvantageous"),

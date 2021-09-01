@@ -180,7 +180,7 @@ class Tweaks : MonoBehaviour
 
 					ReflectedTypes.UpdateTypes();
 
-					ReflectedTypes.CurrencyAPIEndpointField?.SetValue(null, settings.FixFER ? "https://api.ratesapi.io/api" : "http://api.fixer.io");
+					ReflectedTypes.CurrencyAPIEndpointField?.SetValue(null, settings.ModuleTweaks ? "https://api.ratesapi.io/api" : "http://api.fixer.io");
 
 					if (
 						AdvantageousFeaturesEnabled &&
@@ -867,6 +867,7 @@ class Tweaks : MonoBehaviour
 			{ "Name", "Tweaks" },
 			{ "Listings", new List<Dictionary<string, object>>
 				{
+					new Dictionary<string, object> { { "Text", "Gameplay" }, { "Type", "Section" } },
 					new Dictionary<string, object>
 					{
 						{ "Key", "Mode" },
@@ -874,28 +875,35 @@ class Tweaks : MonoBehaviour
 						{ "Type", "Dropdown" },
 						{ "DropdownItems", new List<object> { "Normal", "Time", "Zen", "Steady" } }
 					},
-					new Dictionary<string, object> { { "Key", "FadeTime" }, { "Text", "Fade Time" }, { "Description", "The number seconds should it take to fade in and out of scenes." } },
-					new Dictionary<string, object> { { "Key", "InstantSkip" }, { "Text", "Instant Skip" }, { "Description", "Skips the gameplay loading screen as soon as possible." } },
-					new Dictionary<string, object> { { "Key", "ManageHarmonyMods" }, { "Text", "Manage Harmony Mods" }, { "Description", "Enables the Harmony mod manager when loading mods." } },
-					new Dictionary<string, object> { { "Key", "SkipGameplayDelay" }, { "Text", "Skip Gameplay Delay" }, { "Description", "Skips the delay at the beginning of a round when the lights are out." } },
-					new Dictionary<string, object> { { "Key", "BetterCasePicker" }, { "Text", "Better Case Picker" }, { "Description", "Chooses the smallest case that fits instead of a random one." } },
-					new Dictionary<string, object> { { "Key", "EnableModsOnlyKey" }, { "Text", "Enable Mods Only Key" }, { "Description", "Turns the Mods Only key to be on by default." } },
-					new Dictionary<string, object> { { "Key", "FixFER" }, { "Text", "Fix Foreign Exchange Rates" }, { "Description", "Changes the URL that is queried since the old one is no longer operational." } },
+					new Dictionary<string, object> { { "Key", "DisableAdvantageous" }, { "Text", "Disable Advantageous Features" }, { "Description", "Disables advantageous features like the Bomb HUD, Show Edgework,\ncustom Modes and Mission Seed." } },
+					new Dictionary<string, object> { { "Key", "MissionSeed" }, { "Text", "Mission Seed" }, { "Description", "Seeds the random numbers for the mission which should make the bomb\ngenerate consistently." } },
+
+					new Dictionary<string, object> { { "Text", "HUDs" }, { "Type", "Section" } },
 					new Dictionary<string, object> { { "Key", "BombHUD" }, { "Text", "Bomb HUD" }, { "Description", "Adds a HUD in the top right corner showing information about the currently selected bomb." } },
 					new Dictionary<string, object> { { "Key", "ShowEdgework" }, { "Text", "Show Edgework" }, { "Description", "Adds a HUD to the top of the screen showing the edgework for the currently selected bomb." } },
-					new Dictionary<string, object> { { "Key", "DisableAdvantageous" }, { "Text", "Disable Advantageous Features" }, { "Description", "Disables advantageous features like the Bomb HUD, Show Edgework,\ncustom Modes and Mission Seed." } },
-					new Dictionary<string, object> { { "Key", "ShowTips" }, { "Text", "Show Tips" }, { "Description", "Shows tips about Tweaks features that you may not know about." } },
-					new Dictionary<string, object> { { "Key", "HideTOC" }, { "Text", "Hide TOC" }, { "Description", "Hides table of contents entries based on patterns." } },
-					new Dictionary<string, object> { { "Key", "MissionSeed" }, { "Text", "Mission Seed" }, { "Description", "Seeds the random numbers for the mission which should make the bomb\ngenerate consistently." } },
-					new Dictionary<string, object> { { "Key", "CaseGenerator" }, { "Text", "Case Generator" }, { "Description", "Generates a case to best fit the bomb which can be one of the colors defined by CaseColors." } },
-					new Dictionary<string, object> { { "Key", "ModuleTweaks" }, { "Text", "Module Tweaks" }, { "Description", "Controls all module related tweaks like fixing status light positions." } },
-					new Dictionary<string, object> { { "Key", "CaseColors" }, { "Text", "Case Colors" }, { "Description", "Controls the color of the cases that are generated with Case Generator." } },
-					new Dictionary<string, object> { { "Key", "PinnedSettings" }, { "Text", "Pinned Settings" }, { "Description", "Pins settings at the top of the Mod Settings Editor." } },
 
-					new Dictionary<string, object> { { "Text", "Demand Based Mod Loading" }, { "Type", "Section" } },
+					new Dictionary<string, object> { { "Text", "Cases" }, { "Type", "Section" } },
+					new Dictionary<string, object> { { "Key", "BetterCasePicker" }, { "Text", "Better Case Picker" }, { "Description", "Chooses the smallest case that fits instead of a random one." } },
+					new Dictionary<string, object> { { "Key", "CaseGenerator" }, { "Text", "Case Generator" }, { "Description", "Generates a case to best fit the bomb which can be one of the colors defined by CaseColors." } },
+					new Dictionary<string, object> { { "Key", "CaseColors" }, { "Text", "Case Colors" }, { "Description", "Controls the color of the cases that are generated with Case Generator." } },
+
+					new Dictionary<string, object> { { "Text", "Tweaks" }, { "Type", "Section" } },
+					new Dictionary<string, object> { { "Key", "HideTOC" }, { "Text", "Hide TOC" }, { "Description", "Hides table of contents entries based on patterns." } },
+					new Dictionary<string, object> { { "Key", "EnableModsOnlyKey" }, { "Text", "Enable Mods Only Key" }, { "Description", "Turns the Mods Only key to be on by default." } },
+					new Dictionary<string, object> { { "Key", "FadeTime" }, { "Text", "Fade Time" }, { "Description", "The number seconds should it take to fade in and out of scenes." } },
+					new Dictionary<string, object> { { "Key", "InstantSkip" }, { "Text", "Instant Skip" }, { "Description", "Skips the gameplay loading screen as soon as possible." } },
+					new Dictionary<string, object> { { "Key", "SkipGameplayDelay" }, { "Text", "Skip Gameplay Delay" }, { "Description", "Skips the delay at the beginning of a round when the lights are out." } },
+					new Dictionary<string, object> { { "Key", "ModuleTweaks" }, { "Text", "Module Tweaks" }, { "Description", "Controls all module related tweaks like fixing status light positions." } },
+					new Dictionary<string, object> { { "Key", "ShowTips" }, { "Text", "Show Tips" }, { "Description", "Shows tips about Tweaks features that you may not know about." } },
+					new Dictionary<string, object> { { "Key", "PinnedSettings" }, { "Type", "Hidden" } },
+
+					new Dictionary<string, object> { { "Text", "Mod Management" }, { "Type", "Section" } },
+					new Dictionary<string, object> { { "Key", "ReplaceObsoleteMods" }, { "Text", "Replace Obsolete Mods" }, { "Description", "Replaces obsolete mods with their updated version." } },
+					new Dictionary<string, object> { { "Key", "SubscribeToNewMods" }, { "Text", "Subscribe to New Mods" }, { "Description", "Subscribes to all new modules that are on the repository." } },
 					new Dictionary<string, object> { { "Key", "DemandBasedModLoading" }, { "Text", "Demand-based Mod Loading" }, { "Description", "Load only the modules on a bomb instead of loading all of them when starting up." } },
-					new Dictionary<string, object> { { "Key", "DemandBasedModsExcludelist" }, { "Text", "Exclude Demand-based Mods" }, { "Description", "Exclude mods from being loaded on demand based on module name." } },
 					new Dictionary<string, object> { { "Key", "DemandModLimit" }, { "Text", "Demand Mod Limit" }, { "Description", "Sets the limit of how many mods will be kept loaded after the bomb\nis over. Negative numbers will keep all mods loaded." } },
+					new Dictionary<string, object> { { "Key", "DemandBasedModsExcludeList" }, { "Text", "Exclude Demand-based Mods" }, { "Description", "Exclude mods from being loaded on demand based on module name." } },
+					new Dictionary<string, object> { { "Key", "ManageHarmonyMods" }, { "Text", "Manage Harmony Mods" }, { "Description", "Enables the Harmony mod manager when loading mods." } },
 				}
 			}
 		},
@@ -944,7 +952,6 @@ class TweakSettings
 	public bool DemandBasedModLoading = false;
 	public List<string> DemandBasedModsExcludeList = new List<string>();
 	public int DemandModLimit = -1;
-	public bool FixFER = false;
 	public bool BombHUD = false;
 	public bool ShowEdgework = false;
 	public bool DisableAdvantageous = false;
