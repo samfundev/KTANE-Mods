@@ -3,20 +3,17 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 using Assets.Scripts.Missions;
 using Assets.Scripts.Mods.Screens;
-using Assets.Scripts.Settings;
 using HarmonyLib;
-using Newtonsoft.Json;
-using UnityEngine;
-using UnityEngine.Networking;
-using UnityEngine.UI;
-using TweaksAssembly.Patching;
-using Random = System.Random;
-using System.Reflection;
 using log4net;
 using log4net.Core;
-using System.Reflection.Emit;
+using TweaksAssembly.Patching;
+using UnityEngine;
+using UnityEngine.UI;
+using Random = System.Random;
 
 static class DemandBasedLoading
 {
@@ -143,122 +140,18 @@ static class DemandBasedLoading
 		}
 	}
 
-#pragma warning disable CS0649
-	class WebsiteJSON
+	public static IEnumerator GetModules()
 	{
-		public List<KtaneModule> KtaneModules;
-	}
+		var steamDirectory = Utilities.SteamDirectory;
 
-	class KtaneModule
-	{
-		public string SteamID;
-		public string Name;
-		public string ModuleID;
-		public string Type;
-	}
-#pragma warning restore CS0649
+		yield return new WaitUntil(() => Repository.Loaded);
 
-	static string SteamDirectory
-	{
-		get
-		{
-			// Mod folders
-			var folders = Assets.Scripts.Services.AbstractServices.Instance.GetModFolders();
-			if (folders.Count != 0)
-			{
-				return folders[0] + "/../../../../..";
-			}
-
-			// Relative to the game
-			var relativePath = Path.GetFullPath("./../../..");
-			if (new DirectoryInfo(relativePath).Name == "Steam")
-			{
-				return relativePath;
-			}
-
-			// Registry key
-			using (var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Valve\Steam"))
-			{
-				if (key?.GetValueNames().Contains("SteamPath") == true)
-				{
-					return key.GetValue("SteamPath")?.ToString().Replace('/', '\\') ?? string.Empty;
-				}
-			}
-
-			// Guess common paths
-			foreach (var path in new[]
-			{
-				@"Program Files (x86)\Steam",
-				@"Program Files\Steam",
-			})
-			{
-				foreach (var drive in Directory.GetLogicalDrives())
-				{
-					if (Directory.Exists(drive + path))
-					{
-						return drive + path;
-					}
-				}
-			}
-
-			foreach (var path in new[]
-			{
-				"~/Library/Application Support/Steam",
-				"~/.steam/steam",
-			})
-			{
-				if (Directory.Exists(path))
-				{
-					return path;
-				}
-			}
-
-			return null;
-		}
-	}
-
-	static IEnumerator GetModules()
-	{
-		var steamDirectory = SteamDirectory;
-		var repositoryBackup = Path.Combine(Application.persistentDataPath, "RepositoryBackup.json");
-
-		UnityWebRequest request = UnityWebRequest.Get("https://ktane.timwi.de/json/raw");
-
-		yield return request.SendWebRequest();
-
-		string repositoryJSON = null;
-		if (request.isNetworkError)
-		{
-			Tweaks.Log("Unable to load the repository:", request.error);
-
-			if (File.Exists(repositoryBackup))
-			{
-				repositoryJSON = File.ReadAllText(repositoryBackup);
-			}
-			else
-			{
-				Tweaks.Log("Could not find a repository backup.");
-			}
-		}
-		else
-		{
-			repositoryJSON = request.downloadHandler.text;
-		}
-
-		if (repositoryJSON == null)
-		{
-			Tweaks.Log("Could not get module information.");
-		}
-		else if (steamDirectory == null)
+		if (steamDirectory == null)
 		{
 			Tweaks.Log("Unable to find Steam!");
 		}
 		else
 		{
-			// Save a backup of the repository
-			File.WriteAllText(repositoryBackup, repositoryJSON);
-
-			var disabledMods = ModSettingsManager.Instance.ModSettings.DisabledModPaths.ToList();
 			modWorkshopPath = Path.GetFullPath(new[] { steamDirectory, "steamapps", "workshop", "content", "341800" }.Aggregate(Path.Combine));
 
 			var fakeModuleParent = new GameObject("FakeModuleParent");
@@ -267,9 +160,8 @@ static class DemandBasedLoading
 
 			var loadedBombComponents = ModManager.Instance.GetValue<Dictionary<string, BombComponent>>("loadedBombComponents");
 
-			var json = JsonConvert.DeserializeObject<WebsiteJSON>(repositoryJSON);
 			var cantLoad = new List<string>();
-			foreach (KtaneModule module in json.KtaneModules)
+			foreach (Repository.KtaneModule module in Repository.Modules)
 			{
 				// Don't load anything that:
 				// Doesn't have a Steam ID.
@@ -290,11 +182,7 @@ static class DemandBasedLoading
 				}
 
 				// Disable mods we are going to load on demand
-				if (!disabledMods.Contains(modPath))
-				{
-					disabledMods.Add(modPath);
-					DisabledModsCount++;
-				}
+				Utilities.DisableMod(module.SteamID);
 
 				if (loadedBombComponents.ContainsKey(module.ModuleID))
 					continue;
@@ -335,8 +223,7 @@ static class DemandBasedLoading
 			if (cantLoad.Count > 0)
 				Tweaks.Log($"Can't load: {cantLoad.Join(", ")}".ChunkBy(250).Join("\n"));
 
-			ModSettingsManager.Instance.ModSettings.DisabledModPaths = disabledMods.ToArray();
-			ModSettingsManager.Instance.SaveModSettings();
+			Utilities.FlushDisabledMods();
 		}
 
 		Time.timeScale = 1;

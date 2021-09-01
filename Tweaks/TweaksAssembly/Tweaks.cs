@@ -80,6 +80,8 @@ class Tweaks : MonoBehaviour
 				typeof(ManualButtonPatch), typeof(InstructionPatch), typeof(ChangeButtonText));
 		}
 
+		StartCoroutine(Repository.LoadData());
+
 		DemandBasedLoading.EverLoadedModules = !settings.DemandBasedModLoading;
 		DemandBasedSettingCache = settings.DemandBasedModLoading;
 
@@ -207,17 +209,9 @@ class Tweaks : MonoBehaviour
 			OnStateChanged(CurrentState, state);
 
 			// Transitioning away from another state
-			if (state == KMGameInfo.State.Transitioning)
+			if (state == KMGameInfo.State.Transitioning && CurrentState != KMGameInfo.State.Gameplay)
 			{
-				if (CurrentState == KMGameInfo.State.Setup)
-				{
-					DemandBasedLoading.DisabledModsCount = 0;
-				}
-
-				if (CurrentState != KMGameInfo.State.Gameplay)
-				{
-					DemandBasedLoading.HandleTransitioning();
-				}
+				DemandBasedLoading.HandleTransitioning();
 			}
 
 			CurrentState = state;
@@ -770,14 +764,12 @@ class Tweaks : MonoBehaviour
 			return;
 
 		bool demandSettingChanged = DemandBasedSettingCache != settings.DemandBasedModLoading;
-		bool demandModsDisabled = DemandBasedLoading.DisabledModsCount >= 50;
 
 		bool warningsEnabled = CurrentState == KMGameInfo.State.Setup && modConfig.SuccessfulRead;
 
 		CaseGeneratorWarning.SetActive(warningsEnabled && CaseGeneratorSettingCache != settings.CaseGenerator);
 
-		DBMLWarning.SetActive(warningsEnabled && (demandSettingChanged || demandModsDisabled));
-		DBMLWarning.Traverse<Text>("WarningText").text = $"The { (demandSettingChanged ? "change to the setting \"DemandBasedModLoading\"" : "") + (demandSettingChanged && demandModsDisabled ? " and " : "") + (demandModsDisabled ? $"{DemandBasedLoading.DisabledModsCount} mod{(DemandBasedLoading.DisabledModsCount == 1 ? "" : "s")} that were automatically disabled" : "") } will only take effect once you enter the Mod Manager. <i>Press \"F2\" to do that automatically!</i>";
+		DBMLWarning.SetActive(warningsEnabled && demandSettingChanged);
 
 		HoldablesWarning.SetActive(warningsEnabled && HoldablesSettingCache.Count != settings.Holdables.Count || HoldablesSettingCache.Except(settings.Holdables).Any());
 
