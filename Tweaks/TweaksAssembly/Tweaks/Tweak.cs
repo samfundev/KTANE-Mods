@@ -1,3 +1,6 @@
+using System.Collections;
+using TweaksAssembly.Patching;
+using UnityEngine;
 using static KMGameInfo;
 
 public abstract class Tweak
@@ -26,4 +29,6 @@ public abstract class Tweak
 	{
 		yield break;
 	}
+
+	protected static Coroutine StartCoroutine(IEnumerator routine) => Tweaks.Instance.StartCoroutine(routine);
 }

@@ -575,6 +575,7 @@ class BombWrapper : MonoBehaviour
 
 	public static List<RectTransform> Alerts = new List<RectTransform>();
 
+	// TODO: Use the new Toasts class instead of this.
 	void AddAlert(string text, Color color)
 	{
 		var alert = Instantiate(BombStatus.Instance.Alert, BombStatus.Instance.transform, false).GetComponent<RectTransform>();
