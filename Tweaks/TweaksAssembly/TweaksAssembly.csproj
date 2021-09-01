@@ -35,6 +35,10 @@
       <HintPath>$(GameFolder)\ktane_Data\Managed\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Assembly-CSharp-firstpass">
+      <HintPath>$(GameFolder)\ktane_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="KMFramework">
       <HintPath>..\Assets\Plugins\Managed\KMFramework.dll</HintPath>
       <Private>False</Private>
