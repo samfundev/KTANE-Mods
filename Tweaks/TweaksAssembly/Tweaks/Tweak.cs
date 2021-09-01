@@ -9,6 +9,7 @@ public abstract class Tweak
 
 		Setup();
 		Tweaks.OnStateChanged += OnStateChange;
+		SetupPatch.OnTweaksLoadingState += () => SetupPatch.LoadingList.Add(OnTweaksLoadingState());
 	}
 
 	public virtual bool Enabled => true;
@@ -19,5 +20,10 @@ public abstract class Tweak
 
 	public virtual void OnStateChange(State previousState, State state)
 	{
+	}
+
+	public virtual IEnumerator OnTweaksLoadingState()
+	{
+		yield break;
 	}
 }

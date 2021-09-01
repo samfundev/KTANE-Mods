@@ -82,6 +82,7 @@ class Tweaks : MonoBehaviour
 
 		StartCoroutine(Repository.LoadData());
 
+		SetupPatch.OnTweaksLoadingState += () => SetupPatch.LoadingList.Add(DemandBasedLoading.GetModules());
 		DemandBasedLoading.EverLoadedModules = !settings.DemandBasedModLoading;
 		DemandBasedSettingCache = settings.DemandBasedModLoading;
 
@@ -239,7 +240,6 @@ class Tweaks : MonoBehaviour
 			}
 			else if (state == KMGameInfo.State.Setup)
 			{
-				ReloadPatch.ResetDict();
 				if (ReflectedTypes.LoadedModsField.GetValue(ModManager.Instance) is Dictionary<string, Mod> loadedMods)
 				{
 					Mod tweaksMod = loadedMods.Values.FirstOrDefault(mod => mod.ModID == "Tweaks");

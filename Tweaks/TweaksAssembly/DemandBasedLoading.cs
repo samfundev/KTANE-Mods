@@ -55,9 +55,6 @@ static class DemandBasedLoading
 		{
 			EverLoadedModules = true;
 
-			Time.timeScale = 0;
-			Tweaks.Instance.StartCoroutine(GetModules());
-
 			Patching.EnsurePatch("DBML", typeof(GameplayStatePatches), typeof(GeneratorPatches), typeof(WidgetGeneratorPatch), typeof(MultipleBombsPatch));
 			FactoryPatches.PatchAll();
 		}
@@ -223,10 +220,8 @@ static class DemandBasedLoading
 			if (cantLoad.Count > 0)
 				Tweaks.Log($"Can't load: {cantLoad.Join(", ")}".ChunkBy(250).Join("\n"));
 
-			Utilities.FlushDisabledMods();
+			SetupPatch.ReloadMods |= Utilities.FlushDisabledMods();
 		}
-
-		Time.timeScale = 1;
 	}
 
 	public static Dictionary<string, Mod> manuallyLoadedMods = new Dictionary<string, Mod>();

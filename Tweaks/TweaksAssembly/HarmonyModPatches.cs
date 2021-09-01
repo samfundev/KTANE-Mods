@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,6 +13,13 @@ using TMPro;
 
 namespace TweaksAssembly.Patching
 {
+	enum LoadingState
+	{
+		Normal,
+		Harmony,
+		Tweaks
+	}
+
 	internal static class HarmonyPatchInfo
 	{
 		public static string ModInfoFile = "modInfo.json";
@@ -66,20 +75,28 @@ namespace TweaksAssembly.Patching
 	[HarmonyPriority(Priority.First)]
 	public static class ReloadPatch
 	{
-		private static Dictionary<string, ModInfo> InstalledModInfos;
-		public static void ResetDict()
+		public static bool Prefix(ModManager __instance)
 		{
-			if (InstalledModInfos == null)
-				return;
-			ModManager.Instance.InstalledModInfos.Clear();
-			foreach(var pair in InstalledModInfos)
-				ModManager.Instance.InstalledModInfos.Add(pair.Key, pair.Value);
-		}
+			if (SetupPatch.LoadingState == LoadingState.Normal)
+				return true;
 
-		public static void Prefix(ModManager __instance)
-		{
-			if (HarmonyPatchInfo.ModInfoFile == "modInfo_Harmony.json")
-				InstalledModInfos = __instance.InstalledModInfos.ToDictionary(p => p.Key, p => p.Value);
+			foreach (ModInfo.ModSourceEnum source in new List<ModInfo.ModSourceEnum>
+			{
+				ModInfo.ModSourceEnum.Local,
+				AbstractServices.Instance.GetModSource()
+			})
+			{
+				foreach (string text in __instance.GetAllModPathsFromSource(source))
+				{
+					ModInfo modInfoFromPath = __instance.GetModInfoFromPath(text, source);
+					if (modInfoFromPath != null)
+					{
+						__instance.InstalledModInfos[text] = modInfoFromPath;
+					}
+				}
+			}
+
+			return false;
 		}
 	}
 
@@ -88,27 +105,66 @@ namespace TweaksAssembly.Patching
 	internal static class SetupPatch
 	{
 		public static bool InitialLoadCompleted;
+		public static LoadingState LoadingState;
+
+		public static Action OnTweaksLoadingState;
+		public static List<IEnumerator> LoadingList = new List<IEnumerator>();
+		public static bool ReloadMods;
 
 		public static bool Prefix()
 		{
-			bool cont = HarmonyPatchInfo.ToggleModInfo();
-			if (cont)
+			switch (LoadingState)
 			{
-				InitialLoadCompleted = true;
-				return true;
+				case LoadingState.Normal:
+					InitialLoadCompleted = true;
+					HarmonyPatchInfo.ToggleModInfo();
+					LoadingState = LoadingState.Harmony;
+
+					// "Re-enter" the Mod Manager to manage harmony mods
+					if (Tweaks.settings.ManageHarmonyMods && (!PlayerSettingsManager.Instance.PlayerSettings.UseModsAlways || InitialLoadCompleted))
+					{
+						ModManagerScreenManager.Instance.OpenManageInstalledModsScreen();
+					}
+					else
+					{
+						ModManagerScreenManager.Instance.OpenModLoadingScreenAndReturnToGame();
+					}
+
+					return false;
+				case LoadingState.Harmony:
+					HarmonyPatchInfo.ToggleModInfo();
+					LoadingState = LoadingState.Tweaks;
+
+					Tweaks.Instance.StartCoroutine(TweaksLoadingState());
+
+					return false;
+				case LoadingState.Tweaks:
+					LoadingState = LoadingState.Normal;
+					return true;
+				default:
+					throw new Exception($"Unknown loading state: {LoadingState}. This should never happen.");
+			}
+		}
+
+		static IEnumerator TweaksLoadingState()
+		{
+			ReloadMods = false;
+			LoadingList.Clear();
+			OnTweaksLoadingState();
+
+			foreach (var loadingRoutine in LoadingList)
+			{
+				yield return loadingRoutine;
 			}
 
-			// "Re-enter" the Mod Manager to manage harmony mods
-			if (Tweaks.settings.ManageHarmonyMods && (!PlayerSettingsManager.Instance.PlayerSettings.UseModsAlways || InitialLoadCompleted))
-			{
-				ModManagerScreenManager.Instance.OpenManageInstalledModsScreen();
-			}
-			else
+			if (ReloadMods)
 			{
 				ModManagerScreenManager.Instance.OpenModLoadingScreenAndReturnToGame();
 			}
-
-			return false;
+			else
+			{
+				SceneManager.Instance.ModManagerState.ReturnToSetupState();
+			}
 		}
 	}
 
