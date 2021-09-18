@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Assets.Scripts.Settings;
@@ -26,10 +28,10 @@ public static class Utilities
 			}
 
 			// Relative to the game
-			var relativePath = Path.GetFullPath("./../../..");
-			if (new DirectoryInfo(relativePath).Name == "Steam")
+			var relativePath = Path.GetFullPath("./../..");
+			if (new DirectoryInfo(relativePath).Name == "steamapps")
 			{
-				return relativePath;
+				return Path.GetFullPath("./../../..");
 			}
 
 			// Registry key
@@ -59,13 +61,38 @@ public static class Utilities
 
 			foreach (var path in new[]
 			{
-				"~/Library/Application Support/Steam",
-				"~/.steam/steam",
+				"/Library/Application Support/Steam",
+				"/.steam/steam",
 			})
 			{
-				if (Directory.Exists(path))
+				var combinedPath = Environment.GetEnvironmentVariable("HOME") + path;
+				if (Directory.Exists(combinedPath))
 				{
-					return path;
+					try
+					{
+						Process process = new Process
+						{
+							StartInfo = new ProcessStartInfo
+							{
+								WindowStyle = ProcessWindowStyle.Hidden,
+								FileName = "readlink",
+								Arguments = $"\"{combinedPath}\"",
+								RedirectStandardOutput = true,
+								UseShellExecute = false
+							}
+						};
+						process.Start();
+
+						var linkTarget = process.StandardOutput.ReadToEnd();
+						if (!string.IsNullOrEmpty(linkTarget))
+							return linkTarget;
+
+						return combinedPath;
+					}
+					catch
+					{
+						return combinedPath;
+					}
 				}
 			}
 
