@@ -106,6 +106,9 @@ public static class Utilities
 
 	public static bool FlushDisabledMods()
 	{
+		if (SteamDirectory == null)
+			return false;
+
 		var newMods = false;
 		var disabledMods = ModSettingsManager.Instance.ModSettings.DisabledModPaths.ToList();
 		var modWorkshopPath = Path.GetFullPath(new[] { SteamDirectory, "steamapps", "workshop", "content", "341800" }.Aggregate(Path.Combine));
