@@ -74,11 +74,11 @@ class Tweaks : MonoBehaviour
 		UpdateSettings();
 		StartCoroutine(Modes.LoadDefaultSettings());
 
-		if (!Harmony.HasAnyPatches("qkrisi.harmonymod"))
-		{
-			Patching.EnsurePatch("Harmony", typeof(ModInfoPatch), typeof(WorkshopPatch), typeof(ReloadPatch), typeof(SetupPatch),
-				typeof(ManualButtonPatch), typeof(InstructionPatch), typeof(ChangeButtonText));
-		}
+		if (Harmony.HasAnyPatches("qkrisi.harmonymod"))
+			new Harmony("qkrisi.harmonymod").UnpatchAll();
+
+		Patching.EnsurePatch("Harmony", typeof(ModInfoPatch), typeof(WorkshopPatch), typeof(ReloadPatch), typeof(SetupPatch),
+			typeof(ManualButtonPatch), typeof(InstructionPatch), typeof(ChangeButtonText));
 
 		StartCoroutine(Repository.LoadData());
 
