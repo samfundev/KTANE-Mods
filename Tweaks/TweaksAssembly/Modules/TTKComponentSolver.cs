@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -81,7 +81,10 @@ public class TTKComponentSolver : ModuleTweak
 			yield break;
 		}
 
-		SetupLongPress(component.GetValue<KMSelectable>("Lock"), 1, () => component.CallMethod("OnKeyTurn"), () => {
+			// Don't allow skipping forward if there are any needies, since that would skip over managing the needy.
+			if (currentBomb.BombComponents.Any(module => !module.IsSolvable))
+				return;
+
 			var remaining = timer.TimeRemaining;
 			if (!(zenMode ? expectedTime - 75 > remaining : remaining > expectedTime + 75))
 				return;
