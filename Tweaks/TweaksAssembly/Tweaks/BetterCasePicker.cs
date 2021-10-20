@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using Assets.Scripts.Missions;
 using System.Collections.Generic;
 using System.Linq;
@@ -50,7 +50,7 @@ class BetterCasePicker : Tweak
 			// This must happen regardless of even BetterCasePicker is enabled so that the game can't try to spawn the fake case. 
 			prefabPool.Objects = prefabPool.Objects.Where(gameobject => gameobject.name != "TweaksCaseGenerator").ToList();
 
-			if (!Tweaks.settings.BetterCasePicker && !Tweaks.CaseGeneratorSettingCache)
+			if (!Tweaks.settings.BetterCasePicker && !Tweaks.setupSettings.CaseGenerator)
 			{
 				return;
 			}
@@ -106,7 +106,7 @@ class BetterCasePicker : Tweak
 		bombcases.Add(prefabPool.Default, !frontFaceOnly ? 12 : 6);
 
 		// Generate a case using Case Generator
-		if (Tweaks.CaseGeneratorSettingCache)
+		if (Tweaks.setupSettings.CaseGenerator)
 		{
 			List<Vector2> caseSizes = new List<Vector2>();
 			for (int x = 1; x <= componentCount; x++)

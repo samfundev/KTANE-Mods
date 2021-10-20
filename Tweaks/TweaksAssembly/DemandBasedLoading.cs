@@ -133,7 +133,6 @@ static class DemandBasedLoading
 			}
 
 			EverLoadedModules = !Tweaks.settings.DemandBasedModLoading;
-			Tweaks.DemandBasedSettingCache = Tweaks.settings.DemandBasedModLoading;
 		}
 	}
 

@@ -26,14 +26,7 @@ class Tweaks : MonoBehaviour
 	public static ModConfig<TweakSettings> modConfig;
 	public static TweakSettings settings;
 	public static TweakSettings userSettings; // This stores exactly what the user has in their settings file unlike the settings variable which includes overrides.
-
-	public static bool CaseGeneratorSettingCache; // The CaseGenerator setting is cached until the user returns to the setup room to fix bugs related to the largest case size being cached.
-	public static bool DemandBasedSettingCache; // The DemandBasedModLoading setting is cached until the user enters the Mod Manager so the demand based mods can either be loaded or unloaded.
-	public static Dictionary<string, object> HoldablesSettingCache; // The Holdables setting is cached to see if the user has changed it.
-
-	static GameObject CaseGeneratorWarning;
-	static GameObject DBMLWarning;
-	static GameObject HoldablesWarning;
+	public static TweakSettings setupSettings; // The settings when the user entered the setup room. Many settings don't actually change until the user enters the setup room again.
 
 	public static bool TwitchPlaysActive => GameObject.Find("TwitchPlays_Info") != null;
 	public static Mode CurrentMode => TwitchPlaysActive ? Mode.Normal : settings.Mode;
@@ -66,9 +59,6 @@ class Tweaks : MonoBehaviour
 		BetterCasePicker.BombCaseGenerator = GetComponentInChildren<BombCaseGenerator>();
 		DemandBasedLoading.LoadingScreen = gameObject.Traverse<CanvasGroup>("UI", "LoadingModules");
 
-		CaseGeneratorWarning = MakeSettingWarning("CaseGenerator");
-		DBMLWarning = MakeSettingWarning("DemandBasedModLoading");
-		HoldablesWarning = MakeSettingWarning("Holdables");
 
 		modConfig = new ModConfig<TweakSettings>("TweakSettings", OnReadError);
 		UpdateSettings();
@@ -84,9 +74,6 @@ class Tweaks : MonoBehaviour
 
 		SetupPatch.OnTweaksLoadingState += () => SetupPatch.LoadingList.Add(DemandBasedLoading.GetModules());
 		DemandBasedLoading.EverLoadedModules = !settings.DemandBasedModLoading;
-		DemandBasedSettingCache = settings.DemandBasedModLoading;
-
-		HoldablesSettingCache = settings.Holdables;
 
 		bool changeFadeTime = settings.FadeTime >= 0;
 
@@ -243,16 +230,16 @@ class Tweaks : MonoBehaviour
 				if (ReflectedTypes.LoadedModsField.GetValue(ModManager.Instance) is Dictionary<string, Mod> loadedMods)
 				{
 					Mod tweaksMod = loadedMods.Values.FirstOrDefault(mod => mod.ModID == "Tweaks");
-					if (tweaksMod != null && CaseGeneratorSettingCache != settings.CaseGenerator)
+					if (tweaksMod != null && setupSettings?.CaseGenerator != settings.CaseGenerator)
 					{
 						if (settings.CaseGenerator)
 							tweaksMod.ModObjects.Add(TweaksCaseGeneratorCase);
 						else
 							tweaksMod.ModObjects.Remove(TweaksCaseGeneratorCase);
-
-						CaseGeneratorSettingCache = settings.CaseGenerator;
 					}
 				}
+
+				setupSettings = modConfig.Read();
 
 				StartCoroutine(Tips.ShowTip());
 				StartCoroutine(ModifyFreeplayDevice(true));
@@ -625,8 +612,6 @@ class Tweaks : MonoBehaviour
 
 	public static IEnumerator ModifyHoldables()
 	{
-		HoldablesSettingCache = settings.Holdables;
-
 		yield return null;
 
 		var holdableSettings = settings.Holdables;
@@ -750,33 +735,41 @@ class Tweaks : MonoBehaviour
 		}
 	}
 
-	private GameObject MakeSettingWarning(string setting)
-	{
-		var warning = Instantiate(SettingWarning.Traverse("BaseSetting"), SettingWarning.transform);
-		warning.Traverse<Text>("WarningText").text = $"The change to the setting \"{setting}\" will only take effect once you re-enter the setup room. <i>Press \"F2\" to do that automatically!</i>";
-
-		return warning;
-	}
-
 	public void UpdateSettingWarnings() => MainThreadQueue.Enqueue(() =>
 	{
-		if (SettingWarning == null)
+		if (SettingWarning == null || setupSettings == null)
 			return;
 
-		bool demandSettingChanged = DemandBasedSettingCache != settings.DemandBasedModLoading;
+		var changedSettings = new List<string>();
+		if (setupSettings.DemandBasedModLoading != settings.DemandBasedModLoading) changedSettings.Add("DemandBasedModLoading");
+		if (setupSettings.ReplaceObsoleteMods != settings.ReplaceObsoleteMods && settings.ReplaceObsoleteMods) changedSettings.Add("ReplaceObsoleteMods");
+		if (setupSettings.SubscribeToNewMods != settings.SubscribeToNewMods && settings.SubscribeToNewMods) changedSettings.Add("SubscribeToNewMods");
+		if (setupSettings.CaseGenerator != settings.CaseGenerator) changedSettings.Add("CaseGenerator");
+		if (setupSettings.Holdables.Count != settings.Holdables.Count || setupSettings.Holdables.Except(settings.Holdables).Any()) changedSettings.Add("Holdables");
 
-		bool warningsEnabled = CurrentState == KMGameInfo.State.Setup && modConfig.SuccessfulRead;
+		if (CurrentState != KMGameInfo.State.Setup || !modConfig.SuccessfulRead || changedSettings.Count == 0)
+		{
+			SettingWarning.SetActive(false);
+			return;
+		}
 
-		CaseGeneratorWarning.SetActive(warningsEnabled && CaseGeneratorSettingCache != settings.CaseGenerator);
+		var settingsSentence = new System.Text.StringBuilder();
+		for (int i = 0; i < changedSettings.Count; i++)
+		{
+			settingsSentence.Append(changedSettings[i]);
 
-		DBMLWarning.SetActive(warningsEnabled && demandSettingChanged);
+			if (i != changedSettings.Count - 1)
+				settingsSentence.Append(changedSettings.Count != 2 ? ", " : " ");
 
-		HoldablesWarning.SetActive(warningsEnabled && HoldablesSettingCache.Count != settings.Holdables.Count || HoldablesSettingCache.Except(settings.Holdables).Any());
+			if (i == changedSettings.Count - 2)
+				settingsSentence.Append("and ");
+		}
 
-		SettingWarningEnabled = new[] { CaseGeneratorWarning, DBMLWarning, HoldablesWarning }.Any(warning => warning.activeSelf);
+		SettingWarning.SetActive(true);
+		SettingWarning.Traverse<Text>("WarningText").text = $"The change to the {(changedSettings.Count == 1 ? "setting" : "settings")} {settingsSentence} will only take effect once you re-enter the setup room. <i>Press F2 to do that automatically!</i>";
 	});
 
-	public static bool SettingWarningEnabled;
+	public static bool SettingWarningEnabled => SettingWarning.activeSelf;
 
 	private void OnReadError(Exception exception)
 	{
