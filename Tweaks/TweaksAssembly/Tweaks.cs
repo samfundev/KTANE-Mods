@@ -12,6 +12,7 @@ using Assets.Scripts.Progression;
 using Assets.Scripts.Props;
 using Assets.Scripts.Settings;
 using HarmonyLib;
+using Newtonsoft.Json;
 using TweaksAssembly.Patching;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -896,6 +897,7 @@ class Tweaks : MonoBehaviour
 					new Dictionary<string, object> { { "Key", "DemandModLimit" }, { "Text", "Demand Mod Limit" }, { "Description", "Sets the limit of how many mods will be kept loaded after the bomb\nis over. Negative numbers will keep all mods loaded." } },
 					new Dictionary<string, object> { { "Key", "DemandBasedModsExcludeList" }, { "Text", "Exclude Demand-based Mods" }, { "Description", "Exclude mods from being loaded on demand based on module name." } },
 					new Dictionary<string, object> { { "Key", "ManageHarmonyMods" }, { "Text", "Manage Harmony Mods" }, { "Description", "Enables the Harmony mod manager when loading mods." } },
+					new Dictionary<string, object> { { "Key", "LocalMods" }, { "Text", "Local Mods" }, { "Description", "Loads a mod from Steam when running the game locally." } },
 				}
 			}
 		},
@@ -957,5 +959,7 @@ class TweakSettings
 	public bool ModuleTweaks = true;
 	public List<string> CaseColors = new List<string>();
 	public Dictionary<string, object> Holdables = new Dictionary<string, object>();
+	[JsonConverter(typeof(LocalModsConverter))]
+	public List<string> LocalMods = new List<string>();
 	public HashSet<string> PinnedSettings = new HashSet<string>();
 }
