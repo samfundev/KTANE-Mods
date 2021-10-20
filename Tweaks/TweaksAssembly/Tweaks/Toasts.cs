@@ -35,7 +35,15 @@ public class Toasts : Tweak
 			yield return null;
 		}
 
-		yield return new WaitForSeconds(5);
+		float screenTime = 0;
+		while (screenTime < 5)
+		{
+			// Make sure the toast is on screen before increasing the amount of time.
+			if (-toast.anchoredPosition.y + toast.rect.height < Screen.currentResolution.height)
+				screenTime += Time.deltaTime;
+
+			yield return null;
+		}
 
 		foreach (float alpha in 0.75f.TimedAnimation().EaseCubic())
 		{
