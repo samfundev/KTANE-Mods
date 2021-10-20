@@ -61,8 +61,7 @@ class Tweaks : MonoBehaviour
 		BetterCasePicker.BombCaseGenerator = GetComponentInChildren<BombCaseGenerator>();
 		DemandBasedLoading.LoadingScreen = gameObject.Traverse<CanvasGroup>("UI", "LoadingModules");
 
-
-		modConfig = new ModConfig<TweakSettings>("TweakSettings", OnReadError);
+		modConfig = new ModConfig<TweakSettings>("TweakSettings", OnRead);
 		UpdateSettings();
 		StartCoroutine(Modes.LoadDefaultSettings());
 
@@ -679,7 +678,7 @@ class Tweaks : MonoBehaviour
 
 					break;
 				default:
-					Instance.OnReadError(new Exception($"Unexpected value for holdable {name}: {holdableSettings[name]}"));
+					Instance.OnRead(new Exception($"Unexpected value for holdable {name}: {holdableSettings[name]}"));
 					break;
 			}
 		}
@@ -773,7 +772,7 @@ class Tweaks : MonoBehaviour
 
 	public static bool SettingWarningEnabled => SettingWarning.activeSelf;
 
-	private void OnReadError(Exception exception)
+	private void OnRead(Exception exception)
 	{
 		var invalidSettings = gameObject.Traverse("UI", "InvalidSettings");
 		invalidSettings.SetActive(exception != null);
