@@ -7,7 +7,7 @@ using UnityEngine;
 
 class SubscribeToNewMods : Tweak
 {
-	public override bool Enabled => Tweaks.settings.SubscribeToNewMods;
+	public override bool ShouldEnable => Tweaks.settings.SubscribeToNewMods;
 
 	private static bool subscribed;
 

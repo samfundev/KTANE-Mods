@@ -46,6 +46,8 @@ class Tweaks : MonoBehaviour
 
 	public static Action<KMGameInfo.State, KMGameInfo.State> OnStateChanged;
 
+	private Tweak[] AllTweaks = new Tweak[0];
+
 	public void Awake()
 	{
 		Instance = this;
@@ -118,7 +120,7 @@ class Tweaks : MonoBehaviour
 		// Setup the leaderboard controller to block the leaderboard submission requests.
 		LeaderboardController.Install();
 
-		GetTweaks();
+		AllTweaks = GetTweaks();
 
 		// Create a fake case with a bunch of anchors to trick the game when using CaseGenerator.
 		TweaksCaseGeneratorCase = new GameObject("TweaksCaseGenerator");
@@ -791,6 +793,12 @@ class Tweaks : MonoBehaviour
 				error = Regex.Replace(error, replacement.Key, replacement.Value);
 
 			invalidSettings.Traverse<Text>("Details", "Text").text = error;
+		}
+
+		// Update the status of any Tweaks, their setting might have been changed.
+		foreach (var tweak in AllTweaks)
+		{
+			tweak.UpdateEnabled();
 		}
 	}
 

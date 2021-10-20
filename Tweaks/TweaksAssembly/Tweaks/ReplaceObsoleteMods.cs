@@ -8,7 +8,7 @@ using static Assets.Scripts.Mods.ModInfo;
 
 class ReplaceObsoleteMods : Tweak
 {
-	public override bool Enabled => Tweaks.settings.ReplaceObsoleteMods;
+	public override bool ShouldEnable => Tweaks.settings.ReplaceObsoleteMods;
 
 	// Everything is stored as ulong since that's what the Steam API expects.
 	private static readonly Dictionary<ulong, ulong> obsoleteMods = new Dictionary<ulong, ulong>()
