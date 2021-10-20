@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using Newtonsoft.Json;
+using UnityEngine;
 
 public class TTKComponentSolver : ModuleTweak
 {
@@ -81,6 +81,8 @@ public class TTKComponentSolver : ModuleTweak
 			yield break;
 		}
 
+		SetupLongPress(component.GetValue<KMSelectable>("Lock"), 1, () => component.CallMethod("OnKeyTurn"), () =>
+		{
 			// Don't allow skipping forward if there are any needies, since that would skip over managing the needy.
 			if (currentBomb.BombComponents.Any(module => !module.IsSolvable))
 				return;
@@ -120,13 +122,15 @@ public class TTKComponentSolver : ModuleTweak
 		}
 
 		Coroutine pressCoroutine = null;
-		selectable.OnInteract = () => {
+		selectable.OnInteract = () =>
+		{
 			held = false;
 			pressCoroutine = selectable.StartCoroutine(LongPress());
 			return false;
 		};
 
-		selectable.OnInteractEnded = () => {
+		selectable.OnInteractEnded = () =>
+		{
 			if (pressCoroutine == null || held)
 				return;
 

@@ -1,7 +1,7 @@
-using UnityEngine;
-using Assets.Scripts.Missions;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using Assets.Scripts.Missions;
+using UnityEngine;
 using static KMGameInfo;
 
 class BetterCasePicker : Tweak

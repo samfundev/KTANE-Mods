@@ -370,7 +370,7 @@ class Tweaks : MonoBehaviour
 
 	public IEnumerator CheckForBombs()
 	{
-		yield return new WaitUntil(() => (SceneManager.Instance.GameplayState.Bombs?.Count > 0));
+		yield return new WaitUntil(() => SceneManager.Instance.GameplayState.Bombs?.Count > 0);
 		yield return null;
 		List<Bomb> bombs = SceneManager.Instance.GameplayState.Bombs;
 
