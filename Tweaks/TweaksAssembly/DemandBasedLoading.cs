@@ -20,7 +20,6 @@ static class DemandBasedLoading
 	public static CanvasGroup LoadingScreen;
 
 	public static bool EverLoadedModules;
-	public static int DisabledModsCount;
 	static readonly List<string> fakedModules = new List<string>();
 	static string modWorkshopPath;
 	static readonly List<string> loadOrder = new List<string>();
