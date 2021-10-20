@@ -55,4 +55,40 @@ public static class ReflectionHelper
 	public static void SetValue(this object @object, string member, object value) => @object.GetType().SetValue(member, value, @object);
 	public static T CallMethod<T>(this object @object, string member, params object[] arguments) => @object.GetType().CallMethod<T>(member, @object, arguments);
 	public static void CallMethod(this object @object, string member, params object[] arguments) => @object.GetType().CallMethod(member, @object, arguments);
+
+	public class Gettable
+	{
+		public readonly string Name;
+		public readonly Type Type;
+		public readonly Func<object, object> GetValue;
+
+		public Gettable(FieldInfo fieldInfo)
+		{
+			Name = fieldInfo.Name;
+			Type = fieldInfo.FieldType;
+			GetValue = (target) => fieldInfo.GetValue(target);
+		}
+
+		public Gettable(PropertyInfo propertyInfo)
+		{
+			Name = propertyInfo.Name;
+			Type = propertyInfo.PropertyType;
+			GetValue = (target) => propertyInfo.GetValue(target, null);
+		}
+	}
+
+	public static IEnumerable<Gettable> GetGettables(this Type type, BindingFlags bindingFlags)
+	{
+		return type.GetFields(bindingFlags).Select(field => new Gettable(field)).Concat(type.GetProperties(bindingFlags).Select(field => new Gettable(field)));
+	}
+
+	public static IEnumerable<Gettable> GetAllGettables(this Type type, BindingFlags bindingFlags)
+	{
+		if (type == null)
+			return Enumerable.Empty<Gettable>();
+
+		BindingFlags flags = bindingFlags |
+							 BindingFlags.DeclaredOnly;
+		return type.GetGettables(flags).Concat(type.BaseType.GetAllGettables(bindingFlags));
+	}
 }

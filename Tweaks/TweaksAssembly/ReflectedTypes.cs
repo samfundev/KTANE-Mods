@@ -1,11 +1,10 @@
-﻿using Assets.Scripts.Leaderboards;
-using Assets.Scripts.Records;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text.RegularExpressions;
+using Assets.Scripts.Records;
 using UnityEngine;
+using static ReflectionHelper;
 
 static class ReflectedTypes
 {
@@ -90,30 +89,19 @@ static class ReflectedTypes
 			}));
 	}
 
-	public static IEnumerable<FieldInfo> GetAllFields(Type t, BindingFlags bindingFlags)
-	{
-		if (t == null)
-			return Enumerable.Empty<FieldInfo>();
-
-		BindingFlags flags = bindingFlags |
-							 BindingFlags.DeclaredOnly;
-		return t.GetFields(flags).Concat(GetAllFields(t.BaseType, bindingFlags));
-	}
-
-	public static FieldInfo GetModuleIDNumber(MonoBehaviour KMModule, out Component targetComponent)
+	public static Gettable GetModuleIDNumber(MonoBehaviour KMModule, out Component targetComponent)
 	{
 		foreach (Component component in KMModule.GetComponents<Component>())
 		{
 			if (component == null)
 				continue;
-			foreach (FieldInfo fieldInfo in GetAllFields(component.GetType(), BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+			foreach (Gettable gettable in component.GetType().GetAllGettables(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
 			{
-				var name = fieldInfo.Name.ToLowerInvariant();
-				name = Regex.Replace(name, "<(.+)>k__BackingField", "$1", RegexOptions.IgnoreCase);
-				if (fieldInfo.FieldType == typeof(int) && (name.EndsWith("moduleid") || string.Equals(name, "thisloggingid") || name.StartsWith("lognum")))
+				var name = gettable.Name.ToLowerInvariant();
+				if (gettable.Type == typeof(int) && (name.EndsWith("moduleid") || string.Equals(name, "thisloggingid") || name.StartsWith("lognum")))
 				{
 					targetComponent = component;
-					return fieldInfo;
+					return gettable;
 				}
 			}
 		}
@@ -124,22 +112,22 @@ static class ReflectedTypes
 
 	public static void UpdateTypes()
 	{
-		FactoryRoomType = ReflectionHelper.FindType("FactoryAssembly.FactoryRoom");
-		FactoryGameModeType = ReflectionHelper.FindType("FactoryAssembly.FactoryGameMode");
-		StaticModeType = ReflectionHelper.FindType("FactoryAssembly.StaticMode");
+		FactoryRoomType = FindType("FactoryAssembly.FactoryRoom");
+		FactoryGameModeType = FindType("FactoryAssembly.FactoryGameMode");
+		StaticModeType = FindType("FactoryAssembly.StaticMode");
 		GameModeProperty = FactoryRoomType?.GetProperty("GameMode", BindingFlags.NonPublic | BindingFlags.Instance);
-		_CurrentBombField = ReflectionHelper.FindType("FactoryAssembly.FiniteSequenceMode")?.GetField("_currentBomb", BindingFlags.NonPublic | BindingFlags.Instance);
-		FactoryRoomDataType = ReflectionHelper.FindType("FactoryAssembly.FactoryRoomData");
+		_CurrentBombField = FindType("FactoryAssembly.FiniteSequenceMode")?.GetField("_currentBomb", BindingFlags.NonPublic | BindingFlags.Instance);
+		FactoryRoomDataType = FindType("FactoryAssembly.FactoryRoomData");
 		WarningTimeField = FactoryRoomDataType?.GetField("WarningTime", BindingFlags.Public | BindingFlags.Instance);
 
 		AdaptationsProperty = FactoryGameModeType?.GetProperty("Adaptations", BindingFlags.NonPublic | BindingFlags.Instance);
-		FactoryGameModeAdaptationType = ReflectionHelper.FindType("FactoryAssembly.FactoryGameModeAdaptation");
-		GlobalTimerAdaptationType = ReflectionHelper.FindType("FactoryAssembly.GlobalTimerAdaptation");
+		FactoryGameModeAdaptationType = FindType("FactoryAssembly.FactoryGameModeAdaptation");
+		GlobalTimerAdaptationType = FindType("FactoryAssembly.GlobalTimerAdaptation");
 
-		ForeignExchangeRatesType = ReflectionHelper.FindType("ForeignExchangeRates");
+		ForeignExchangeRatesType = FindType("ForeignExchangeRates");
 		CurrencyAPIEndpointField = ForeignExchangeRatesType?.GetField("CURRENCY_API_ENDPOINT", BindingFlags.Static | BindingFlags.NonPublic);
 
-		PortalRoomType = ReflectionHelper.FindType("PortalRoom", "HexiBombRoom");
+		PortalRoomType = FindType("PortalRoom", "HexiBombRoom");
 		RedLightsMethod = PortalRoomType?.GetMethod("RedLight", BindingFlags.Instance | BindingFlags.Public);
 		RoomLightField = PortalRoomType?.GetField("RoomLight", BindingFlags.Instance | BindingFlags.Public);
 
