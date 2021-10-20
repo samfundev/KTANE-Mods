@@ -74,7 +74,6 @@ class Tweaks : MonoBehaviour
 
 		StartCoroutine(Repository.LoadData());
 
-		SetupPatch.OnTweaksLoadingState += () => SetupPatch.LoadingList.Add(DemandBasedLoading.GetModules());
 		DemandBasedLoading.EverLoadedModules = !settings.DemandBasedModLoading;
 
 		bool changeFadeTime = settings.FadeTime >= 0;

@@ -10,14 +10,16 @@ using Assets.Scripts.Services;
 using Assets.Scripts.Settings;
 using HarmonyLib;
 using TMPro;
+using static Utilities;
 
 namespace TweaksAssembly.Patching
 {
 	enum LoadingState
 	{
 		Normal,
-		Harmony,
-		Tweaks
+		Tweaks,
+		TweaksReload,
+		Harmony
 	}
 
 	internal static class HarmonyPatchInfo
@@ -113,41 +115,63 @@ namespace TweaksAssembly.Patching
 
 		public static bool Prefix()
 		{
+			// Depending on what state we just finished, move to the next state.
 			switch (LoadingState)
 			{
 				case LoadingState.Normal:
 					InitialLoadCompleted = true;
-					HarmonyPatchInfo.ToggleModInfo();
-					LoadingState = LoadingState.Harmony;
 
-					// "Re-enter" the Mod Manager to manage harmony mods
-					if (Tweaks.settings.ManageHarmonyMods && (!PlayerSettingsManager.Instance.PlayerSettings.UseModsAlways || InitialLoadCompleted))
-					{
-						ModManagerScreenManager.Instance.OpenManageInstalledModsScreen();
-					}
-					else
-					{
-						ModManagerScreenManager.Instance.OpenModLoadingScreenAndReturnToGame();
-					}
-
-					return false;
-				case LoadingState.Harmony:
-					HarmonyPatchInfo.ToggleModInfo();
 					LoadingState = LoadingState.Tweaks;
-
 					Tweaks.Instance.StartCoroutine(TweaksLoadingState());
 
 					return false;
 				case LoadingState.Tweaks:
+					if (ReloadMods)
+					{
+						LoadingState = LoadingState.TweaksReload;
+						ModManagerScreenManager.Instance.OpenModLoadingScreenAndReturnToGame();
+					}
+					else
+					{
+						TransitionToHarmony();
+					}
+
+					return false;
+				case LoadingState.TweaksReload:
+					TransitionToHarmony();
+
+					return false;
+				case LoadingState.Harmony:
+					HarmonyPatchInfo.ToggleModInfo();
 					LoadingState = LoadingState.Normal;
+
 					return true;
 				default:
 					throw new Exception($"Unknown loading state: {LoadingState}. This should never happen.");
 			}
 		}
 
+		private static void TransitionToHarmony()
+		{
+			HarmonyPatchInfo.ToggleModInfo();
+			LoadingState = LoadingState.Harmony;
+
+			// "Re-enter" the Mod Manager to manage harmony mods
+			if (Tweaks.settings.ManageHarmonyMods && (!PlayerSettingsManager.Instance.PlayerSettings.UseModsAlways || InitialLoadCompleted))
+			{
+				ModManagerScreenManager.Instance.OpenManageInstalledModsScreen();
+			}
+			else
+			{
+				ModManagerScreenManager.Instance.OpenModLoadingScreenAndReturnToGame();
+			}
+		}
+
 		static IEnumerator TweaksLoadingState()
 		{
+			var loadingText = UnityEngine.Object.FindObjectOfType<ModLoadingScreen>().LoadingText;
+			loadingText.text = "Tweaks is loading...";
+
 			ReloadMods = false;
 			LoadingList.Clear();
 			OnTweaksLoadingState();
@@ -157,12 +181,32 @@ namespace TweaksAssembly.Patching
 				yield return loadingRoutine;
 			}
 
+			yield return WaitForSteamRequests();
+
+			if (SteamManager.Initialized)
+			{
+				int totalMods = GetInstallingMods();
+				while (true)
+				{
+					int modsLeft = GetInstallingMods();
+					if (modsLeft == 0)
+						break;
+
+					loadingText.text = $"Downloading {totalMods - modsLeft + 1} of {totalMods} Steam {(totalMods == 1 ? "mod" : "mods")}...";
+					yield return null;
+				}
+			}
+
+			yield return DemandBasedLoading.PatchAndLoad();
+			ReloadMods |= FlushDisabledMods();
+
 			if (ReloadMods)
 			{
 				ModManagerScreenManager.Instance.OpenModLoadingScreenAndReturnToGame();
 			}
 			else
 			{
+				loadingText.text = "Tweaks is loaded!";
 				SceneManager.Instance.ModManagerState.ReturnToSetupState();
 			}
 		}

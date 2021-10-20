@@ -4,13 +4,13 @@ using System.Linq;
 using Steamworks;
 using TweaksAssembly.Patching;
 using UnityEngine;
-using static Assets.Scripts.Mods.ModInfo;
 
 class ReplaceObsoleteMods : Tweak
 {
-	public override bool ShouldEnable => Tweaks.settings.ReplaceObsoleteMods;
+	public override bool ShouldEnable => SteamManager.Initialized && Tweaks.settings.ReplaceObsoleteMods;
 
 	// Everything is stored as ulong since that's what the Steam API expects.
+	// The key is the obsolete mod id and value is the new mod is.
 	private static readonly Dictionary<ulong, ulong> obsoleteMods = new Dictionary<ulong, ulong>()
 	{
 		{ 1224413364, 2037350348 },
@@ -18,30 +18,23 @@ class ReplaceObsoleteMods : Tweak
 		{ 2502467653, 1366808675 }
 	};
 
-	private static bool removedModules;
-
 	public override IEnumerator OnTweaksLoadingState()
 	{
-		if (removedModules)
-			yield break;
-
 		yield return new WaitUntil(() => Repository.Loaded);
 
 		LoadObsoleteMods();
 
 		foreach (var modInfo in ModManager.Instance.InstalledModInfos.Values)
 		{
-			if (modInfo.ModSource != ModSourceEnum.SteamWorkshop)
+			if (modInfo.SteamInfo == null)
 				continue;
 
 			var oldModID = modInfo.SteamInfo.PublishedFileID;
 			if (!obsoleteMods.TryGetValue(oldModID, out ulong newModID))
 				continue;
 
-			Utilities.EnsureSteamRequestManager();
-
 			// Unsubscribe from the old mod.
-			SteamWorkshopRequestManager.Instance.UnsubscribeFromItem(new PublishedFileId_t(oldModID), (unsubResult) =>
+			Utilities.UnsubscribeFromMod(oldModID, (unsubResult) =>
 			{
 				if (unsubResult != EResult.k_EResultOK)
 				{
@@ -50,29 +43,26 @@ class ReplaceObsoleteMods : Tweak
 				}
 
 				// Subscribe to the new mod.
-				SteamWorkshopRequestManager.Instance.SubscribeToItem(new PublishedFileId_t(newModID), (subResult) =>
+				Utilities.SubscribeToMod(newModID, (result) =>
 				{
-					if (subResult != EResult.k_EResultOK)
+					if (result != EResult.k_EResultOK)
 					{
-						Tweaks.Log($"Failed to subscribe to new mod: {newModID} ({subResult})");
+						Tweaks.Log($"Failed to subscribe to new mod: {newModID} ({result})");
 						return;
 					}
 
-					Toasts.Make($"Replaced obsolete mod: {modInfo.Title} ({oldModID} -> {newModID})");
+					Toasts.Make($"Replaced obsolete mod: {modInfo.Title}");
+					Tweaks.Log($"Replaced obsolete mod: {modInfo.Title} ({oldModID} -> {newModID})");
 
 					// If DBML is enabled, automatically disable this module.
 					var newModStringID = newModID.ToString();
 					if (Tweaks.settings.DemandBasedModLoading && Repository.Modules.Any(module => module.Type.EqualsAny("Module", "Needy") && module.SteamID == newModStringID))
 						Utilities.DisableMod(newModStringID);
-
-					SetupPatch.ReloadMods |= true;
+					else
+						SetupPatch.ReloadMods = true;
 				});
 			});
 		}
-
-		Utilities.FlushDisabledMods();
-
-		removedModules = true;
 	}
 
 	private void LoadObsoleteMods()

@@ -48,17 +48,23 @@ static class DemandBasedLoading
 		}
 	}
 
+	public static IEnumerator PatchAndLoad()
+	{
+		if (EverLoadedModules)
+			yield break;
+
+		EverLoadedModules = true;
+
+		// Load the modules from the website and makes the fake module
+		yield return GetModules();
+
+		Patching.EnsurePatch("DBML", typeof(GameplayStatePatches), typeof(GeneratorPatches), typeof(WidgetGeneratorPatch), typeof(MultipleBombsPatch));
+		FactoryPatches.PatchAll();
+	}
+
 	public static void HandleTransitioning()
 	{
-		// Load the modules from the website and makes the fake module
-		if (!EverLoadedModules)
-		{
-			EverLoadedModules = true;
-
-			Patching.EnsurePatch("DBML", typeof(GameplayStatePatches), typeof(GeneratorPatches), typeof(WidgetGeneratorPatch), typeof(MultipleBombsPatch));
-			FactoryPatches.PatchAll();
-		}
-		else
+		if (EverLoadedModules)
 		{
 			Tweaks.Instance.StartCoroutine(CheckForModManagerState());
 		}
@@ -138,18 +144,16 @@ static class DemandBasedLoading
 
 	public static IEnumerator GetModules()
 	{
-		var steamDirectory = Utilities.SteamDirectory;
+		modWorkshopPath = Utilities.SteamWorkshopDirectory;
 
 		yield return new WaitUntil(() => Repository.Loaded);
 
-		if (steamDirectory == null)
+		if (modWorkshopPath == null)
 		{
 			Tweaks.Log("Unable to find Steam!");
 		}
 		else
 		{
-			modWorkshopPath = Path.GetFullPath(new[] { steamDirectory, "steamapps", "workshop", "content", "341800" }.Aggregate(Path.Combine));
-
 			var fakeModuleParent = new GameObject("FakeModuleParent");
 			fakeModuleParent.transform.parent = Tweaks.Instance.transform;
 			fakeModuleParent.SetActive(false);
@@ -218,8 +222,6 @@ static class DemandBasedLoading
 
 			if (cantLoad.Count > 0)
 				Tweaks.Log($"Can't load: {cantLoad.Join(", ")}".ChunkBy(250).Join("\n"));
-
-			SetupPatch.ReloadMods |= Utilities.FlushDisabledMods();
 		}
 	}
 
