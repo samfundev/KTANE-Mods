@@ -103,16 +103,16 @@ class ModeSettings
 	public float ZenModeTimerMaxSpeed = 2;
 	public float SteadyModeFixedPenalty = 2;
 	public float SteadyModePercentPenalty = 0;
-	public float TimeModeStartingTime = 5;
+	public float TimeModeStartingTime = 8;
 	public float TimeModeStartingMultiplier = 9.0f;
-	public float TimeModeMaxMultiplier = 10.0f;
-	public float TimeModeMinMultiplier = 1.0f;
+	public float TimeModeMaxMultiplier = 12.0f;
+	public float TimeModeMinMultiplier = 4.0f;
 	public float TimeModeSolveBonus = 0.1f;
-	public float TimeModeMultiplierStrikePenalty = 1.5f;
-	public float TimeModeTimerStrikePenalty = 0.25f;
+	public float TimeModeMultiplierStrikePenalty = 1.0f;
+	public float TimeModeTimerStrikePenalty = 0.2f;
 	public float TimeModeMinimumTimeLost = 15;
 	public float TimeModeMinimumTimeGained = 20;
-	public float TimeModePointMultiplier = 1;
+	public float TimeModePointMultiplier = 1.3f;
 	public Dictionary<string, double> ComponentValues = new Dictionary<string, double>();
 	public Dictionary<string, double> TotalModulesMultiplier = new Dictionary<string, double>();
 }
