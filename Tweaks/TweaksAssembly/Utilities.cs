@@ -117,7 +117,9 @@ public static class Utilities
 		activeSteamRequests++;
 		SteamWorkshopRequestManager.Instance.SubscribeToItem(new PublishedFileId_t(modID), (result) =>
 		{
-			installingSteamIDs.Add(modID);
+			if (result == EResult.k_EResultOK)
+				installingSteamIDs.Add(modID);
+
 			callback(result);
 			activeSteamRequests--;
 		});
