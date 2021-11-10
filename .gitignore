@@ -1,5 +1,6 @@
 /! Old Projects/
 /! Automation/node_modules
 /[Ll]ibrary/
+/build/
 .vs
 .idea
