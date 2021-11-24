@@ -18,7 +18,7 @@ public static class Tips
 		new Tip("Enable the mods only key by default using the \"EnableModsOnlyKey\" setting.", () => !Settings.EnableModsOnlyKey, "settings-EnableModsOnlyKey"),
 		new Tip("Load modules on demand to save on bootup time and memory using the \"DemandBasedModLoading\" setting.", () => !Settings.DemandBasedModLoading, "settings-DemandBasedModLoading"),
 		new Tip("Exclude modules from being loaded on demand using the \"DemandBasedModsExcludeList\" setting.", () => Settings.DemandBasedModsExcludeList.Count == 0, "settings-DemandBasedModsExcludeList"),
-		new Tip("See the current status of the bomb using the \"BombHUD\" setting.", () => !Settings.BombHUD, "settings-BombHUD"),
+		new Tip("See the current status of the bomb using the \"BombHUD\" setting.", () => Settings.BombHUD == HUDMode.Off, "settings-BombHUD"),
 		new Tip("See a bomb's edgework on screen using the \"ShowEdgework\" setting.", () => !Settings.ShowEdgework, "settings-ShowEdgework"),
 		new Tip("Temporarily disable advantageous features using the \"DisableAdvantageous\" setting.", () => !Settings.DisableAdvantageous, "settings-DisableAdvantageous"),
 		new Tip("Disable these tips using the \"ShowTips\" setting.", () => Settings.ShowTips, "settings-ShowTips"),

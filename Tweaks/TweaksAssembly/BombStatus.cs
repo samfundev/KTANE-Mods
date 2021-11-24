@@ -73,11 +73,12 @@ class BombStatus : MonoBehaviour
 			}
 		}
 
-		bool enabled = currentBomb != null && (Tweaks.settings.BombHUD || BombWrapper.Alerts.Count != 0) && !Tweaks.TwitchPlaysActiveCache;
+		bool hudIsOn = Tweaks.settings.BombHUD != HUDMode.Off;
+		bool enabled = currentBomb != null && (hudIsOn || BombWrapper.Alerts.Count != 0) && !Tweaks.TwitchPlaysActiveCache;
 		CanvasGroup.alpha = Math.Min(Math.Max(CanvasGroup.alpha + (enabled ? 1 : -1) * 0.1f, 0), 1);
 		if (!enabled) return;
 
-		if (Tweaks.settings.BombHUD)
+		if (hudIsOn)
 		{
 			string formattedTime = currentBomb.GetFullFormattedTime;
 			TimerPrefab.text = formattedTime;
@@ -85,7 +86,7 @@ class BombStatus : MonoBehaviour
 			UpdateConfidence();
 		}
 
-		float y = Tweaks.settings.BombHUD ? 173 : 0;
+		float y = hudIsOn ? 173 : 0;
 		foreach (RectTransform alert in BombWrapper.Alerts)
 		{
 			alert.anchoredPosition = new Vector3(0, -y);

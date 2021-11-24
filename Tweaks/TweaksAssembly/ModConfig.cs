@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 
 #pragma warning disable RCS1128
@@ -34,6 +36,8 @@ class ModConfig<T> where T : new()
 	/// <summary>Called every time the settings are read. Parameter is null if the read was successful or an exception if it wasn't.</summary>
 	public Action<Exception> OnRead;
 
+	public List<Action<JObject>> Migrations = new List<Action<JObject>>();
+
 	/// <summary>
 	/// Reads the settings from the settings file.
 	/// If the settings couldn't be read, the default settings will be returned.
@@ -49,7 +53,13 @@ class ModConfig<T> where T : new()
 					File.WriteAllText(settingsPath, SerializeSettings(new T()));
 				}
 
-				T deserialized = JsonConvert.DeserializeObject<T>(File.ReadAllText(settingsPath));
+				JObject jObject = JObject.Parse(File.ReadAllText(settingsPath));
+				foreach (var migration in Migrations)
+				{
+					migration(jObject);
+				}
+
+				T deserialized = jObject.ToObject<T>();
 				if (deserialized == null)
 					deserialized = new T();
 

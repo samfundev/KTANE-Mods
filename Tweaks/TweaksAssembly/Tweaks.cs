@@ -13,6 +13,7 @@ using Assets.Scripts.Props;
 using Assets.Scripts.Settings;
 using HarmonyLib;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using TweaksAssembly.Patching;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -43,7 +44,7 @@ class Tweaks : MonoBehaviour
 	GameObject TweaksCaseGeneratorCase;
 
 	GameObject AdvantageousWarning;
-	bool AdvantageousFeaturesEnabled => settings.BombHUD || settings.ShowEdgework || CurrentMode != Mode.Normal || settings.MissionSeed != -1;
+	bool AdvantageousFeaturesEnabled => settings.BombHUD == HUDMode.On || settings.ShowEdgework || CurrentMode != Mode.Normal || settings.MissionSeed != -1;
 
 	public static Action<KMGameInfo.State, KMGameInfo.State> OnStateChanged;
 
@@ -63,6 +64,13 @@ class Tweaks : MonoBehaviour
 		DemandBasedLoading.LoadingScreen = gameObject.Traverse<CanvasGroup>("UI", "LoadingModules");
 
 		modConfig = new ModConfig<TweakSettings>("TweakSettings", OnRead);
+		modConfig.Migrations.Add(jObject =>
+		{
+			if (jObject.TryGetValue("BombHUD", out JToken value) && value.Type == JTokenType.Boolean)
+			{
+				jObject["BombHUD"] = value.Value<bool>() ? nameof(HUDMode.On) : nameof(HUDMode.Off);
+			}
+		});
 		UpdateSettings();
 		StartCoroutine(Modes.LoadDefaultSettings());
 
@@ -215,7 +223,8 @@ class Tweaks : MonoBehaviour
 				CurrentModeCache = CurrentMode;
 
 				BombStatus.Instance.widgetsActivated = false;
-				BombStatus.Instance.HUD.SetActive(settings.BombHUD);
+				BombStatus.Instance.HUD.SetActive(settings.BombHUD != HUDMode.Off);
+				BombStatus.Instance.SolvesPrefab.gameObject.SetActive(settings.BombHUD == HUDMode.On);
 				BombStatus.Instance.ConfidencePrefab.gameObject.SetActive(CurrentMode != Mode.Zen);
 				BombStatus.Instance.StrikesPrefab.color = CurrentMode == Mode.Time ? Color.yellow : Color.red;
 
@@ -708,7 +717,7 @@ class Tweaks : MonoBehaviour
 
 		if (settings.DisableAdvantageous)
 		{
-			settings.BombHUD = false;
+			settings.BombHUD = settings.BombHUD == HUDMode.On ? HUDMode.Partial : settings.BombHUD;
 			settings.MissionSeed = -1;
 			settings.Mode = Mode.Normal;
 			settings.ShowEdgework = false;
@@ -871,7 +880,13 @@ class Tweaks : MonoBehaviour
 					new Dictionary<string, object> { { "Key", "MissionSeed" }, { "Text", "Mission Seed" }, { "Description", "Seeds the random numbers for the mission which should make the bomb\ngenerate consistently." } },
 
 					new Dictionary<string, object> { { "Text", "HUDs" }, { "Type", "Section" } },
-					new Dictionary<string, object> { { "Key", "BombHUD" }, { "Text", "Bomb HUD" }, { "Description", "Adds a HUD in the top right corner showing information about the currently selected bomb." } },
+					new Dictionary<string, object> {
+						{ "Key", "BombHUD" },
+						{ "Text", "Bomb HUD" },
+						{ "Description", "Adds a HUD in the top right corner showing information about the currently\nselected bomb." },
+						{ "Type", "Dropdown" },
+						{ "DropdownItems", new List<object> { "Off", "Partial", "On" } }
+					},
 					new Dictionary<string, object> { { "Key", "ShowEdgework" }, { "Text", "Show Edgework" }, { "Description", "Adds a HUD to the top of the screen showing the edgework for the currently selected bomb." } },
 
 					new Dictionary<string, object> { { "Text", "Cases" }, { "Type", "Section" } },
@@ -933,6 +948,13 @@ class Tweaks : MonoBehaviour
 	};
 }
 
+enum HUDMode
+{
+	Off,
+	Partial,
+	On,
+}
+
 #pragma warning disable CS0649
 class TweakSettings
 {
@@ -947,7 +969,7 @@ class TweakSettings
 	public int DemandModLimit = -1;
 	public bool ReplaceObsoleteMods = true;
 	public bool SubscribeToNewMods;
-	public bool BombHUD = false;
+	public HUDMode BombHUD = HUDMode.Off;
 	public bool ShowEdgework = false;
 	public bool DisableAdvantageous = false;
 	public bool ShowTips = true;
