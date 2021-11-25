@@ -166,6 +166,8 @@ class BombWrapper : MonoBehaviour
 					Bomb.NumStrikes = -1;
 				}
 
+				Tweaks.LogJSON("LFAEvent", eventInfo);
+
 				bool finalStrike = OnStrike(source);
 
 				// These mode modifications need to happen after the game handles the strike since they change the timer rate.
@@ -188,8 +190,6 @@ class BombWrapper : MonoBehaviour
 				}
 
 				BombStatus.Instance.UpdateStrikes();
-
-				Tweaks.LogJSON("LFAEvent", eventInfo);
 
 				return finalStrike;
 			};
