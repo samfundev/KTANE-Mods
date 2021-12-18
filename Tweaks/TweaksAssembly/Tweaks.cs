@@ -823,7 +823,10 @@ class Tweaks : MonoBehaviour
 
 	public void OnApplicationQuit()
 	{
-		string path = Path.Combine(Application.persistentDataPath, "output_log.txt");
+		string logName = Application.platform == RuntimePlatform.WindowsPlayer ? "output_log.txt" : "Player.log";
+		string newLogName = Application.platform == RuntimePlatform.WindowsPlayer ? "output_log_2.txt" : "Player_2.log";
+
+		string path = Path.Combine(Application.persistentDataPath, logName);
 		if (!File.Exists(path))
 		{
 			Log("Unable to save output log since it couldn't be found.");
@@ -832,7 +835,7 @@ class Tweaks : MonoBehaviour
 
 		File.Copy(
 			path,
-			Path.Combine(Application.persistentDataPath, "output_log_2.txt"),
+			Path.Combine(Application.persistentDataPath, newLogName),
 			true
 		);
 	}
