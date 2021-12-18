@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Assets.Scripts.BombBinder;
+using Assets.Scripts.Missions;
 using Assets.Scripts.Mods.Mission;
 using Assets.Scripts.Platform;
 using Assets.Scripts.Progression;
@@ -66,9 +67,14 @@ class Tweaks : MonoBehaviour
 		modConfig = new ModConfig<TweakSettings>("TweakSettings", OnRead);
 		modConfig.Migrations.Add(jObject =>
 		{
-			if (jObject.TryGetValue("BombHUD", out JToken value) && value.Type == JTokenType.Boolean)
+			if (jObject.TryGetValue("BombHUD", out JToken bombValue) && bombValue.Type == JTokenType.Boolean)
 			{
-				jObject["BombHUD"] = value.Value<bool>() ? nameof(HUDMode.On) : nameof(HUDMode.Off);
+				jObject["BombHUD"] = bombValue.Value<bool>() ? nameof(HUDMode.On) : nameof(HUDMode.Off);
+			}
+
+			if (jObject.TryGetValue("DisableAdvantageous", out JToken advantageousValue) && advantageousValue.Type == JTokenType.Boolean)
+			{
+				jObject["DisableAdvantageous"] = advantageousValue.Value<bool>() ? nameof(AdvantageousMode.On) : nameof(AdvantageousMode.Off);
 			}
 		});
 		UpdateSettings();
@@ -181,13 +187,6 @@ class Tweaks : MonoBehaviour
 
 					ReflectedTypes.CurrencyAPIEndpointField?.SetValue(null, settings.ModuleTweaks ? "https://api.exchangerate.host" : "http://api.fixer.io");
 
-					if (
-						AdvantageousFeaturesEnabled &&
-						GameplayState.MissionToLoad != Assets.Scripts.Missions.FreeplayMissionGenerator.FREEPLAY_MISSION_ID &&
-						GameplayState.MissionToLoad != ModMission.CUSTOM_MISSION_ID
-					)
-						StartCoroutine(ShowAdvantageousWarning());
-
 					break;
 				case "gameplayScene":
 					if (changeFadeTime)
@@ -216,6 +215,15 @@ class Tweaks : MonoBehaviour
 
 			if (state == KMGameInfo.State.Gameplay)
 			{
+				UpdateSettings();
+
+				if (
+					AdvantageousFeaturesEnabled &&
+					GameplayState.MissionToLoad != FreeplayMissionGenerator.FREEPLAY_MISSION_ID &&
+					GameplayState.MissionToLoad != ModMission.CUSTOM_MISSION_ID
+				)
+					StartCoroutine(ShowAdvantageousWarning());
+
 				if (AdvantageousFeaturesEnabled)
 					LeaderboardController.DisableLeaderboards();
 
@@ -715,7 +723,10 @@ class Tweaks : MonoBehaviour
 		// Apply overrides
 		settings = modConfig.Read();
 
-		if (settings.DisableAdvantageous)
+		bool mission = settings.DisableAdvantageous == AdvantageousMode.Missions &&
+			CurrentState == KMGameInfo.State.Gameplay &&
+			!GameplayState.MissionToLoad.EqualsAny(FreeplayMissionGenerator.FREEPLAY_MISSION_ID, ModMission.CUSTOM_MISSION_ID);
+		if (settings.DisableAdvantageous == AdvantageousMode.On || mission)
 		{
 			settings.BombHUD = settings.BombHUD == HUDMode.On ? HUDMode.Partial : settings.BombHUD;
 			settings.MissionSeed = -1;
@@ -732,7 +743,7 @@ class Tweaks : MonoBehaviour
 		if (bombCreator == null)
 			return;
 
-		bombCreator.Traverse("TimeSetting", "TwitchModeButton").SetActive(TwitchPlaysActive || !settings.DisableAdvantageous);
+		bombCreator.Traverse("TimeSetting", "TwitchModeButton").SetActive(TwitchPlaysActive || settings.DisableAdvantageous != AdvantageousMode.On);
 	}
 
 	public void Update()
@@ -876,7 +887,13 @@ class Tweaks : MonoBehaviour
 						{ "Type", "Dropdown" },
 						{ "DropdownItems", new List<object> { "Normal", "Time", "Zen", "Steady" } }
 					},
-					new Dictionary<string, object> { { "Key", "DisableAdvantageous" }, { "Text", "Disable Advantageous Features" }, { "Description", "Disables advantageous features like the Bomb HUD, Show Edgework,\ncustom Modes and Mission Seed." } },
+					new Dictionary<string, object> {
+						{ "Key", "DisableAdvantageous" },
+						{ "Text", "Disable Advantageous Features" },
+						{ "Description", "Disables advantageous features like the Bomb\nHUD, Show Edgework, custom Modes, etc." },
+						{ "Type", "Dropdown" },
+						{ "DropdownItems", new List<object> { "Off", "Missions", "On" } }
+					},
 					new Dictionary<string, object> { { "Key", "MissionSeed" }, { "Text", "Mission Seed" }, { "Description", "Seeds the random numbers for the mission which should make the bomb\ngenerate consistently." } },
 
 					new Dictionary<string, object> { { "Text", "HUDs" }, { "Type", "Section" } },
@@ -955,6 +972,13 @@ enum HUDMode
 	On,
 }
 
+enum AdvantageousMode
+{
+	Off,
+	Missions,
+	On,
+}
+
 #pragma warning disable CS0649
 class TweakSettings
 {
@@ -971,7 +995,7 @@ class TweakSettings
 	public bool SubscribeToNewMods;
 	public HUDMode BombHUD = HUDMode.Off;
 	public bool ShowEdgework = false;
-	public bool DisableAdvantageous = false;
+	public AdvantageousMode DisableAdvantageous = AdvantageousMode.Off;
 	public bool ShowTips = true;
 	public List<string> HideTOC = new List<string>();
 	public Mode Mode = Mode.Normal;
