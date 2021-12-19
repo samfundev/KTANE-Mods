@@ -360,7 +360,8 @@ static class DemandBasedLoading
 		}
 		else
 		{
-			Tweaks.Log($"Unable to get the real module for {ModuleID} ({SteamID}). IDs found: {moduleIDs.Select(id => $"\"{id}\"").Join(", ")}. This shouldn't happen, please contact the developer of Tweaks.");
+			Tweaks.Log($"Unable to load the module for {ModuleID} ({SteamID}). IDs found: {moduleIDs.Select(id => $"\"{id}\"").Join(", ")}. Please contact the developer of Tweaks for assistance.");
+			Toasts.Make($"Unable to load the module for {ModuleID} ({SteamID}). Please contact the developer of Tweaks for assistance.");
 
 			LeaderboardController.DisableLeaderboards();
 
