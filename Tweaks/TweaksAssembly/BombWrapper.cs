@@ -205,6 +205,7 @@ class BombWrapper : MonoBehaviour
 			{ "TurnTheKeyAdvanced", bombComponent => new TTKSTweak(bombComponent) },
 			{ "draw", bombComponent => new DrawTweak(bombComponent) },
 			{ "groceryStore", bombComponent => new GroceryStoreTweak(bombComponent) },
+			{ "parliament", bombComponent => new ParliamentTweak(bombComponent) },
 
 			{ "Wires", bombComponent => new WiresLogging(bombComponent) },
 			{ "Keypad", bombComponent => new KeypadLogging(bombComponent) }
@@ -291,10 +292,16 @@ class BombWrapper : MonoBehaviour
 					case "moon":
 					case "sun":
 					case "jackOLantern":
+					case "simonsStar":
+					case "EncryptedMorse":
 						// This fixes the scale of the light components
 						Light[] lights = component.GetComponentsInChildren<Light>();
 						for (int i = 0; i < lights.Length; i++)
 							lights[i].range *= component.transform.lossyScale.x;
+						break;
+					case "simonSamples":
+						component.transform.Find("Scale/PlayButton/LedOn/Point light").GetComponent<Light>().range *= component.transform.lossyScale.x;
+						component.transform.Find("Scale/RecordButton/LedOn/Point light").GetComponent<Light>().range *= component.transform.lossyScale.x;
 						break;
 					case "jewelVault":
 						// This fixes the scale of the light components

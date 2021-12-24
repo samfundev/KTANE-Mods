@@ -171,7 +171,7 @@ class Tweaks : MonoBehaviour
 
 					ReflectedTypes.UpdateTypes();
 
-					ReflectedTypes.CurrencyAPIEndpointField?.SetValue(null, settings.ModuleTweaks ? "https://api.ratesapi.io/api" : "http://api.fixer.io");
+					ReflectedTypes.CurrencyAPIEndpointField?.SetValue(null, settings.ModuleTweaks ? "https://api.exchangerate.host" : "http://api.fixer.io");
 
 					if (
 						AdvantageousFeaturesEnabled &&
