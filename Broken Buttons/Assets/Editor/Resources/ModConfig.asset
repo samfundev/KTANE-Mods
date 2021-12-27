@@ -13,10 +13,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: BrokenButtonModule
   title: Broken Buttons
+  author: samfundev
   description: "[h1]About[/h1]\r\nYou must press the correct buttons, but which one?
     Buttons will change on every press. Who knew that invisible ink worked like that?\r\n\r\n[h1]Manual[/h1]\r\n[url=https://ktane.timwi.de/PDF/Broken%20Buttons.pdf]PDF[/url]\r\n[url=https://ktane.timwi.de/HTML/Broken%20Buttons.html]HTML[/url]\r\n\r\n[h1]Module
     ID[/h1]\r\nBrokenButtonsModule"
   version: 1
-  outputFolder: C:\Program Files (x86)\Steam\steamapps\common\Keep Talking and Nobody
-    Explodes\mods
+  outputFolder: ../build
   previewImage: {fileID: 2800000, guid: 0840a265b3ffd364db54f8a6b4160ace, type: 3}

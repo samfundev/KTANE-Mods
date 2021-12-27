@@ -63,10 +63,10 @@ async function hardLinkDir(target, directory) {
 
 process.chdir("..");
 
-(async function() {
+(async function () {
 	let files = await fs.readdir(".", undefined);
 	for (let file of files) {
-		if (file != "! Template Project" && (file.startsWith("! ") || file.startsWith(".") || file == "docs")) continue;
+		if (file != "! Template Project" && (file.startsWith("! ") || file.startsWith(".") || file == "docs" || file == "build")) continue;
 
 		let stats = await fs.stat(file);
 		if (!stats.isDirectory()) continue;
