@@ -1,10 +1,10 @@
-﻿using UnityEngine;
-using System.Linq;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
-using Random = UnityEngine.Random;
+using System.Linq;
 using BombInfoExtensions;
 using KeepCoding;
+using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class MinesweeperModule : ModuleScript
 {
@@ -44,39 +44,20 @@ public class MinesweeperModule : ModuleScript
 		{
 			get
 			{
-				bool onlymines = true;
-				foreach (Cell cell in Cells)
-				{
-					if (!cell.Mine && !cell.Dug)
-					{
-						onlymines = false;
-						break;
-					}
-				}
-
+				// If the only thing not dug are mines, the user probably knows where the mines are.
+				// We'll just flag them for the user.
+				bool onlymines = !Cells.Any(cell => !cell.Mine && !cell.Dug);
 				if (onlymines)
 				{
-					foreach (Cell cell in Cells)
+					foreach (Cell cell in Cells.Where(cell => cell.Mine))
 					{
-						if (cell.Mine)
-						{
-							cell.Flagged = true;
-							cell.UpdateSprite();
-						}
+						cell.Flagged = true;
+						cell.UpdateSprite();
 					}
 				}
 
-				bool won = true;
-				foreach (Cell cell in Cells)
-				{
-					if (cell.Mine ^ cell.Flagged)
-					{
-						won = false;
-						break;
-					}
-				}
-
-				return won;
+				// If any cell is flagged but not a mine or a mine but not flagged, the game is not solved.
+				return !Cells.Any(cell => cell.Mine ^ cell.Flagged);
 			}
 		}
 	}
@@ -469,26 +450,32 @@ public class MinesweeperModule : ModuleScript
 		Held = true;
 		Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
 
-		if (StartFound)
+		if (!StartFound) yield break;
+
+		Audio.PlaySoundAtTransform("Flag-" + Random.Range(1, 9).ToString("D2"), transform);
+		if (cell.Dug)
 		{
-			Audio.PlaySoundAtTransform("Flag-" + Random.Range(1, 9).ToString("D2"), transform);
-			if (cell.Dug)
+			foreach (Cell c in cell.Around)
 			{
-				foreach (Cell c in cell.Around)
+				if (!c.Dug)
 				{
-					if (!c.Dug)
-					{
-						c.Flagged = true;
-						c.UpdateSprite();
-					}
+					c.Flagged = true;
+					c.UpdateSprite();
 				}
 			}
-			else
-			{
-				cell.Flagged = !cell.Flagged;
-				cell.UpdateSprite();
-			}
 		}
+		else
+		{
+			cell.Flagged = !cell.Flagged;
+			cell.UpdateSprite();
+		}
+
+		if (Game.Solved)
+		{
+			StartCoroutine(SolveModule());
+		}
+
+		UpdateSelectable();
 	}
 
 	internal bool Digging = true;
@@ -559,84 +546,75 @@ public class MinesweeperModule : ModuleScript
 				cell._selectable.OnInteractEnded = () =>
 				{
 					StopCoroutine(_playClick);
-					if (!Held)
+					if (Held) return;
+
+					if (!StartFound && Picks.Contains(cell))
 					{
-						if (!StartFound)
+						if (cell == StartingCell)
 						{
-							if (Picks.Contains(cell))
+							StartFound = true;
+							foreach (Cell c in Game.Cells)
 							{
-								if (cell == StartingCell)
-								{
-									StartFound = true;
-									foreach (Cell c in Game.Cells)
-									{
-										c._renderer.color = Color.white;
-									}
-
-									foreach (var label in colorblindLabels)
-									{
-										label.SetActive(false);
-									}
-
-									StartCoroutine(cell.AnimatedDig());
-								}
-								else
-								{
-									Log("Dug the " + cell.Color + " cell instead of " + StartingCell.Color + " for the correct starting cell.");
-									Strike();
-								}
+								c._renderer.color = Color.white;
 							}
+
+							foreach (var label in colorblindLabels)
+							{
+								label.SetActive(false);
+							}
+
+							StartCoroutine(cell.AnimatedDig());
 						}
 						else
 						{
-							if (Digging)
+							Log("Dug the " + cell.Color + " cell instead of " + StartingCell.Color + " for the correct starting cell.");
+							Strike();
+						}
+					}
+					else
+					{
+						if (Digging)
+						{
+							if (cell.Dug)
 							{
-								if (cell.Dug)
+								foreach (Cell c in cell.Around.Where(c => !c.Dug && !c.Flagged))
 								{
-									foreach (Cell c in cell.Around)
+									if (c.Mine)
 									{
-										if (!c.Dug && !c.Flagged)
-										{
-											if (c.Mine)
-											{
-												Log("One of the surrounding cells was actually a mine.");
-												c.Dug = true;
-												c.Flagged = true;
-												c.UpdateSprite();
-												Strike();
-												LogBoard();
-												break;
-											}
-											else
-											{
-												StartCoroutine(c.AnimatedDig());
-											}
-										}
-									}
-								}
-								else if (!cell.Flagged)
-								{
-									if (cell.Mine)
-									{
-										Log("A mine was dug!");
-										cell.Dug = true;
-										cell.Flagged = true;
-										cell.UpdateSprite();
+										Log("One of the surrounding cells was actually a mine.");
+										c.Dug = true;
+										c.Flagged = true;
+										c.UpdateSprite();
 										Strike();
 										LogBoard();
+										break;
 									}
-									else
-									{
-										StartCoroutine(cell.AnimatedDig());
-									}
+
+									StartCoroutine(c.AnimatedDig());
 								}
 							}
-							else if (!cell.Dug)
+							else if (!cell.Flagged)
 							{
-								Audio.PlaySoundAtTransform("Flag-" + Random.Range(1, 9).ToString("D2"), transform);
-								cell.Flagged = !cell.Flagged;
-								cell.UpdateSprite();
+								if (cell.Mine)
+								{
+									Log("A mine was dug!");
+									cell.Dug = true;
+									cell.Flagged = true;
+									cell.UpdateSprite();
+									Strike();
+									LogBoard();
+								}
+								else
+								{
+									StartCoroutine(cell.AnimatedDig());
+								}
 							}
+						}
+						else if (!cell.Dug)
+						{
+							Audio.PlaySoundAtTransform("Flag-" + Random.Range(1, 9).ToString("D2"), transform);
+							cell.Flagged = !cell.Flagged;
+							cell.UpdateSprite();
 						}
 					}
 
@@ -688,12 +666,9 @@ public class MinesweeperModule : ModuleScript
 			mine.Mine = true;
 			mine.Number = 0;
 
-			foreach (Cell cell in mine.Around)
+			foreach (Cell cell in mine.Around.Where(cell => !cell.Mine))
 			{
-				if (!cell.Mine)
-				{
-					cell.Number++;
-				}
+				cell.Number++;
 			}
 
 			NonMines.RemoveAt(index);
@@ -732,18 +707,15 @@ public class MinesweeperModule : ModuleScript
 				{
 					Changed = true;
 					Used.Add(cell);
-					foreach (Cell adj in cell.Around)
+					foreach (Cell adj in cell.Around.Where(adj => !adj.Dug))
 					{
-						if (!adj.Dug)
+						if (DigAll)
 						{
-							if (DigAll)
-							{
-								UnusedTemp.AddRange(adj.Dig());
-							}
-							else if (FlagAll)
-							{
-								adj.Flagged = true;
-							}
+							UnusedTemp.AddRange(adj.Dig());
+						}
+						else if (FlagAll)
+						{
+							adj.Flagged = true;
 						}
 					}
 				}
@@ -759,18 +731,16 @@ public class MinesweeperModule : ModuleScript
 			UnusedTemp.Clear();
 		}
 
-		if (Game.Solved)
-		{
-			foreach (Cell cell in Game.Cells)
-			{
-				cell.Dug = false;
-				cell.Flagged = false;
-				cell.UpdateSprite();
-			}
-		}
-		else
+		if (!Game.Solved)
 		{
 			goto retry;
+		}
+
+		foreach (Cell cell in Game.Cells)
+		{
+			cell.Dug = false;
+			cell.Flagged = false;
+			cell.UpdateSprite();
 		}
 	}
 

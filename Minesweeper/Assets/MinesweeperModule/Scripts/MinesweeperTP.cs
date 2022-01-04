@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using KeepCoding;
 using UnityEngine;
-using Random = UnityEngine.Random;
 using Cell = MinesweeperModule.Cell;
+using Random = UnityEngine.Random;
 
 public class MinesweeperTP : TPScript<MinesweeperModule>
 {
