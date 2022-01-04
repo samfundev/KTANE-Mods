@@ -65,6 +65,7 @@ public class MinesweeperTP : TPScript<MinesweeperModule>
 						yield return new WaitForSeconds(0.1f);
 					}
 
+					if (!Module.Game.Solved) yield return "solve";
 					cell._selectable.OnInteract();
 					if (holding) yield return new WaitForSeconds(0.3f);
 					cell._selectable.OnInteractEnded();
@@ -85,6 +86,7 @@ public class MinesweeperTP : TPScript<MinesweeperModule>
 					if (cell == null) yield break;
 
 					yield return null;
+					if (!Module.Game.Solved) yield return "solve";
 					cell._selectable.OnInteract();
 					if (holding) yield return new WaitForSeconds(0.3f);
 					cell._selectable.OnInteractEnded();
