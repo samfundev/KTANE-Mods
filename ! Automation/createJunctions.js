@@ -31,7 +31,8 @@ const junctions = [
 	join("Assets", "TestHarness"),
 	join("Assets", "Shared_Assets"),
 	join("ProjectSettings"),
-	join("Manual", "css"),
+	join("Manual", "css", "main.css"),
+	join("Manual", "css", "normalize.css"),
 	join("Manual", "js"),
 	join("Manual", "font"),
 	join("Manual", "img", "page-bg-noise-01.png"),
@@ -84,7 +85,6 @@ process.chdir("..");
 			}
 
 			fs.access(dirname(folder)).then(async () => {
-
 				const isDir = (await fs.lstat(join("! Source Project", junc))).isDirectory();
 				if (process.platform === "win32") {
 					let [err, stats] = await catchify(fs.lstat(folder));
