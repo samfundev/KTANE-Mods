@@ -18,6 +18,5 @@ MonoBehaviour:
     - Programming\r\n[b]theFIZZYnator[/b] - Original Mod Idea\r\n[b]Flamanis[/b] -
     Controller Support\r\n\r\n[h1]Module ID[/h1]\r\nTheGamepad"
   version: 1
-  outputFolder: C:\Program Files (x86)\Steam\steamapps\common\Keep Talking and Nobody
-    Explodes\mods
+  outputFolder: ../build
   previewImage: {fileID: 2800000, guid: 0840a265b3ffd364db54f8a6b4160ace, type: 3}

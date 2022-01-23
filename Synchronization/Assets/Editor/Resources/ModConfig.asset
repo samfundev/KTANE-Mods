@@ -18,6 +18,5 @@ MonoBehaviour:
     to the bomb to solve this module.\r\n\r\n[h1]Manual[/h1]\r\n[url=https://ktane.timwi.de/HTML/Synchronization.html]HTML[/url]\r\n[url=https://ktane.timwi.de/PDF/Synchronization.pdf]PDF[/url]\r\n\r\n[h1]Credits[/h1]\r\nModule
     Idea by TheAuthorOfOZ\r\nImplemented by samfun123\r\n\r\n[h1]Module ID[/h1]\r\nSynchronizationModule"
   version: 
-  outputFolder: C:\Program Files (x86)\Steam\steamapps\common\Keep Talking and Nobody
-    Explodes\mods
+  outputFolder: ../build
   previewImage: {fileID: 2800000, guid: 128abbe56b58aad4fb574623770b33b8, type: 3}

@@ -78,6 +78,5 @@ MonoBehaviour:
     sets of wires in Wire Sequence.\r\n[*] [b]WireSnip[/b] - Played when a wire is
     cut on a module like Complicated Wires.\r\n[/list]\r"
   version: 1
-  outputFolder: C:\Program Files (x86)\Steam\steamapps\common\Keep Talking and Nobody
-    Explodes\mods
+  outputFolder: ../build
   previewImage: {fileID: 2800000, guid: 6e5aa64ea0dd9da45bf807777a539943, type: 3}

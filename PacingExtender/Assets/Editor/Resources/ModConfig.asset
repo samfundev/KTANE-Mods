@@ -50,6 +50,5 @@ MonoBehaviour:
     is below this number.\r\nFor example: 0.5 would only allow that event to spawn
     if your success rating is 50% or higher.\r\n[/list]\r\n[/list]"
   version: 1
-  outputFolder: C:\Program Files (x86)\Steam\steamapps\common\Keep Talking and Nobody
-    Explodes\mods
+  outputFolder: ../build
   previewImage: {fileID: 2800000, guid: bb775d033f9a09346a28b7003a9cabd7, type: 3}

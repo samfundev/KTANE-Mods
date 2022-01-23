@@ -20,6 +20,5 @@ MonoBehaviour:
     Ideas by Lumbud\r84\nImplemented by samfun123\n\r\n[h1]Module IDs[/h1]\r\nEncryptedEquationsModule
     and EncryptedValuesModule"
   version: 
-  outputFolder: C:\Program Files (x86)\Steam\steamapps\common\Keep Talking and Nobody
-    Explodes\mods
+  outputFolder: ../build
   previewImage: {fileID: 2800000, guid: 128abbe56b58aad4fb574623770b33b8, type: 3}

@@ -2,5 +2,6 @@
 /! Automation/node_modules
 /[Ll]ibrary/
 /build/
+build
 .vs
 .idea

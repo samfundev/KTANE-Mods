@@ -36,6 +36,5 @@ MonoBehaviour:
     [url=https://steamcommunity.com/sharedfiles/filedetails/?id=1161968414]BetterCasePicker[/url]\r\n[*]
     [url=https://steamcommunity.com/sharedfiles/filedetails/?id=1130249244]BombTimeExtender[/url]\r\n[/list]\r"
   version: 
-  outputFolder: C:\Program Files (x86)\Steam\steamapps\common\Keep Talking and Nobody
-    Explodes\mods
+  outputFolder: ../build
   previewImage: {fileID: 2800000, guid: 128abbe56b58aad4fb574623770b33b8, type: 3}
