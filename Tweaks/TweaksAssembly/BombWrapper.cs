@@ -56,7 +56,7 @@ class BombWrapper : MonoBehaviour
 				Dictionary<string, object> eventInfo = new Dictionary<string, object>()
 				{
 					{ "type", type },
-					{ "moduleID", Modes.GetModuleID(component) },
+					{ "moduleID", component.GetModuleID() },
 					{ "bombTime", CurrentTimer },
 					{ "realTime", Time.unscaledTime - realTimeStart },
 				};
@@ -75,16 +75,16 @@ class BombWrapper : MonoBehaviour
 				if (Tweaks.CurrentMode == Mode.Time)
 				{
 					if (
-						!Modes.settings.ComponentValues.TryGetValue(Modes.GetModuleID(component), out double ComponentValue) &&
-						!Modes.DefaultComponentValues.TryGetValue(Modes.GetModuleID(component), out ComponentValue)
+						!Modes.settings.ComponentValues.TryGetValue(component.GetModuleID(), out double ComponentValue) &&
+						!Modes.DefaultComponentValues.TryGetValue(component.GetModuleID(), out ComponentValue)
 					)
 					{
 						ComponentValue = 10;
 					}
 
 					if (
-						!Modes.settings.TotalModulesMultiplier.TryGetValue(Modes.GetModuleID(component), out double totalModulesMultiplier) &&
-						!Modes.DefaultTotalModulesMultiplier.TryGetValue(Modes.GetModuleID(component), out totalModulesMultiplier)
+						!Modes.settings.TotalModulesMultiplier.TryGetValue(component.GetModuleID(), out double totalModulesMultiplier) &&
+						!Modes.DefaultTotalModulesMultiplier.TryGetValue(component.GetModuleID(), out totalModulesMultiplier)
 					)
 					{
 						totalModulesMultiplier = 0;
@@ -460,7 +460,7 @@ class BombWrapper : MonoBehaviour
 	{
 		int moduleID = -1;
 		KMBombModule bombModule = bombComponent.GetComponent<KMBombModule>();
-		string moduleType = Modes.GetModuleID(bombComponent);
+		string moduleType = bombComponent.GetModuleID();
 
 		displayNames[moduleType] = bombComponent.GetModuleDisplayName();
 

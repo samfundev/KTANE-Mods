@@ -188,4 +188,12 @@ public static class Utilities
 
 		return newMods;
 	}
+
+	public static string GetModuleID(this BombComponent bombComponent)
+	{
+		return
+			bombComponent.GetComponent<KMBombModule>()?.ModuleType ??
+			bombComponent.GetComponent<KMNeedyModule>()?.ModuleType ??
+			bombComponent.ComponentType.ToString();
+	}
 }

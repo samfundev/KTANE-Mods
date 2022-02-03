@@ -32,6 +32,7 @@ static class DemandBasedLoading
 	class BombInfo
 	{
 		public readonly List<BombComponent> Components = new List<BombComponent>();
+		public readonly List<BombComponent> FailedComponents = new List<BombComponent>();
 		public readonly GeneratorSetting Settings;
 		public readonly BombFace TimerFace;
 		public readonly Random Rand;
@@ -123,22 +124,21 @@ static class DemandBasedLoading
 		yield return null;
 		yield return null;
 
-		if (SceneManager.Instance.CurrentState == SceneManager.State.ModManager)
+		if (SceneManager.Instance.CurrentState != SceneManager.State.ModManager) yield break;
+
+		if (fakedModules.Count != 0)
 		{
-			if (fakedModules.Count != 0)
-			{
-				UnityEngine.Object.Destroy(Tweaks.Instance.transform.Find("FakeModuleParent").gameObject);
+			UnityEngine.Object.Destroy(Tweaks.Instance.transform.Find("FakeModuleParent").gameObject);
 
-				var loadedBombComponents = ModManager.Instance.GetValue<Dictionary<string, BombComponent>>("loadedBombComponents");
-				foreach (string fakedModuleID in fakedModules)
-					loadedBombComponents.Remove(fakedModuleID);
-				fakedModules.Clear();
+			var loadedBombComponents = ModManager.Instance.GetValue<Dictionary<string, BombComponent>>("loadedBombComponents");
+			foreach (string fakedModuleID in fakedModules)
+				loadedBombComponents.Remove(fakedModuleID);
+			fakedModules.Clear();
 
-				UnloadTo(0);
-			}
-
-			EverLoadedModules = !Tweaks.settings.DemandBasedModLoading;
+			UnloadTo(0);
 		}
+
+		EverLoadedModules = !Tweaks.settings.DemandBasedModLoading;
 	}
 
 	public static IEnumerator GetModules()
@@ -150,78 +150,76 @@ static class DemandBasedLoading
 		if (modWorkshopPath == null)
 		{
 			Tweaks.Log("Unable to find Steam!");
+			yield break;
 		}
-		else
+
+		var fakeModuleParent = new GameObject("FakeModuleParent");
+		fakeModuleParent.transform.parent = Tweaks.Instance.transform;
+		fakeModuleParent.SetActive(false);
+
+		var loadedBombComponents = ModManager.Instance.GetValue<Dictionary<string, BombComponent>>("loadedBombComponents");
+
+		var cantLoad = new List<string>();
+		foreach (Repository.KtaneModule module in Repository.Modules)
 		{
-			var fakeModuleParent = new GameObject("FakeModuleParent");
-			fakeModuleParent.transform.parent = Tweaks.Instance.transform;
-			fakeModuleParent.SetActive(false);
+			// Don't load anything that:
+			// Doesn't have a Steam ID.
+			// Isn't a module.
+			// Is on the user's exclude list.
+			if (
+				module.SteamID == null ||
+				!(module.Type == "Regular" || module.Type == "Needy") ||
+				Tweaks.settings.DemandBasedModsExcludeList.Any(name => module.Name.Like(name))
+				)
+				continue;
 
-			var loadedBombComponents = ModManager.Instance.GetValue<Dictionary<string, BombComponent>>("loadedBombComponents");
-
-			var cantLoad = new List<string>();
-			foreach (Repository.KtaneModule module in Repository.Modules)
+			var modPath = Path.Combine(modWorkshopPath, module.SteamID);
+			if (!Directory.Exists(modPath))
 			{
-				// Don't load anything that:
-				// Doesn't have a Steam ID.
-				// Isn't a module.
-				// Is on the user's exclude list.
-				if (
-					module.SteamID == null ||
-					!(module.Type == "Regular" || module.Type == "Needy") ||
-					Tweaks.settings.DemandBasedModsExcludeList.Any(name => module.Name.Like(name))
-					)
-					continue;
-
-				var modPath = Path.Combine(modWorkshopPath, module.SteamID);
-				if (!Directory.Exists(modPath))
-				{
-					cantLoad.Add($"{module.ModuleID} ({module.SteamID})");
-					continue;
-				}
-
-				// Disable mods we are going to load on demand
-				Utilities.DisableMod(module.SteamID);
-
-				if (loadedBombComponents.ContainsKey(module.ModuleID))
-					continue;
-
-				GameObject fakeModule = new GameObject("FakeModule");
-				fakeModule.transform.parent = fakeModuleParent.transform;
-
-				if (module.Type == "Regular")
-				{
-					var fakeBombComponent = fakeModule.AddComponent<ModBombComponent>();
-					var bombModule = fakeModule.AddComponent<KMBombModule>();
-					fakeBombComponent.SetValue("module", bombModule);
-					fakeBombComponent.enabled = false;
-					fakeBombComponent.ComponentType = ComponentTypeEnum.Mod;
-					bombModule.ModuleType = module.ModuleID;
-					bombModule.ModuleDisplayName = module.Name;
-				}
-				else
-				{
-					var fakeNeedyComponent = fakeModule.AddComponent<ModNeedyComponent>();
-					var needyModule = fakeModule.AddComponent<KMNeedyModule>();
-					fakeNeedyComponent.SetValue("module", needyModule);
-					fakeNeedyComponent.enabled = false;
-					fakeNeedyComponent.ComponentType = ComponentTypeEnum.NeedyMod;
-					needyModule.ModuleType = module.ModuleID;
-					needyModule.ModuleDisplayName = module.Name;
-				}
-
-				fakeModule.gameObject.name = module.SteamID;
-				fakeModule.AddComponent<FakeModule>();
-				fakeModule.AddComponent<Selectable>();
-				fakeModule.AddComponent<ModSource>().ModName = "Tweaks";
-
-				loadedBombComponents[module.ModuleID] = fakeModule.GetComponent<BombComponent>();
-				fakedModules.Add(module.ModuleID);
+				cantLoad.Add($"{module.ModuleID} ({module.SteamID})");
+				continue;
 			}
 
-			if (cantLoad.Count > 0)
-				Tweaks.Log($"Can't load: {cantLoad.Join(", ")}".ChunkBy(250).Join("\n"));
+			// Disable mods we are going to load on demand
+			Utilities.DisableMod(module.SteamID);
+
+			if (loadedBombComponents.ContainsKey(module.ModuleID))
+				continue;
+
+			GameObject fakeModule = new GameObject("FakeModule");
+			fakeModule.transform.parent = fakeModuleParent.transform;
+
+			if (module.Type == "Regular")
+			{
+				var fakeBombComponent = fakeModule.AddComponent<ModBombComponent>();
+				var bombModule = fakeModule.AddComponent<KMBombModule>();
+				fakeBombComponent.SetValue("module", bombModule);
+				fakeBombComponent.enabled = false;
+				fakeBombComponent.ComponentType = ComponentTypeEnum.Mod;
+				bombModule.ModuleType = module.ModuleID;
+				bombModule.ModuleDisplayName = module.Name;
+			}
+			else
+			{
+				var fakeNeedyComponent = fakeModule.AddComponent<ModNeedyComponent>();
+				var needyModule = fakeModule.AddComponent<KMNeedyModule>();
+				fakeNeedyComponent.SetValue("module", needyModule);
+				fakeNeedyComponent.enabled = false;
+				fakeNeedyComponent.ComponentType = ComponentTypeEnum.NeedyMod;
+				needyModule.ModuleType = module.ModuleID;
+				needyModule.ModuleDisplayName = module.Name;
+			}
+
+			fakeModule.gameObject.name = module.SteamID;
+			fakeModule.AddComponent<Selectable>();
+			fakeModule.AddComponent<ModSource>().ModName = "Tweaks";
+
+			loadedBombComponents[module.ModuleID] = fakeModule.GetComponent<BombComponent>();
+			fakedModules.Add(module.ModuleID);
 		}
+
+		if (cantLoad.Count > 0)
+			Tweaks.Log($"Can't load: {cantLoad.Join(", ")}".ChunkBy(250).Join("\n"));
 	}
 
 	public static Dictionary<string, Mod> manuallyLoadedMods = new Dictionary<string, Mod>();
@@ -273,7 +271,7 @@ static class DemandBasedLoading
 		yield return null;
 
 		string SteamID = fakeModule.gameObject.name.Replace("(Clone)", "");
-		string ModuleID = fakeModule.GetComponent<KMBombModule>()?.ModuleType ?? fakeModule.GetComponent<KMNeedyModule>()?.ModuleType;
+		string ModuleID = fakeModule.GetModuleID();
 
 		if (modLoading.ContainsKey(SteamID))
 		{
@@ -289,11 +287,14 @@ static class DemandBasedLoading
 			modLoading[SteamID] = true;
 
 			// If the mod is a Harmony mod, we'll need to switch over to load it's mod info.
-			if (File.Exists(Path.Combine(modPath, "modInfo_Harmony.json"))) {
+			if (File.Exists(Path.Combine(modPath, "modInfo_Harmony.json")))
+			{
 				HarmonyPatchInfo.ToggleModInfo();
 				mod = Mod.LoadMod(modPath, Assets.Scripts.Mods.ModInfo.ModSourceEnum.Local);
 				HarmonyPatchInfo.ToggleModInfo();
-			} else {
+			}
+			else
+			{
 				mod = Mod.LoadMod(modPath, Assets.Scripts.Mods.ModInfo.ModSourceEnum.Local);
 			}
 
@@ -377,6 +378,7 @@ static class DemandBasedLoading
 			LeaderboardController.DisableLeaderboards();
 
 			bombInfo.Components[componentIndex] = fakeModule;
+			bombInfo.FailedComponents.Add(fakeModule);
 		}
 
 		modsLoading--;
@@ -427,11 +429,11 @@ static class DemandBasedLoading
 
 		foreach (var component in bombInfo.Components)
 		{
-			logger.InfoFormat("Selected {0} ({1})", Modes.GetModuleID(component), component);
+			logger.InfoFormat("Selected {0} ({1})", component.GetModuleID(), component);
 		}
 
-		var requiresTimer = bombInfo.Components.Where(component => component.RequiresTimerVisibility).Select(Modes.GetModuleID).ToArray();
-		var anyFace = bombInfo.Components.Where(component => !component.RequiresTimerVisibility).Select(Modes.GetModuleID).ToArray();
+		var requiresTimer = bombInfo.Components.Where(component => component.RequiresTimerVisibility).Select(module => module.GetModuleID()).ToArray();
+		var anyFace = bombInfo.Components.Where(component => !component.RequiresTimerVisibility).Select(module => module.GetModuleID()).ToArray();
 		logger.DebugFormat("Bomb component list: RequiresTimerVisibility [{0}], AnyFace: [{1}]", string.Join(", ", requiresTimer), string.Join(", ", anyFace));
 
 		logger.DebugFormat("Instantiating RequiresTimerVisibility components on {0}", timerFace);
@@ -499,14 +501,11 @@ static class DemandBasedLoading
 				holdable.Defocus(false, false);
 		}
 
-		// Solve any fake modules
-		foreach (BombComponent component in bomb.BombComponents)
+		// Solve any fake modules that failed to load
+		foreach (BombComponent component in bombInfo.FailedComponents)
 		{
-			if (component.GetComponent<FakeModule>() != null)
-			{
-				component.IsSolved = true;
-				component.Bomb.OnPass(component);
-			}
+			component.IsSolved = true;
+			component.Bomb.OnPass(component);
 		}
 	}
 
@@ -526,11 +525,6 @@ static class DemandBasedLoading
 
 		gameplayStateManager.CallMethod("redirectNewBombInfos", bomb, knownBombInfos);
 		gameplayStateManager.CallMethod("processBombEvents", bomb);
-	}
-
-	// TODO: We don't need to add a component to know which modules are the fake ones, we can just have a list.
-	class FakeModule : MonoBehaviour
-	{
 	}
 
 	private class FakeRandom : Random
@@ -692,7 +686,7 @@ static class DemandBasedLoading
 			}
 
 			// Start loading any fake modules.
-			if (bombComponentPrefab.GetComponent<FakeModule>() != null)
+			if (fakedModules.Contains(bombComponentPrefab.GetModuleID()))
 				__instance.StartCoroutine(LoadModule(bombComponentPrefab, bombInfo));
 			else
 				bombInfo.Components.Add(bombComponentPrefab);

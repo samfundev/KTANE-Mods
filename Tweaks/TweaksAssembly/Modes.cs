@@ -30,29 +30,6 @@ static class Modes
 	}
 #pragma warning restore 649
 
-	public static string GetModuleID(BombComponent bombComponent)
-	{
-		switch (bombComponent.ComponentType)
-		{
-			case ComponentTypeEnum.Mod:
-				KMBombModule bombModule = bombComponent.GetComponent<KMBombModule>();
-				if (bombModule != null)
-					return bombModule.ModuleType;
-
-				break;
-			case ComponentTypeEnum.NeedyMod:
-				KMNeedyModule needyModule = bombComponent.GetComponent<KMNeedyModule>();
-				if (needyModule != null)
-					return needyModule.ModuleType;
-
-				break;
-			default:
-				return bombComponent.ComponentType.ToString();
-		}
-
-		return null;
-	}
-
 	public static IEnumerator LoadDefaultSettings()
 	{
 		var sheet = new GoogleSheet("16lz2mCqRWxq__qnamgvlD0XwTuva4jIDW1VPWX49hzM");
