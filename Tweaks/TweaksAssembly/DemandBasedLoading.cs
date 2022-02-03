@@ -159,6 +159,12 @@ static class DemandBasedLoading
 
 		var loadedBombComponents = ModManager.Instance.GetValue<Dictionary<string, BombComponent>>("loadedBombComponents");
 
+		// A list of steam IDs that are shouldn't be loaded based on the user's exclude list.
+		var excluded = Repository.Modules
+			.Where(module => Tweaks.settings.DemandBasedModsExcludeList.Any(name => module.Name.Like(name)))
+			.Select(module => module.SteamID)
+			.Distinct();
+
 		var cantLoad = new List<string>();
 		foreach (Repository.KtaneModule module in Repository.Modules)
 		{
@@ -169,7 +175,7 @@ static class DemandBasedLoading
 			if (
 				module.SteamID == null ||
 				!(module.Type == "Regular" || module.Type == "Needy") ||
-				Tweaks.settings.DemandBasedModsExcludeList.Any(name => module.Name.Like(name))
+				excluded.Contains(module.SteamID)
 				)
 				continue;
 
