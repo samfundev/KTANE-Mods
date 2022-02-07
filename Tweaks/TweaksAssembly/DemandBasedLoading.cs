@@ -292,17 +292,7 @@ static class DemandBasedLoading
 
 			modLoading[SteamID] = true;
 
-			// If the mod is a Harmony mod, we'll need to switch over to load it's mod info.
-			if (File.Exists(Path.Combine(modPath, "modInfo_Harmony.json")))
-			{
-				HarmonyPatchInfo.ToggleModInfo();
-				mod = Mod.LoadMod(modPath, Assets.Scripts.Mods.ModInfo.ModSourceEnum.Local);
-				HarmonyPatchInfo.ToggleModInfo();
-			}
-			else
-			{
-				mod = Mod.LoadMod(modPath, Assets.Scripts.Mods.ModInfo.ModSourceEnum.Local);
-			}
+			mod = Utilities.LoadMod(modPath);
 
 			// If we don't have a mod at this point, something is probably wrong.
 			if (mod == null) yield break;

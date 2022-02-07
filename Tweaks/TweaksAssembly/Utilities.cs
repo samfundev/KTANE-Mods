@@ -6,6 +6,7 @@ using System.Linq;
 using Assets.Scripts.Services;
 using Assets.Scripts.Settings;
 using Steamworks;
+using TweaksAssembly.Patching;
 using UnityEngine;
 
 public static class Utilities
@@ -195,5 +196,24 @@ public static class Utilities
 			bombComponent.GetComponent<KMBombModule>()?.ModuleType ??
 			bombComponent.GetComponent<KMNeedyModule>()?.ModuleType ??
 			bombComponent.ComponentType.ToString();
+	}
+
+	public static Mod LoadMod(string path)
+	{
+		Mod mod;
+
+		// If the mod is a Harmony mod, we'll need to switch over to load it's mod info.
+		if (File.Exists(Path.Combine(path, "modInfo_Harmony.json")))
+		{
+			HarmonyPatchInfo.ToggleModInfo();
+			mod = Mod.LoadMod(path, Assets.Scripts.Mods.ModInfo.ModSourceEnum.Local);
+			HarmonyPatchInfo.ToggleModInfo();
+		}
+		else
+		{
+			mod = Mod.LoadMod(path, Assets.Scripts.Mods.ModInfo.ModSourceEnum.Local);
+		}
+
+		return mod;
 	}
 }

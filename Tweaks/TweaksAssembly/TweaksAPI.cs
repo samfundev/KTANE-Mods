@@ -1,4 +1,6 @@
-﻿static class TweaksAPI
+﻿using System;
+
+static class TweaksAPI
 {
 	private static object[] TwitchProperties;
 
@@ -42,6 +44,8 @@
 			Modes.settings.ZenModeTimePenalty = (float) value;
 			Modes.modConfig.Write(Modes.settings);
 		});
+
+		ModdedAPI.AddProperty("LoadMod", () => new Func<string, Mod>(Utilities.LoadMod), null);
 	}
 
 	public static void SetTPProperties(bool enabled)
