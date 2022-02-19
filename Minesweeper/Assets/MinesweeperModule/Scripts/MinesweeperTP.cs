@@ -16,7 +16,10 @@ public class MinesweeperTP : TPScript<MinesweeperModule>
 
 	public override IEnumerator Process(string command)
 	{
-		string[] chainedCommands = command.Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries);
+		string[] chainedCommands = command
+			.Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries)
+			.Where(chained => chained.Trim().Length != 0)
+			.ToArray();
 		if (chainedCommands.Length > 1)
 		{
 			var commandRoutines = chainedCommands.Select(Process).ToArray();
