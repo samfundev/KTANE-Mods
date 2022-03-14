@@ -35,6 +35,8 @@ public static class Repository
 		if (RawJSON == null)
 		{
 			Tweaks.Log("Could not get module information.");
+
+			Modules = new List<KtaneModule>();
 		}
 		else
 		{
