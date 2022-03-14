@@ -1,4 +1,6 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Assets.Scripts.DossierMenu;
 
@@ -28,6 +30,12 @@ class RetryFromDossier : Tweak
 		var page = mainMenu.GameplayMenuPage;
 		entry = (MenuEntry) typeof(GameplayMenuPage).GetMethod("AddEntry", BindingFlags.NonPublic | BindingFlags.Instance)
 			.Invoke(page, new object[] { "Retry", null, HandleSelectRetry, "Retry" });
+
+		var entries = page.GetValue<List<MenuEntry>>("entryList");
+		var last = entries.Last();
+		entries[entries.Count - 1] = entries[entries.Count - 2];
+		entries[entries.Count - 2] = last;
+
 		typeof(GameplayMenuPage).GetMethod("RefreshLayout", BindingFlags.NonPublic | BindingFlags.Instance)
 			.Invoke(page, new object[] { });
 	}
