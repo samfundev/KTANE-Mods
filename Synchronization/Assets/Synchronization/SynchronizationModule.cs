@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
@@ -529,7 +529,6 @@ public class SynchronizationModule : MonoBehaviour
 
 	IEnumerator Startup()
 	{
-		if (Application.isEditor) yield break;
 		yield return new WaitForSeconds(1);
 
 		int[][] patterns = new int[][] {
