@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
@@ -692,7 +692,7 @@ public class SynchronizationModule : MonoBehaviour
 				if (int.TryParse(split[0], out seconds))
 				{
 					yield return null;
-					while (!((int) BombInfo.GetTime() % 60).ToString().Contains(split[0]))
+					while (!((int) BombInfo.GetTime() % 60).ToString().Contains(split[0]) || syncPause)
 						yield return true;
 					yield return Interact(SyncButton);
 				}
