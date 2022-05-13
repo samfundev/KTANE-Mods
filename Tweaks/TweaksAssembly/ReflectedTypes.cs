@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Assets.Scripts.Records;
 using UnityEngine;
 using static ReflectionHelper;
@@ -98,7 +99,7 @@ static class ReflectedTypes
 			foreach (Gettable gettable in component.GetType().GetAllGettables(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
 			{
 				var name = gettable.Name.ToLowerInvariant();
-				if (gettable.Type == typeof(int) && (name.EndsWith("moduleid") || string.Equals(name, "thisloggingid") || name.StartsWith("lognum")))
+				if (gettable.Type == typeof(int) && Regex.IsMatch(name, "(mod|log).*(id|num)", RegexOptions.IgnoreCase))
 				{
 					targetComponent = component;
 					return gettable;
