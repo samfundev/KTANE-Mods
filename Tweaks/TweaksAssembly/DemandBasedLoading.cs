@@ -457,6 +457,13 @@ static class DemandBasedLoading
 			}
 
 			bombGenerator.CallMethod("InstantiateComponent", face, bombComponent, setting);
+
+			// Solve any fake modules that failed to load
+			if (bombInfo.FailedComponents.Contains(bombComponent))
+			{
+				bomb.BombComponents.Last().IsSolved = true;
+				bomb.OnPass(null);
+			}
 		}
 
 		logger.Debug("Filling remaining spaces with empty components.");
@@ -495,13 +502,6 @@ static class DemandBasedLoading
 			var holdable = KTInputManager.Instance.SelectableManager.GetCurrentFloatingHoldable();
 			if (holdable)
 				holdable.Defocus(false, false);
-		}
-
-		// Solve any fake modules that failed to load
-		foreach (BombComponent component in bombInfo.FailedComponents)
-		{
-			component.IsSolved = true;
-			component.Bomb.OnPass(component);
 		}
 	}
 
