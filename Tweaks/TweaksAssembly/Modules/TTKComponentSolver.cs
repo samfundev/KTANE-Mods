@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Assets.Scripts.Missions;
 using Newtonsoft.Json;
 using UnityEngine;
 
@@ -84,7 +85,7 @@ public class TTKComponentSolver : ModuleTweak
 		SetupLongPress(component.GetValue<KMSelectable>("Lock"), 1, () => component.CallMethod("OnKeyTurn"), () =>
 		{
 			// Don't allow skipping forward if there are any needies, since that would skip over managing the needy.
-			if (currentBomb.BombComponents.Any(module => !module.IsSolvable))
+			if (currentBomb.BombComponents.Any(module => !module.ComponentType.EqualsAny(ComponentTypeEnum.Empty, ComponentTypeEnum.Timer) && !module.IsSolvable))
 				return;
 
 			var remaining = timer.TimeRemaining;
