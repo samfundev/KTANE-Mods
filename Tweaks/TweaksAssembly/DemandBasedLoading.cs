@@ -172,10 +172,12 @@ static class DemandBasedLoading
 			// Doesn't have a Steam ID.
 			// Isn't a module.
 			// Is on the user's exclude list.
+			// Is ignored
 			if (
 				module.SteamID == null ||
 				!(module.Type == "Regular" || module.Type == "Needy") ||
-				excluded.Contains(module.SteamID)
+				excluded.Contains(module.SteamID) ||
+				module.DBMLIgnored
 				)
 				continue;
 

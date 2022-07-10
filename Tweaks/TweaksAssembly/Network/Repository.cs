@@ -65,6 +65,7 @@ public static class Repository
 		public string Compatibility;
 		public Dictionary<string, object> TwitchPlays;
 		public string[] ObsoleteSteamIDs;
+		public bool DBMLIgnored;
 
 		public List<string> Ignore;
 	}
