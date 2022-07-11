@@ -14,6 +14,7 @@ using TweaksAssembly.Patching;
 using UnityEngine;
 using UnityEngine.UI;
 using Random = System.Random;
+using static Assets.Scripts.Mods.ModInfo;
 
 static class DemandBasedLoading
 {
@@ -294,7 +295,7 @@ static class DemandBasedLoading
 
 			modLoading[SteamID] = true;
 
-			mod = Utilities.LoadMod(modPath);
+			mod = Mod.LoadMod(modPath, ModSourceEnum.Local);
 
 			// If we don't have a mod at this point, something is probably wrong.
 			if (mod == null) yield break;
