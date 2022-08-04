@@ -50,6 +50,7 @@ class Tweaks : MonoBehaviour
 	public static Action<KMGameInfo.State, KMGameInfo.State> OnStateChanged;
 
 	private Tweak[] AllTweaks = new Tweak[0];
+	private Type[] AllModulePatches = new Type[0];
 
 	public void Awake()
 	{
@@ -133,7 +134,7 @@ class Tweaks : MonoBehaviour
 		// Setup the leaderboard controller to block the leaderboard submission requests.
 		LeaderboardController.Install();
 
-		AllTweaks = GetTweaks();
+		UpdateModuleTweaksAndPatches();
 
 		// Create a fake case with a bunch of anchors to trick the game when using CaseGenerator.
 		TweaksCaseGeneratorCase = new GameObject("TweaksCaseGenerator");
@@ -184,6 +185,9 @@ class Tweaks : MonoBehaviour
 					}
 
 					ReflectedTypes.UpdateTypes();
+
+					foreach(var patchType in AllModulePatches)
+						Patching.EnsurePatch(patchType.Name, patchType);
 
 					ReflectedTypes.CurrencyAPIEndpointField?.SetValue(null, settings.ModuleTweaks ? "https://api.exchangerate.host" : "http://api.fixer.io");
 
@@ -306,12 +310,14 @@ class Tweaks : MonoBehaviour
 		};
 	}
 
-	private static Tweak[] GetTweaks() => Assembly
-				.GetExecutingAssembly()
-				.GetTypes()
-				.Where(type => typeof(Tweak).IsAssignableFrom(type) && !type.IsAbstract)
-				.Select(type => (Tweak) Activator.CreateInstance(type))
-				.ToArray();
+	private void UpdateModuleTweaksAndPatches()
+	{
+		var Types = Assembly.GetExecutingAssembly().GetTypes();
+		AllTweaks = Types.Where(type => typeof(Tweak).IsAssignableFrom(type) && !type.IsAbstract)
+			.Select(type => (Tweak) Activator.CreateInstance(type)).ToArray();
+		AllModulePatches = Types.Where(type => type.GetCustomAttributes(typeof(ModulePatchAttribute), true).Length > 0)
+			.ToArray();
+	}
 
 	// TODO: Remove this
 	/*

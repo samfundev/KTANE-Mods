@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -28,6 +28,10 @@ static class ReflectedTypes
 
 	public static Type ForeignExchangeRatesType;
 	public static FieldInfo CurrencyAPIEndpointField;
+
+	public static Type SkinnyWiresType;
+	public static MethodInfo SkinnyWiresCalculateMethod;
+	public static FieldInfo SkinnyWiresCorrectRuleField;
 
 	public static Type PortalRoomType;
 	public static MethodInfo RedLightsMethod;
@@ -127,6 +131,12 @@ static class ReflectedTypes
 
 		ForeignExchangeRatesType = FindType("ForeignExchangeRates");
 		CurrencyAPIEndpointField = ForeignExchangeRatesType?.GetField("CURRENCY_API_ENDPOINT", BindingFlags.Static | BindingFlags.NonPublic);
+
+		SkinnyWiresType = FindType("wireModuleScript", "skinnyWires");
+		SkinnyWiresCalculateMethod =
+			SkinnyWiresType?.GetMethod("CalculateCorrectWire", BindingFlags.Instance | BindingFlags.NonPublic);
+		SkinnyWiresCorrectRuleField =
+			SkinnyWiresType?.GetField("correctRule", BindingFlags.Instance | BindingFlags.NonPublic);
 
 		PortalRoomType = FindType("PortalRoom", "HexiBombRoom");
 		RedLightsMethod = PortalRoomType?.GetMethod("RedLight", BindingFlags.Instance | BindingFlags.Public);
