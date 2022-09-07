@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using UnityEngine;
 
 public class LetteredKeysLogging : ModuleLogging
 {
@@ -7,7 +8,20 @@ public class LetteredKeysLogging : ModuleLogging
 
 		bombComponent.GetComponent<KMBombModule>().OnActivate += () =>
         {
-            Log($"Lettered Keys logging has been initialized");
+			Log($"Lettered Keys logging has been initialized");
+
+			TextMesh number = component.GetValue<TextMesh>("textMesh");
+
+			Log("Number: " + number.text);
+
+			KMSelectable[] buttons = component.GetValue<KMSelectable[]>("buttons");
+
+			foreach (KMSelectable button in buttons)
+			{
+				TextMesh texthMesh = button.GetComponentInChildren<TextMesh>();
+				Log(texthMesh.text + " ");
+			}
+
         };
 
 		bombComponent.GetComponent<KMBombModule>().OnPass += () =>
