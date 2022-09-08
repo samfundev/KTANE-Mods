@@ -15,8 +15,8 @@ public class LetteredKeysLogging : ModuleLogging
 
 			Log("Number: " + number);
 
-			/*
-			Bomb bomb = bombComponent.transform.parent.GetComponent<Bomb>();
+			
+			Bomb bomb = bombComponent.Bomb;
 
 			List<Widget> widgetList = bomb.WidgetManager.GetWidgets();
 
@@ -32,7 +32,9 @@ public class LetteredKeysLogging : ModuleLogging
 			
 
 			Log($"# of batteries: {GetBatteryCount(widgetList)}");
-			*/
+
+			Log($"Serial number: {GetSerialNumber(widgetList)}");
+			
 		};
 
 		bombComponent.GetComponent<KMBombModule>().OnPass += () =>
@@ -99,16 +101,15 @@ public class LetteredKeysLogging : ModuleLogging
 
 	private string GetSerialNumber(List<Widget> widgetList)
 	{
-		int batteryCount = 0;
 		foreach (Widget widget in widgetList)
 		{
-			if (widget is BatteryWidget)
+			if (!(widget is BatteryWidget) && !(widget is IndicatorWidget) && !(widget is PortWidget))
 			{
-				batteryCount += ((BatteryWidget) widget).GetNumberOfBatteries();
+				return widget.name;
 			}
 		}
 
-		return "";
+		return "not found";
 	}
 
 
