@@ -108,7 +108,7 @@ public class LetteredKeysLogging : ModuleLogging
 			}
 		}
 
-		return batteryCount;
+		return "";
 	}
 
 
