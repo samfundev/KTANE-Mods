@@ -7,47 +7,41 @@ public class LetteredKeysLogging : ModuleLogging
 {
     public LetteredKeysLogging(BombComponent bombComponent) : base(bombComponent, "LetterKeys", "Letter Keys")
     {
+		bool moduleSolve = false;
+
+		Bomb bomb = bombComponent.Bomb;
+
 		bombComponent.GetComponent<KMBombModule>().OnActivate += () =>
         {
-			//Log($"Lettered Keys logging has been initialized");
+			moduleSolve = false;
+
+			List<Widget> widgetList = bomb.WidgetManager.GetWidgets();
 
 			int number = int.Parse(component.GetValue<TextMesh>("textMesh").text);
 
 			Log("Number: " + number);
-			
-			Bomb bomb = bombComponent.Bomb;
 
-			List<Widget> widgetList = bomb.WidgetManager.GetWidgets();
+			string answer = GetAnswer(number, GetBatteryCount(widgetList), GetSerialNumber(widgetList));
 
-			/*
 			KMSelectable[] buttons = component.GetValue<KMSelectable[]>("buttons");
 
 			foreach (KMSelectable button in buttons)
 			{
-				TextMesh texthMesh = button.GetComponentInChildren<TextMesh>();
-				Log(texthMesh.text + " ");
+				OnWrongButtonPressed(button, answer);
 			}
 
-			Log($"# of batteries: {GetBatteryCount(widgetList)}");
-
-			Log($"Serial number: {GetSerialNumber(widgetList)}");
-			*/
-
-			Log($"Answer is {GetAnswer(number, GetBatteryCount(widgetList), GetSerialNumber(widgetList))}");
-			
+			Log("Answer is " + answer);
 		};
 
 		bombComponent.GetComponent<KMBombModule>().OnPass += () =>
         {
-			Log($"Module Solved");
+			if (!moduleSolve)
+			{
+				moduleSolve = true;
+				Log($"Module Solved");
+			}
 			return false;
 		};
-
-		bombComponent.GetComponent<KMBombModule>().OnStrike += () =>
-        {
-			Log($"You struck on the Lettered Keys module");
-			return false;
-        };
 	}
 
 	private string GetAnswer(int number, int batteryCount, string serial)
@@ -113,6 +107,21 @@ public class LetteredKeysLogging : ModuleLogging
 		return ((SerialNumber) serialNumber).SerialTextMesh.text;
 	}
 
+	private void OnWrongButtonPressed(KMSelectable sel, string answer)
+	{
+		var prev = sel.OnInteract;
+		sel.OnInteract = delegate
+		{
+			string text = sel.GetComponentInChildren<TextMesh>().text;
 
+			if (answer != text)
+			{ 
+				Log($"Strike! You pressed {text}");
+			}
 
+			var ret = prev();
+
+			return ret;
+		};
+	}
 }
