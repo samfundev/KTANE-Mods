@@ -11,6 +11,10 @@ public class LetteredKeysLogging : ModuleLogging
         {
 			Log($"Lettered Keys logging has been initialized");
 
+			int number = int.Parse(component.GetValue<TextMesh>("textMesh").text);
+
+			Log("Number: " + number);
+
 			/*
 			Bomb bomb = bombComponent.transform.parent.GetComponent<Bomb>();
 
@@ -28,12 +32,7 @@ public class LetteredKeysLogging : ModuleLogging
 			
 
 			Log($"# of batteries: {GetBatteryCount(widgetList)}");
-
-			//int number = int.Parse(component.GetValue<TextMesh>("textMesh").text);
-
-			//Log("Number: " + number);
 			*/
-
 		};
 
 		bombComponent.GetComponent<KMBombModule>().OnPass += () =>
@@ -98,7 +97,7 @@ public class LetteredKeysLogging : ModuleLogging
 		return batteryCount;
 	}
 
-	private int GetSerialNumber(List<Widget> widgetList)
+	private string GetSerialNumber(List<Widget> widgetList)
 	{
 		int batteryCount = 0;
 		foreach (Widget widget in widgetList)
