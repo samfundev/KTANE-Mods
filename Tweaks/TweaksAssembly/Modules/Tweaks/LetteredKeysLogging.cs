@@ -9,19 +9,17 @@ public class LetteredKeysLogging : ModuleLogging
     {
 		bombComponent.GetComponent<KMBombModule>().OnActivate += () =>
         {
-			Log($"Lettered Keys logging has been initialized");
+			//Log($"Lettered Keys logging has been initialized");
 
 			int number = int.Parse(component.GetValue<TextMesh>("textMesh").text);
 
 			Log("Number: " + number);
-
 			
 			Bomb bomb = bombComponent.Bomb;
 
 			List<Widget> widgetList = bomb.WidgetManager.GetWidgets();
 
-			
-
+			/*
 			KMSelectable[] buttons = component.GetValue<KMSelectable[]>("buttons");
 
 			foreach (KMSelectable button in buttons)
@@ -29,17 +27,19 @@ public class LetteredKeysLogging : ModuleLogging
 				TextMesh texthMesh = button.GetComponentInChildren<TextMesh>();
 				Log(texthMesh.text + " ");
 			}
-			
 
 			Log($"# of batteries: {GetBatteryCount(widgetList)}");
 
 			Log($"Serial number: {GetSerialNumber(widgetList)}");
+			*/
+
+			Log($"Answer is {GetAnswer(number, GetBatteryCount(widgetList), GetSerialNumber(widgetList))}");
 			
 		};
 
 		bombComponent.GetComponent<KMBombModule>().OnPass += () =>
         {
-			Log($"You solved the Lettered Keys module");
+			Log($"Module Solved");
 			return false;
 		};
 
@@ -58,29 +58,36 @@ public class LetteredKeysLogging : ModuleLogging
 		}
 		else if (number % 6 == 0)
 		{
+			Log("Number is divisible 6");
 			return "A";
 		}
 		else if (number % 3 == 0 && batteryCount >= 2)
 		{
+			Log("Batteries ≥ 2 and number is divisible by three");
 			return "B";
 		}
 		else if (serial.Contains("E") || serial.Contains("C") || serial.Contains("3"))
 		{
 			if (number >= 22 && number <= 79)
 			{
+				Log("Serial number contains a 'C' 'E' or '3' and 22 ≤ number ≤ 79");
 				return "B";
 			}
 			else
 			{
+				Log("Serial number contains a 'C' 'E' or '3'");
 				return "C";
 			}
 		}
 		else if (number < 46)
 		{
+			Log("Number < 46");
+
 			return "D";
 		}
 		else
 		{
+			Log("No condition applies");
 			return "A";
 		}
 	}
@@ -101,15 +108,9 @@ public class LetteredKeysLogging : ModuleLogging
 
 	private string GetSerialNumber(List<Widget> widgetList)
 	{
-		foreach (Widget widget in widgetList)
-		{
-			if (!(widget is BatteryWidget) && !(widget is IndicatorWidget) && !(widget is PortWidget))
-			{
-				return widget.name;
-			}
-		}
+		Widget serialNumber = widgetList.First(w => w is SerialNumber);
 
-		return "not found";
+		return ((SerialNumber) serialNumber).SerialTextMesh.text;
 	}
 
 
