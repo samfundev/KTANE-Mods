@@ -1,30 +1,27 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json;
 using UnityEngine;
 
-public class LetteredKeysLogging : ModuleLogging
+public class LetterKeysLogging : ModuleLogging
 {
-    public LetteredKeysLogging(BombComponent bombComponent) : base(bombComponent, "LetterKeys", "Letter Keys")
-    {
+	public LetterKeysLogging(BombComponent bombComponent) : base(bombComponent, "LetterKeys", "Letter Keys")
+	{
 		bool moduleSolve = false;
 
-		Bomb bomb = bombComponent.Bomb;
-
 		bombComponent.GetComponent<KMBombModule>().OnActivate += () =>
-        {
-			moduleSolve = false;
-
-			List<Widget> widgetList = bomb.WidgetManager.GetWidgets();
-
-			int number = int.Parse(component.GetValue<TextMesh>("textMesh").text);
-
+		{
+			int number = component.GetValue<int>("magicNum");
 			Log("Number: " + number);
 
-			string answer = GetAnswer(number, GetBatteryCount(widgetList), GetSerialNumber(widgetList));
+			List<Widget> widgetList = bombComponent.Bomb.WidgetManager.GetWidgets();
+			int batteryCount = widgetList
+				.Select(widget => widget is BatteryWidget battery ? battery.GetNumberOfBatteries() : 0)
+				.Sum();
+			var serialNumber = (SerialNumber) widgetList.First(w => w is SerialNumber);
+
+			string answer = GetAnswer(number, batteryCount, serialNumber.GetSerialString());
 
 			KMSelectable[] buttons = component.GetValue<KMSelectable[]>("buttons");
-
 			foreach (KMSelectable button in buttons)
 			{
 				OnWrongButtonPressed(button, answer);
@@ -34,11 +31,11 @@ public class LetteredKeysLogging : ModuleLogging
 		};
 
 		bombComponent.GetComponent<KMBombModule>().OnPass += () =>
-        {
+		{
 			if (!moduleSolve)
 			{
 				moduleSolve = true;
-				Log($"Module Solved");
+				Log("Module Solved");
 			}
 			return false;
 		};
@@ -86,27 +83,6 @@ public class LetteredKeysLogging : ModuleLogging
 		}
 	}
 
-	private int GetBatteryCount(List<Widget> widgetList)
-	{
-		int batteryCount = 0;
-		foreach (Widget widget in widgetList)
-		{
-			if (widget is BatteryWidget)
-			{
-				batteryCount += ((BatteryWidget) widget).GetNumberOfBatteries();
-			}
-		}
-
-		return batteryCount;
-	}
-
-	private string GetSerialNumber(List<Widget> widgetList)
-	{
-		Widget serialNumber = widgetList.First(w => w is SerialNumber);
-
-		return ((SerialNumber) serialNumber).SerialTextMesh.text;
-	}
-
 	private void OnWrongButtonPressed(KMSelectable sel, string answer)
 	{
 		var prev = sel.OnInteract;
@@ -115,7 +91,7 @@ public class LetteredKeysLogging : ModuleLogging
 			string text = sel.GetComponentInChildren<TextMesh>().text;
 
 			if (answer != text)
-			{ 
+			{
 				Log($"Strike! You pressed {text}");
 			}
 
