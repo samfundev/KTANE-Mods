@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Steamworks;
 using UnityEngine;
@@ -12,7 +12,7 @@ public class MicrocontrollerLogging : ModuleLogging
 		Dictionary<string, string> pinColors = new Dictionary<string, string>();
 		List<string> pins = new List<string>();
 
-		string[] LEDMaterials = new string [] { "Black", "White", "Red", "Yellow", "Purple", "Blue", "Green" };
+		string[] LEDMaterials = new string[] { "Black", "White", "Red", "Yellow", "Purple", "Blue", "Green" };
 
 		List<int> LEDorder = component.GetValue<List<int>>("LEDorder");
 
@@ -34,8 +34,8 @@ public class MicrocontrollerLogging : ModuleLogging
 
 			List<string> ledNames = new List<string>();
 
-			for(int i = 0; i < solutionRaw.Length; i++)
-			{ 
+			for (int i = 0; i < solutionRaw.Length; i++)
+			{
 				string pinName = GetPinName(solutionRaw[i]);
 
 				pins.Add(pinName);
@@ -246,10 +246,10 @@ public class MicrocontrollerLogging : ModuleLogging
 				return order.Count == 6 ? new int[] { 1, 2, 3, 4, 5, 6 } : order.Count == 8 ? new int[] { 1, 2, 3, 4, 5, 6, 7, 8 } : new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
 
 			case "TR":
-				return order.Count == 6 ? new int[] { 3, 2, 1, 4, 5, 6 } : order.Count == 8 ? new int[] { 4, 3, 2, 1, 5, 6, 7, 8 } : new int[] { 5, 4, 3, 2, 1, 6, 7, 8, 9, 10};
-		
+				return order.Count == 6 ? new int[] { 3, 2, 1, 4, 5, 6 } : order.Count == 8 ? new int[] { 4, 3, 2, 1, 5, 6, 7, 8 } : new int[] { 5, 4, 3, 2, 1, 6, 7, 8, 9, 10 };
+
 			case "BL":
-				return order.Count == 6 ? new int[] {4, 5, 6, 3, 2, 1 } : order.Count == 8 ? new int[] { 5, 6, 7, 8, 4, 3, 2, 1 } : new int[] {  6, 7, 8, 9, 10, 5, 4, 3, 2, 1, };
+				return order.Count == 6 ? new int[] { 4, 5, 6, 3, 2, 1 } : order.Count == 8 ? new int[] { 5, 6, 7, 8, 4, 3, 2, 1 } : new int[] { 6, 7, 8, 9, 10, 5, 4, 3, 2, 1, };
 
 		}
 
@@ -275,7 +275,7 @@ public class MicrocontrollerLogging : ModuleLogging
 
 		if (positionTranslate.SequenceEqual(new int[6] { 5, 0, 4, 1, 3, 2 }) ||
 			positionTranslate.SequenceEqual(new int[8] { 7, 0, 6, 1, 5, 2, 4, 3 }) ||
-			positionTranslate.SequenceEqual(new int[10] {9, 0, 8, 1, 7, 2, 6, 3, 5, 4 }))
+			positionTranslate.SequenceEqual(new int[10] { 9, 0, 8, 1, 7, 2, 6, 3, 5, 4 }))
 		{
 			return "BL";
 		}
