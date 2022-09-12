@@ -1,20 +1,22 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Steamworks;
 using UnityEngine;
 
 public class MicrocontrollerLogging : ModuleLogging
 {
 	public MicrocontrollerLogging(BombComponent bombComponent) : base(bombComponent, "Micro", "Microcontroller")
 	{
+		Dictionary<string, string> pinColors = new Dictionary<string, string>();
+		List<string> pins = new List<string>();
+
+		string[] LEDMaterials = new string [] { "Black", "White", "Red", "Yellow", "Purple", "Blue", "Green" };
 
 		bombComponent.GetComponent<KMBombModule>().OnActivate += () =>
 		{
 			int[] colorMap = component.GetValue<int[]>("colorMap");
 			int[] solutionRaw = component.GetValue<int[]>("solutionRaw");
 			int colorRow = GetRow(colorMap);
-;
-
-			Dictionary<string, string> pinColor = new Dictionary<string, string>();
 
 			Log($"Controller Type: {component.GetValue<TextMesh>("MicType").text}");
 			Log($"Controller Serial: {component.GetValue<TextMesh>("MicSerial").text.Substring(4)}");
@@ -28,13 +30,26 @@ public class MicrocontrollerLogging : ModuleLogging
 			{ 
 				string pinName = GetPinName(solutionRaw[i]);
 
-				if (!pinColor.ContainsKey(pinName))
+				pins.Add(pinName);
+
+				if (!pinColors.ContainsKey(pinName))
 				{
-					pinColor.Add(pinName, GetColor(colorRow, pinName));
+					pinColors.Add(pinName, GetColor(colorRow, pinName));
 				}
 
-				Log($"{i + 1}. {pinName} = {pinColor[pinName]}");
+				Log($"{i + 1}. {pinName} = {pinColors[pinName]}");
 			}
+		};
+
+		bombComponent.GetComponent<KMBombModule>().OnStrike += () =>
+		{
+			int materialID = component.GetValue<int>("materialID");
+
+			int currentIndex = component.GetValue<int>("currentLEDIndex");
+
+			Log($"Strike! Selected {LEDMaterials[materialID].ToLower()} on {pins[currentIndex]}");
+
+			return false;
 		};
 	}
 
