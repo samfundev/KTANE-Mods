@@ -47,6 +47,17 @@ public class MicrocontrollerLogging : ModuleLogging
 				Log($"{i + 1}. {pinName} = {pinColors[pinName]}");
 			}
 		};
+
+		bombComponent.GetComponent<KMBombModule>().OnStrike += () =>
+		{
+			int materialID = component.GetValue<int>("materialID");
+
+			int currentIndex = component.GetValue<int>("currentLEDIndex");
+
+			Log($"Strike! Selected {LEDMaterials[materialID].ToLower()} on {pins[currentIndex]}");
+
+			return false;
+		};
 	}
 
 	private string GetPinName(int i)
