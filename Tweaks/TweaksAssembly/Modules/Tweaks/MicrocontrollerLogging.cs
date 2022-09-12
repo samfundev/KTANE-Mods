@@ -20,7 +20,6 @@ public class MicrocontrollerLogging : ModuleLogging
 
 		bombComponent.GetComponent<KMBombModule>().OnActivate += () =>
 		{
-
 			Log("Dot pos: " + dotPos);
 
 			int[] colorMap = component.GetValue<int[]>("colorMap");
@@ -47,15 +46,6 @@ public class MicrocontrollerLogging : ModuleLogging
 
 				Log($"{i + 1}. {pinName} = {pinColors[pinName]}");
 			}
-		};
-
-		bombComponent.GetComponent<KMBombModule>().OnStrike += () =>
-		{
-			//int currentIndex = component.GetValue<int>("currentLEDIndex");
-
-			//Log($"Strike! You press _ on pin {ConvertLEDOrder(LEDorder, dotPos)[currentIndex]}");
-
-			return false;
 		};
 	}
 
