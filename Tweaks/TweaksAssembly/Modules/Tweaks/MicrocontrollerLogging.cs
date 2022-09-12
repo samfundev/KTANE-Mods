@@ -18,6 +18,8 @@ public class MicrocontrollerLogging : ModuleLogging
 
 		string dotPos = GetDotPos(positionTranslate);
 
+		List<int> LEDorder = component.GetValue<List<int>>("LEDorder");
+
 		bombComponent.GetComponent<KMBombModule>().OnActivate += () =>
 		{
 			Log("Dot pos: " + dotPos);
@@ -46,17 +48,6 @@ public class MicrocontrollerLogging : ModuleLogging
 
 				Log($"{i + 1}. {pinName} = {pinColors[pinName]}");
 			}
-		};
-
-		bombComponent.GetComponent<KMBombModule>().OnStrike += () =>
-		{
-			int materialID = component.GetValue<int>("materialID");
-
-			int currentIndex = component.GetValue<int>("currentLEDIndex");
-
-			Log($"Strike! Selected {LEDMaterials[materialID].ToLower()} on {pins[currentIndex]}");
-
-			return false;
 		};
 	}
 
