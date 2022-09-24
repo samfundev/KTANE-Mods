@@ -7,6 +7,8 @@ public class MicrocontrollerLogging : ModuleLogging
 {
 	public MicrocontrollerLogging(BombComponent bombComponent) : base(bombComponent, "Micro", "Microcontroller")
 	{
+		int[] positionTranslate = component.GetValue<int[]>("positionTranslate");
+
 		Dictionary<string, string> pinColors = new Dictionary<string, string>();
 		List<string> pins = new List<string>();
 
@@ -14,15 +16,19 @@ public class MicrocontrollerLogging : ModuleLogging
 
 		List<int> LEDorder = component.GetValue<List<int>>("LEDorder");
 
+		string dotPos = GetDotPos(positionTranslate);
+
 		bombComponent.GetComponent<KMBombModule>().OnActivate += () =>
 		{
+
+			Log("Dot pos: " + dotPos);
+
 			int[] colorMap = component.GetValue<int[]>("colorMap");
 			int[] solutionRaw = component.GetValue<int[]>("solutionRaw");
 			int colorRow = GetRow(colorMap);
 
 			Log($"Controller Type: {component.GetValue<TextMesh>("MicType").text}");
 			Log($"Controller Serial: {component.GetValue<TextMesh>("MicSerial").text.Substring(4)}");
-			//Log($"Dot Pos: {GetDotPos(component.GetValue<int>("dotPos"))}");
 			Log($"Using Row: {colorRow}");
 
 
@@ -41,6 +47,15 @@ public class MicrocontrollerLogging : ModuleLogging
 
 				Log($"{i + 1}. {pinName} = {pinColors[pinName]}");
 			}
+		};
+
+		bombComponent.GetComponent<KMBombModule>().OnStrike += () =>
+		{
+			//int currentIndex = component.GetValue<int>("currentLEDIndex");
+
+			//Log($"Strike! You press _ on pin {ConvertLEDOrder(LEDorder, dotPos)[currentIndex]}");
+
+			return false;
 		};
 	}
 
@@ -221,5 +236,51 @@ public class MicrocontrollerLogging : ModuleLogging
 		}
 
 
+	}
+
+	private int[] ConvertLEDOrder(List<int> order, string dotpos)
+	{
+		switch (dotpos)
+		{
+			case "TL":
+				return order.Count == 6 ? new int[] { 1, 2, 3, 4, 5, 6 } : order.Count == 8 ? new int[] { 1, 2, 3, 4, 5, 6, 7, 8 } : new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+
+			case "TR":
+				return order.Count == 6 ? new int[] { 3, 2, 1, 4, 5, 6 } : order.Count == 8 ? new int[] { 4, 3, 2, 1, 5, 6, 7, 8 } : new int[] { 5, 4, 3, 2, 1, 6, 7, 8, 9, 10};
+		
+			case "BL":
+				return order.Count == 6 ? new int[] {4, 5, 6, 3, 2, 1 } : order.Count == 8 ? new int[] { 5, 6, 7, 8, 4, 3, 2, 1 } : new int[] {  6, 7, 8, 9, 10, 5, 4, 3, 2, 1, };
+
+		}
+
+		return order.Count == 6 ? (new int[] { 6, 5, 4, 1, 2, 3 }) : order.Count == 8 ? (new int[] { 8, 7, 6, 5, 1, 2, 3, 4 }) : (new int[] { 10, 9, 8, 7, 6, 1, 2, 3, 4, 5 });
+	}
+
+	private string GetDotPos(int[] positionTranslate)
+	{
+		if (positionTranslate.SequenceEqual(new int[6] { 0, 5, 1, 4, 2, 3 }) ||
+		   positionTranslate.SequenceEqual(new int[8] { 0, 7, 1, 6, 2, 5, 3, 4 }) ||
+		   positionTranslate.SequenceEqual(new int[10] { 0, 9, 1, 8, 2, 7, 3, 6, 4, 5 }))
+		{
+			return "TL";
+		}
+
+		if (positionTranslate.SequenceEqual(new int[6] { 2, 3, 1, 4, 0, 5 }) ||
+		   positionTranslate.SequenceEqual(new int[8] { 3, 4, 2, 5, 1, 6, 0, 7 }) ||
+		   positionTranslate.SequenceEqual(new int[10] { 4, 5, 3, 6, 2, 7, 1, 8, 0, 9 }))
+		{
+			return "TR";
+		}
+
+
+		if (positionTranslate.SequenceEqual(new int[6] { 5, 0, 4, 1, 3, 2 }) ||
+			positionTranslate.SequenceEqual(new int[8] { 7, 0, 6, 1, 5, 2, 4, 3 }) ||
+			positionTranslate.SequenceEqual(new int[10] {9, 0, 8, 1, 7, 2, 6, 3, 5, 4 }))
+		{
+			return "BL";
+		}
+
+
+		return "BR";
 	}
 }
