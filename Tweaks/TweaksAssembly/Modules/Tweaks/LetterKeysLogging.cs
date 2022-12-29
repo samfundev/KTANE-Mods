@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using UnityEngine;
 
 public class LetterKeysLogging : ModuleLogging
@@ -13,13 +12,10 @@ public class LetterKeysLogging : ModuleLogging
 			int number = component.GetValue<int>("magicNum");
 			Log("Number: " + number);
 
-			List<Widget> widgetList = bombComponent.Bomb.WidgetManager.GetWidgets();
-			int batteryCount = widgetList
-				.Select(widget => widget is BatteryWidget battery ? battery.GetNumberOfBatteries() : 0)
-				.Sum();
-			var serialNumber = (SerialNumber) widgetList.First(w => w is SerialNumber);
+			int batteryCount = bombComponent.Bomb.QueryWidgets<int>(KMBombInfo.QUERYKEY_GET_BATTERIES, "numbatteries").Sum();
+			var serialNumber = bombComponent.Bomb.QueryWidgets<string>(KMBombInfo.QUERYKEY_GET_SERIAL_NUMBER, "serial").First();
 
-			string answer = GetAnswer(number, batteryCount, serialNumber.GetSerialString());
+			string answer = GetAnswer(number, batteryCount, serialNumber);
 
 			KMSelectable[] buttons = component.GetValue<KMSelectable[]>("buttons");
 			foreach (KMSelectable button in buttons)

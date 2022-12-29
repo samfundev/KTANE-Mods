@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Assets.Scripts.Missions;
-using Newtonsoft.Json;
 using UnityEngine;
 
 public class TTKComponentSolver : ModuleTweak
@@ -23,14 +22,9 @@ public class TTKComponentSolver : ModuleTweak
 		module.OnActivate = OnActivate;
 	}
 
-	public IEnumerable<Dictionary<string, T>> QueryWidgets<T>(string queryKey, string queryInfo = null)
-	{
-		return currentBomb.WidgetManager.GetWidgetQueryResponses(queryKey, queryInfo).Select(str => JsonConvert.DeserializeObject<Dictionary<string, T>>(str));
-	}
-
 	private void OnActivate()
 	{
-		string serial = QueryWidgets<string>(KMBombInfo.QUERYKEY_GET_SERIAL_NUMBER).First()["serial"];
+		string serial = currentBomb.QueryWidgets<string>(KMBombInfo.QUERYKEY_GET_SERIAL_NUMBER, "serial").First();
 		TextMesh textMesh = component.GetValue<TextMesh>("Display");
 		component.SetValue("bActivated", true);
 

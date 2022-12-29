@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json;
 using UnityEngine;
 
 public static class GeneralExtensions
@@ -151,5 +152,15 @@ public static class GeneralExtensions
 		{
 			modSelectable.CopySettingsFromProxy();
 		}
+	}
+
+	public static IEnumerable<Dictionary<string, T>> QueryWidgetsRaw<T>(this Bomb bomb, string queryKey, string queryInfo = null)
+	{
+		return bomb.WidgetManager.GetWidgetQueryResponses(queryKey, queryInfo).Select(str => JsonConvert.DeserializeObject<Dictionary<string, T>>(str));
+	}
+
+	public static IEnumerable<T> QueryWidgets<T>(this Bomb bomb, string queryKey, string responseKey, string queryInfo = null)
+	{
+		return bomb.QueryWidgetsRaw<T>(queryKey, queryInfo).Select(response => response[responseKey]);
 	}
 }
