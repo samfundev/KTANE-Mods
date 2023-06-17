@@ -50,7 +50,7 @@ class Tweaks : MonoBehaviour
 	public static Action<KMGameInfo.State, KMGameInfo.State> OnStateChanged;
 
 	private Tweak[] AllTweaks = new Tweak[0];
-	private Type[] AllModulePatches = new Type[0];
+	public Dictionary<string, List<Type>> AllModulePatches = new Dictionary<string, List<Type>>();
 
 	public void Awake()
 	{
@@ -186,8 +186,8 @@ class Tweaks : MonoBehaviour
 
 					ReflectedTypes.UpdateTypes();
 
-					foreach(var patchType in AllModulePatches)
-						Patching.EnsurePatch(patchType.Name, patchType);
+					foreach(var patchGroup in AllModulePatches.Values)
+						patchGroup.RemoveAll(patchType => Patching.EnsurePatch(patchType.Name, patchType));
 
 					ReflectedTypes.CurrencyAPIEndpointField?.SetValue(null, settings.ModuleTweaks ? "https://api.exchangerate.host" : "http://api.fixer.io");
 
@@ -315,8 +315,18 @@ class Tweaks : MonoBehaviour
 		var Types = Assembly.GetExecutingAssembly().GetTypes();
 		AllTweaks = Types.Where(type => typeof(Tweak).IsAssignableFrom(type) && !type.IsAbstract)
 			.Select(type => (Tweak) Activator.CreateInstance(type)).ToArray();
-		AllModulePatches = Types.Where(type => type.GetCustomAttributes(typeof(ModulePatchAttribute), true).Length > 0)
+		var modulePatchTypes = Types.Where(type => type.GetCustomAttributes(typeof(ModulePatchAttribute), true).Length > 0)
 			.ToArray();
+		foreach(var pType in modulePatchTypes)
+		{
+			foreach(var attr in pType.GetCustomAttributes(typeof(ModulePatchAttribute), true))
+			{
+				var patchAttribute = (ModulePatchAttribute)attr;
+				if(!AllModulePatches.ContainsKey(patchAttribute.ModuleId))
+					AllModulePatches.Add(patchAttribute.ModuleId, new List<Type>());
+				AllModulePatches[patchAttribute.ModuleId].Add(pType);
+			}
+		}
 	}
 
 	// TODO: Remove this

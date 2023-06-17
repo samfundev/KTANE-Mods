@@ -22,13 +22,15 @@ namespace TweaksAssembly.Patching
 			return success;
 		}
 
-		public static void EnsurePatch(string id, params Type[] types)
+		public static bool EnsurePatch(string id, params Type[] types)
 		{
 			if (instances.ContainsKey(id))
-				return;
+				return true;
 
-			if (PatchClasses(id, out Harmony instance, types))
+			var success = PatchClasses(id, out Harmony instance, types);
+			if (success)
 				instances.Add(id, instance);
+			return success;
 		}
 
 		public static Harmony ManualInstance(string id)

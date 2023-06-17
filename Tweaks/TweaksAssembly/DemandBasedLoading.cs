@@ -357,6 +357,20 @@ static class DemandBasedLoading
 
 			moduleIDs.Add(moduleType);
 		}
+		
+		var typesUpdated = false;
+		foreach(var moduleId in moduleIDs)
+		{
+			if(Tweaks.Instance.AllModulePatches.TryGetValue(moduleId, out var modulePatches))
+			{
+				if(modulePatches.Count == 0)
+					continue;
+				if(!typesUpdated)
+					ReflectedTypes.UpdateTypes();
+				typesUpdated = true;
+				modulePatches.RemoveAll(patchType => Patching.EnsurePatch(patchType.Name, patchType));
+			}
+		}
 
 		if (realModule != null)
 		{
