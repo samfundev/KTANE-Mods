@@ -198,6 +198,8 @@ public class MinesweeperModule : ModuleScript
 
 	void UpdateSelectable()
 	{
+		if (Picks == null) return;
+
 		List<KMSelectable> Children = new List<KMSelectable>();
 
 		if (!Game.Solved)
@@ -546,7 +548,7 @@ public class MinesweeperModule : ModuleScript
 				cell._selectable.OnInteractEnded = () =>
 				{
 					StopCoroutine(_playClick);
-					if (Held) return;
+					if (Held || Picks == null) return;
 
 					if (!StartFound && Picks.Contains(cell))
 					{
