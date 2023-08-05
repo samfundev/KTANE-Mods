@@ -258,7 +258,7 @@ static class DemandBasedLoading
 	// Loading a module
 	public static int modsLoading = 0;
 	public static readonly Dictionary<string, Mod> loadedMods = ModManager.Instance.GetValue<Dictionary<string, Mod>>("loadedMods");
-	private static readonly Dictionary<string, bool> modLoading = new Dictionary<string, bool>();
+	private static readonly HashSet<string> modLoading = new HashSet<string>();
 
 	private static int totalModules = 0;
 
@@ -282,9 +282,9 @@ static class DemandBasedLoading
 		string SteamID = fakeModule.gameObject.name.Replace("(Clone)", "");
 		string ModuleID = fakeModule.GetModuleID();
 
-		if (modLoading.ContainsKey(SteamID))
+		if (modLoading.Contains(SteamID))
 		{
-			yield return new WaitUntil(() => !modLoading[SteamID]);
+			yield return new WaitUntil(() => !modLoading.Contains(SteamID));
 		}
 
 		if (!manuallyLoadedMods.TryGetValue(SteamID, out Mod mod))
@@ -293,7 +293,7 @@ static class DemandBasedLoading
 			if (!Directory.Exists(modPath))
 				yield break;
 
-			modLoading[SteamID] = true;
+			modLoading.Add(SteamID);
 
 			mod = Mod.LoadMod(modPath, ModSourceEnum.Local);
 
@@ -330,7 +330,7 @@ static class DemandBasedLoading
 
 			manuallyLoadedMods[SteamID] = mod;
 			loadedMods[modPath] = mod;
-			modLoading[SteamID] = false;
+			modLoading.Remove(SteamID);
 		}
 
 		loadOrder.Remove(SteamID);
