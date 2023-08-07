@@ -3,7 +3,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 
-[ModulePatch]
+[ModulePatch("skinnyWires")]
 public static class SkinnyWiresPatch
 {
 	static bool Prepare() => ReflectedTypes.SkinnyWiresCalculateMethod != null;
