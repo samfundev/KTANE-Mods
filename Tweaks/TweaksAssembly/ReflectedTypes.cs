@@ -26,9 +26,6 @@ static class ReflectedTypes
 	public static Type FactoryGameModeAdaptationType;
 	public static Type GlobalTimerAdaptationType;
 
-	public static Type ForeignExchangeRatesType;
-	public static FieldInfo CurrencyAPIEndpointField;
-
 	public static Type SkinnyWiresType;
 	public static MethodInfo SkinnyWiresCalculateMethod;
 	public static FieldInfo SkinnyWiresCorrectRuleField;
@@ -128,9 +125,6 @@ static class ReflectedTypes
 		AdaptationsProperty = FactoryGameModeType?.GetProperty("Adaptations", BindingFlags.NonPublic | BindingFlags.Instance);
 		FactoryGameModeAdaptationType = FindType("FactoryAssembly.FactoryGameModeAdaptation");
 		GlobalTimerAdaptationType = FindType("FactoryAssembly.GlobalTimerAdaptation");
-
-		ForeignExchangeRatesType = FindType("ForeignExchangeRates");
-		CurrencyAPIEndpointField = ForeignExchangeRatesType?.GetField("CURRENCY_API_ENDPOINT", BindingFlags.Static | BindingFlags.NonPublic);
 
 		SkinnyWiresType = FindType("wireModuleScript", "skinnyWires");
 		SkinnyWiresCalculateMethod =

@@ -189,8 +189,6 @@ class Tweaks : MonoBehaviour
 					foreach(var patchType in AllModulePatches)
 						Patching.EnsurePatch(patchType.Name, patchType);
 
-					ReflectedTypes.CurrencyAPIEndpointField?.SetValue(null, settings.ModuleTweaks ? "https://api.exchangerate.host" : "http://api.fixer.io");
-
 					break;
 				case "gameplayScene":
 					if (changeFadeTime)

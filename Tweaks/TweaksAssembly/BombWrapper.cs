@@ -210,6 +210,10 @@ class BombWrapper : MonoBehaviour
 			{ "draw", bombComponent => new DrawTweak(bombComponent) },
 			{ "groceryStore", bombComponent => new GroceryStoreTweak(bombComponent) },
 			{ "parliament", bombComponent => new ParliamentTweak(bombComponent) },
+			{ "countdown", bombComponent => new CountdownTweak(bombComponent, "countdownScript") },
+			{ "cruelCountdown", bombComponent => new CountdownTweak(bombComponent, "cruelCountdownScript") },
+			{ "ForeignExchangeRates", bombComponent => new ForeignExchangeRatesTweak(bombComponent) },
+			{ "simonsOnFirst", bombComponent => new SimonsOnFirstTweak(bombComponent) },
 
 			{ "Wires", bombComponent => new WiresLogging(bombComponent) },
 			{ "Keypad", bombComponent => new KeypadLogging(bombComponent) }
@@ -275,6 +279,17 @@ class BombWrapper : MonoBehaviour
 						foreach (Transform child in component.transform)
 							child.localPosition -= new Vector3(0, 0.0053061005f, 0);
 						break;
+					case "mcdNatures":
+					case "traffic_board":
+						// This fixes the position of the module itself
+						foreach (Transform child in component.transform)
+							child.localPosition += new Vector3(0, 0.0053061f, 0);
+						break;
+					case "jackboxServerModule":
+						// This fixes the position of the module itself
+						foreach (Transform child in component.transform)
+							child.localPosition += new Vector3(0, 0.0148f, 0);
+						break;
 					case "memorableButtons":
 					case "strikeSolve":
 						// This fixes the position of the module itself
@@ -298,6 +313,8 @@ class BombWrapper : MonoBehaviour
 					case "jackOLantern":
 					case "simonsStar":
 					case "EncryptedMorse":
+					case "FlashMemory":
+					case "caesarsMaths":
 						// This fixes the scale of the light components
 						Light[] lights = component.GetComponentsInChildren<Light>();
 						for (int i = 0; i < lights.Length; i++)
@@ -341,6 +358,7 @@ class BombWrapper : MonoBehaviour
 					case "memorableButtons":
 					case "strikeSolve":
 					case "vexillology":
+					case "jackboxServerModule":
 						component.GetComponent<Selectable>().Highlight.transform.localPosition = Vector3.zero;
 						break;
 					case "matrix":
