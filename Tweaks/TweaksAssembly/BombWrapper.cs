@@ -347,6 +347,10 @@ class BombWrapper : MonoBehaviour
 						component.transform.Find("interactionLights/Light10a/Spotlight").GetComponent<Light>().range *= component.transform.lossyScale.x;
 						component.transform.Find("interactionLights/Light10b/Spotlight").GetComponent<Light>().range *= component.transform.lossyScale.x;
 						break;
+					case "GreenWires":
+						// This disables a directional light from the Unity scene that was bundled by accident
+						component.transform.GetChild(2).gameObject.SetActive(false);
+						break;
 				}
 
 				// This fixes the position of the highlight
