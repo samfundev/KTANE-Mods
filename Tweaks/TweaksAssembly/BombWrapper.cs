@@ -210,7 +210,7 @@ class BombWrapper : MonoBehaviour
 			{ "draw", bombComponent => new DrawTweak(bombComponent) },
 			{ "groceryStore", bombComponent => new GroceryStoreTweak(bombComponent) },
 			{ "parliament", bombComponent => new ParliamentTweak(bombComponent) },
-			{ "ForeignExchangeRates", bombComponent => new ForeignExchangeRatesTweak(bombComponent) },
+			//{ "ForeignExchangeRates", bombComponent => new ForeignExchangeRatesTweak(bombComponent) },
 			{ "Symbstructions", bombComponent => new SymbstructionsTweak(bombComponent) },
 
 			{ "Wires", bombComponent => new WiresLogging(bombComponent) },
@@ -391,10 +391,6 @@ class BombWrapper : MonoBehaviour
 					case "Filibuster":
 						// This fixes z-fighting in the countdown screen by removing Unity's placeholder screen
 						component.transform.Find("Model/Component_Needy_Background/Screen").gameObject.SetActive(false);
-						break;
-					case "needyMrsBob":
-						// This fixes z-fighting in the countdown screen by removing Unity's placeholder screen
-						component.transform.Find("ancillary/Component_Needy_Background/Screen").gameObject.SetActive(false);
 						break;
 					case "draw":
 					case "rapidButtons":
