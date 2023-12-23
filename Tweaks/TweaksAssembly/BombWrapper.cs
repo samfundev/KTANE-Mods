@@ -198,6 +198,7 @@ class BombWrapper : MonoBehaviour
 
 		var moduleTweaks = new Dictionary<string, Func<BombComponent, ModuleTweak>>()
 		{
+			{ "simonServes", bombComponent => new SimonServesLogging(bombComponent) },
 			{ "shapeshift", bombComponent => new ShapeShiftLogging(bombComponent) },
 			{ "Microcontroller", bombComponent => new MicrocontrollerLogging(bombComponent) },
 			{ "LetterKeys", bombComponent => new LetterKeysLogging(bombComponent) },
