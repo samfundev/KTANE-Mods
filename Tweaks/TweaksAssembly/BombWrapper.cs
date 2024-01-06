@@ -210,7 +210,7 @@ class BombWrapper : MonoBehaviour
 			{ "draw", bombComponent => new DrawTweak(bombComponent) },
 			{ "groceryStore", bombComponent => new GroceryStoreTweak(bombComponent) },
 			{ "parliament", bombComponent => new ParliamentTweak(bombComponent) },
-			//{ "ForeignExchangeRates", bombComponent => new ForeignExchangeRatesTweak(bombComponent) },
+			{ "ForeignExchangeRates", bombComponent => new ForeignExchangeRatesTweak(bombComponent) },
 			{ "Symbstructions", bombComponent => new SymbstructionsTweak(bombComponent) },
 
 			{ "Wires", bombComponent => new WiresLogging(bombComponent) },
