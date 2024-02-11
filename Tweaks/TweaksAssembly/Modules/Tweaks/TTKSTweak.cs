@@ -7,11 +7,8 @@ class TTKSTweak : ModuleTweak
 		componentType.SetValue("LeftAfterA", new string[]
 		{
 			MissionUtil.GetLocalizedModuleName(ComponentTypeEnum.Password),
-			"Passwords Translated",
 			"Crazy Talk",
-			"Crazy Talk Translated",
 			MissionUtil.GetLocalizedModuleName(ComponentTypeEnum.WhosOnFirst),
-			"Who's on First Translated",
 			MissionUtil.GetLocalizedModuleName(ComponentTypeEnum.Keypad),
 			"Listening",
 			"Orientation Cube"
@@ -27,14 +24,10 @@ class TTKSTweak : ModuleTweak
 		componentType.SetValue("RightAfterA", new string[]
 		{
 			MissionUtil.GetLocalizedModuleName(ComponentTypeEnum.Morse),
-			"Morse Code Translated",
 			MissionUtil.GetLocalizedModuleName(ComponentTypeEnum.Wires),
 			"Two Bits",
 			MissionUtil.GetLocalizedModuleName(ComponentTypeEnum.BigButton),
-			"Big Button Translated",
 			"Colour Flash",
-			"Colour Flash ES",
-			"Colour Flash PL",
 			"Round Keypad"
 		});
 		componentType.SetValue("RightBeforeA", new string[]
