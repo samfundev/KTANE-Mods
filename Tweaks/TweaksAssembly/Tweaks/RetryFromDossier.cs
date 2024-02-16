@@ -47,7 +47,11 @@ class RetryFromDossier : Tweak
 		{
 			SceneManager.Instance.GameplayState.ExitState();
 		}
-		SceneManager.Instance.EnterPostGameState(0, 0, 0, 0, false, () => SceneManager.Instance.EnterGameplayState(isRetry: true));
+		SceneManager.Instance.EnterPostGameState(0, 0, 0, 0, false, () =>
+		{
+			MusicManager.Instance.FadeToVolume(0f, 0.5f);
+			SceneManager.Instance.EnterGameplayState(isRetry: true);
+		});
 
 		return true;
 	};
