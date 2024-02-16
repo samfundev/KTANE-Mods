@@ -518,7 +518,8 @@ static class DemandBasedLoading
 		if (multipleBombs == null)
 			return;
 
-		var gameplayStateManager = multipleBombs.GetValue<object>("gameManager").GetValue<object>("CurrentState");
+		var gameManager = multipleBombs.GetValue<object>("GameManager") ?? multipleBombs.GetValue<object>("gameManager");
+		var gameplayStateManager = gameManager.GetValue<object>("CurrentState");
 		if (gameplayStateManager == null)
 			return;
 
