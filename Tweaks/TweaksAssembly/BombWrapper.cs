@@ -213,6 +213,8 @@ class BombWrapper : MonoBehaviour
 			{ "parliament", bombComponent => new ParliamentTweak(bombComponent) },
 			{ "ForeignExchangeRates", bombComponent => new ForeignExchangeRatesTweak(bombComponent) },
 			{ "Symbstructions", bombComponent => new SymbstructionsTweak(bombComponent) },
+			{ "lgndLEDMath", bombComponent => new LEDMathTweak(bombComponent) },
+			{ "conditionalButtons", bombComponent => new ConditionalButtonsTweak(bombComponent) },
 
 			{ "Wires", bombComponent => new WiresLogging(bombComponent) },
 			{ "Keypad", bombComponent => new KeypadLogging(bombComponent) }
