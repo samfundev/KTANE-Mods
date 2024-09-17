@@ -26,7 +26,7 @@ public class MicrocontrollerLogging : ModuleLogging
 			Log($"Using Row: {colorRow}");
 
 
-			var pinNames = new[] { "GND", "VCC", "AIN", "DIN", "PWN", "RST" };
+			var pinNames = new[] { "GND", "VCC", "AIN", "DIN", "PWM", "RST" };
 			for (int i = 0; i < solutionRaw.Length; i++)
 			{
 				string pinName = pinNames[solutionRaw[i]];
