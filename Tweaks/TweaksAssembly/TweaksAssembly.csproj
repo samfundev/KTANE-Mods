@@ -9,7 +9,7 @@
     <TargetFramework>net35</TargetFramework>
     <FileAlignment>512</FileAlignment>
     <LangVersion>7.3</LangVersion>
-    <CodeAnalysisRuleSet>TweaksAssembly.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet></CodeAnalysisRuleSet>
     <OutputPath>..\Assets\CustomAssemblies\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
@@ -90,8 +90,5 @@
       <HintPath>$(GameFolder)\ktane_Data\Managed\log4net.dll</HintPath>
       <Private>False</Private>
     </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="TweaksAssembly.ruleset" />
   </ItemGroup>
 </Project>
