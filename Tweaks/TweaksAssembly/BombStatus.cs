@@ -53,7 +53,7 @@ class BombStatus : MonoBehaviour
 	{
 		if (currentBomb == null)
 		{
-			currentBomb = Tweaks.bombWrappers.Find(x => x.holdable.HoldState == FloatingHoldable.HoldStateEnum.Held);
+			currentBomb = Tweaks.bombWrappers.Find(x => (x.holdable != null && x.holdable.HoldState == FloatingHoldable.HoldStateEnum.Held) || x.holdable == null);
 			if (currentBomb != null)
 			{
 				UpdateSolves();
