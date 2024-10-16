@@ -28,7 +28,8 @@ class BombWrapper : MonoBehaviour
 		timerComponent = Bomb.GetTimer();
 		widgetManager = Bomb.WidgetManager;
 
-		holdable.OnLetGo += () => BombStatus.Instance.currentBomb = null;
+		if (holdable != null)
+			holdable.OnLetGo += () => BombStatus.Instance.currentBomb = null;
 
 		Color modeColor = ModeColors[Tweaks.CurrentMode];
 		BombStatus.Instance.TimerPrefab.color = modeColor;
