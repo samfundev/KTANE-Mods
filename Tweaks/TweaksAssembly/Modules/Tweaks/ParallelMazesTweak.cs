@@ -6,7 +6,7 @@ class ParallelMazesTweak : ModuleTweak
 	{
 		// Attempt to change the dead server URL to a valid one
 		Type t = ReflectionHelper.FindType("WSClient");
-		component.GetValue<object>("_client").SetValue("WS", t.GetConstructor(new[] { typeof(string) }).Invoke(new[] { "ws://parallelmazes.eltrick.uk:3000" }));
+		component.GetValue<object>("_client").SetValue("WS", t.GetConstructor(new[] { typeof(string) }).Invoke(new[] { "ws://parallelmazes.eltrick.uk" }));
 		component.CallMethod("Start");
 	}
 }
