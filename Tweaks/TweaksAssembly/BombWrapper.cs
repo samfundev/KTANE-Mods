@@ -217,6 +217,7 @@ class BombWrapper : MonoBehaviour
 			{ "lgndLEDMath", bombComponent => new LEDMathTweak(bombComponent) },
 			{ "conditionalButtons", bombComponent => new ConditionalButtonsTweak(bombComponent) },
 			{ "lookLookAway", bombComponent => new LookLookAwayTweak(bombComponent) },
+			{ "parallel_mazes", bombComponent => new ParallelMazesTweak(bombComponent) },
 
 			{ "Wires", bombComponent => new WiresLogging(bombComponent) },
 			{ "Keypad", bombComponent => new KeypadLogging(bombComponent) }
