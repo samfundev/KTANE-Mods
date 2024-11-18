@@ -130,6 +130,17 @@ class BombWrapper : MonoBehaviour
 				return false;
 			};
 
+			KMNeedyModule needyComp = component.GetComponent<KMNeedyModule>();
+			if (needyComp != null)
+			{
+				needyComp.OnPass += delegate
+				{
+					var eventInfo = makeEventInfo("PASS");
+					Tweaks.LogJSON("LFAEvent", eventInfo);
+					return false;
+				};
+			}
+
 			var OnStrike = component.OnStrike;
 			component.OnStrike = (BombComponent source) =>
 			{
