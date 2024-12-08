@@ -225,7 +225,6 @@ class BombWrapper : MonoBehaviour
 			{ "groceryStore", bombComponent => new GroceryStoreTweak(bombComponent) },
 			{ "parliament", bombComponent => new ParliamentTweak(bombComponent) },
 			{ "ForeignExchangeRates", bombComponent => new ForeignExchangeRatesTweak(bombComponent) },
-			{ "Symbstructions", bombComponent => new SymbstructionsTweak(bombComponent) },
 			{ "lgndLEDMath", bombComponent => new LEDMathTweak(bombComponent) },
 			{ "conditionalButtons", bombComponent => new ConditionalButtonsTweak(bombComponent) },
 			{ "lookLookAway", bombComponent => new LookLookAwayTweak(bombComponent) },
