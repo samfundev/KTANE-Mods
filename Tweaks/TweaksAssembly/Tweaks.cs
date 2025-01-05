@@ -934,6 +934,7 @@ class Tweaks : MonoBehaviour
 					new Dictionary<string, object> { { "Key", "DemandBasedModLoading" }, { "Text", "Demand-based Mod Loading" }, { "Description", "Load only the modules on a bomb instead of loading all of them when starting up." } },
 					new Dictionary<string, object> { { "Key", "DemandModLimit" }, { "Text", "Demand Mod Limit" }, { "Description", "Sets the limit of how many mods will be kept loaded after the bomb\nis over. Negative numbers will keep all mods loaded." } },
 					new Dictionary<string, object> { { "Key", "DemandBasedModsExcludeList" }, { "Text", "Exclude Demand-based Mods" }, { "Description", "Exclude mods from being loaded on demand based on module name." } },
+					new Dictionary<string, object> { { "Key", "ExcludeModuleMissions" }, { "Text", "Exclude Module Missions" }, { "Description", "Automatically adds mods that have missions to the DBML exclude list." } },
 					new Dictionary<string, object> { { "Key", "ManageHarmonyMods" }, { "Text", "Manage Harmony Mods" }, { "Description", "Enables the Harmony mod manager when loading mods." } },
 					new Dictionary<string, object> { { "Key", "LocalMods" }, { "Text", "Local Mods" }, { "Description", "Loads a mod from Steam when running the game locally." } },
 				}
@@ -998,6 +999,7 @@ class TweakSettings
 	public bool DemandBasedModLoading = false;
 	public List<string> DemandBasedModsExcludeList = new List<string>();
 	public int DemandModLimit = -1;
+	public bool ExcludeModuleMissions = false;
 	public bool ReplaceObsoleteMods = true;
 	public bool SubscribeToNewMods;
 	public HUDMode BombHUD = HUDMode.Off;

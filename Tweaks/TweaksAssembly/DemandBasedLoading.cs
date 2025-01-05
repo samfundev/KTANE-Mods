@@ -162,7 +162,7 @@ static class DemandBasedLoading
 
 		// A list of steam IDs that are shouldn't be loaded based on the user's exclude list.
 		var excluded = Repository.Modules
-			.Where(module => Tweaks.settings.DemandBasedModsExcludeList.Any(name => module.Name.Like(name)))
+			.Where(module => Tweaks.settings.DemandBasedModsExcludeList.Any(name => module.Name.Like(name) || module.SteamID == name))
 			.Select(module => module.SteamID)
 			.Distinct();
 
@@ -320,6 +320,11 @@ static class DemandBasedLoading
 					}
 
 					loadedObjects[SteamID] = mainBundle.LoadAllAssets<UnityEngine.Object>();
+
+					if (Tweaks.settings.ExcludeModuleMissions && loadedObjects[SteamID].Any(obj => obj is KMMission)) {
+						Tweaks.userSettings.DemandBasedModsExcludeList.Add(SteamID);
+						Tweaks.UpdateSettings(false);
+					}
 
 					mainBundle.Unload(false);
 				}
