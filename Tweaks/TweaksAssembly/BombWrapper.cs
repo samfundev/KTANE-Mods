@@ -210,6 +210,7 @@ class BombWrapper : MonoBehaviour
 
 		var moduleTweaks = new Dictionary<string, Func<BombComponent, ModuleTweak>>()
 		{
+			{ "ForeignExchangeRates", bombComponent => new ForeignExchangeRatesLogging(bombComponent) },
 			{ "AnagramsModule", bombComponent => new AnagramsLogging(bombComponent) },
 			{ "simonServes", bombComponent => new SimonServesLogging(bombComponent) },
 			{ "shapeshift", bombComponent => new ShapeShiftLogging(bombComponent) },
@@ -224,7 +225,6 @@ class BombWrapper : MonoBehaviour
 			{ "draw", bombComponent => new DrawTweak(bombComponent) },
 			{ "groceryStore", bombComponent => new GroceryStoreTweak(bombComponent) },
 			{ "parliament", bombComponent => new ParliamentTweak(bombComponent) },
-			{ "ForeignExchangeRates", bombComponent => new ForeignExchangeRatesTweak(bombComponent) },
 			{ "lgndLEDMath", bombComponent => new LEDMathTweak(bombComponent) },
 			{ "conditionalButtons", bombComponent => new ConditionalButtonsTweak(bombComponent) },
 			{ "lookLookAway", bombComponent => new LookLookAwayTweak(bombComponent) },
