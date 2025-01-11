@@ -596,6 +596,8 @@ class Tweaks : MonoBehaviour
 		if (setupRoom)
 		{
 			FreeplayDevice freeplayDevice = setupRoom.FreeplayDevice;
+			if (!freeplayDevice.gameObject.activeInHierarchy) yield break;
+
 			ExecOnDescendants(freeplayDevice.gameObject, gameObj =>
 			{
 				string gameObjName = gameObj.name;
