@@ -35,6 +35,7 @@ Most of these settings can be easily edited using the Mod Settings Editor found 
 * <b id="settings-DemandBasedModLoading">Demand Based Mod Loading</b> (Default: `false`) - Load only the modules on a bomb instead of loading all of them when starting up. See the [DBML](#demand-based-mod-loading) section below.
 * <b id="settings-DemandBasedModsExcludeList">Demand Based Mods Exclude List</b> (Default: `false`) - Exclude modules by name from being loaded using DBML. Useful if you want to run a mission included with a module. If a mod contains multiple modules then it'll be disabled unless all of them are excluded from DBML. Capitalization doesn't matter and patterns can be used like in [HideTOC](#settings-HideTOC).
 * <b id="settings-DemandModLimit">Demand Mod Limit</b> (Default: `-1`) - Sets the limit of how many mods will be kept loaded after the bomb is over. Negative numbers will keep all mods loaded.
+* <b id="settings-ExcludeModuleMissions">Exclude Module Missions</b> (Default: `false`) - Adds mods into the DBML exclude list if they contain a mission.
 * <b id="settings-FixFER">Fix FER</b> (Default: `false`) - Changes the URL that is queried by [Foreign Exchange Rates](https://steamcommunity.com/sharedfiles/filedetails/?id=743442301) since the old one is no longer operational. See the module’s [manual](https://ktane.timwi.de/HTML/Foreign%20Exchange%20Rates.html) for the new URL.
 * <b id="settings-BombHUD">Bomb HUD</b> (Default: `false`) - Adds a HUD in the top right corner showing information about the currently selected bomb.
 * <b id="settings-ShowEdgework">Show Edgework</b> (Default: false) - Adds a HUD to the top of the screen showing the edgework for the currently selected bomb.
@@ -124,6 +125,9 @@ The ModeSettings file contains the following settings:
 # Demand-based Mod Loading
 Demand-based mod loading makes it so that modules are only loaded into the game once they are needed on a bomb. This means that not only is the time to start the game up reduced significantly but also the game will use less memory.
 
-The simplest way to enable DBML is to enable both the ["Demand-based Mod Loading"](#settings-DemandBasedModLoading) and the ["Disable Demand-based Mods"](#settings-DisableDemandBasedMods) feature then follow the prompt. Keep in mind that the second feature isn't easily reversed without manually re-enabling these mods. Which you would only need to reverse if you wanted to not load all modules using through DBML.
+Enable DBML using the ["Demand-based Mod Loading"](#settings-DemandBasedModLoading) setting. DBML will disable all the mods that can be loaded on demand so that they aren't loaded when the game starts up. Keep in mind that any mods that are disabled by DBML will have to either be manually reenabled or you can delete the `modSettings.xml` file (located in the same folder as the logfile) to reenable all mods.
 
-The reason the second feature is recommended to be enabled along with the first is that Tweaks will only load modules on demand if they aren't already loaded into the game. So it saves a lot of effort of having to go through and disable many modules so that they can be used with DBML.
+There are a few other settings that affect DBML:
+* [Demand Based Mods Exclude List](#settings-DemandBasedModsExcludeList)
+* [Demand Mod Limit](#settings-DemandModLimit)
+* [Exclude Module Missions](#settings-ExcludeModuleMissions)
