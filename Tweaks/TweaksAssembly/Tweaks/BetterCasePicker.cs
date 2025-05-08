@@ -108,14 +108,18 @@ class BetterCasePicker : Tweak
 		// Generate a case using Case Generator
 		if (Tweaks.setupSettings.CaseGenerator)
 		{
+			// Make sure a size is found even if the user threshold is enormous (above 2 * componentCount^2 - 1)
+			int caseSizeSearchLimit = System.Math.Max(componentCount, Tweaks.userSettings.CaseGeneratorMinModules + 1);
+
 			List<Vector2> caseSizes = new List<Vector2>();
-			for (int x = 1; x <= componentCount; x++)
-				for (int y = 1; y <= componentCount; y++)
+			for (int x = 1; x <= caseSizeSearchLimit; x++)
+				for (int y = 1; y <= caseSizeSearchLimit; y++)
 					if (x >= y)
 						caseSizes.Add(new Vector2(x, y));
 
 			var caseSize = caseSizes
 				.Where(size => size.y / size.x >= 0.5f && size.x * size.y * (frontFaceOnly ? 1 : 2) >= componentCount)
+				.Where(size => size.x * size.y * 2 - 1 >= Tweaks.userSettings.CaseGeneratorMinModules)
 				.OrderBy(size => System.Math.Abs(size.x * size.y * (frontFaceOnly ? 1 : 2) - componentCount))
 				.ThenByDescending(size => size.y / size.x)
 				.FirstOrDefault();
