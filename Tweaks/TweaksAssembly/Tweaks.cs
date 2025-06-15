@@ -402,6 +402,7 @@ class Tweaks : MonoBehaviour
 		{
 			{ "type", "ROUND_START" },
 			{ "mission", Localization.GetLocalizedString(SceneManager.Instance.GameplayState.Mission.DisplayNameTerm) },
+			{ "missionId", SceneManager.Instance.GameplayState.Mission.ID },
 		});
 
 		var snoozeButton = FindObjectOfType<AlarmClock>()?.SnoozeButton;
