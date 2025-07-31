@@ -918,7 +918,7 @@ class Tweaks : MonoBehaviour
 					new Dictionary<string, object> { { "Text", "Cases" }, { "Type", "Section" } },
 					new Dictionary<string, object> { { "Key", "BetterCasePicker" }, { "Text", "Better Case Picker" }, { "Description", "Chooses the smallest case that fits instead of a random one." } },
 					new Dictionary<string, object> { { "Key", "CaseGenerator" }, { "Text", "Case Generator" }, { "Description", "Generates a case to best fit the bomb which can be one of the colors defined by CaseColors." } },
-					new Dictionary<string, object> { { "Key", "CaseGeneratorMinModules" }, { "Text", "Case Generator Module Minimum" }, { "Description", "Disables generation of cases that hold less\nthan this many modules." } },
+					new Dictionary<string, object> { { "Key", "CaseGeneratorMinModules" }, { "Text", "Case Generator Module Minimum" }, { "Description", "Disables generation of cases that hold less\nthan this many modules. (Max. 24)" } },
 					new Dictionary<string, object> { { "Key", "CaseColors" }, { "Text", "Case Colors" }, { "Description", "Controls the color of the cases that are generated with Case Generator." } },
 
 					new Dictionary<string, object> { { "Text", "Tweaks" }, { "Type", "Section" } },

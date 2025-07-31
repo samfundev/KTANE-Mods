@@ -109,6 +109,8 @@ class BetterCasePicker : Tweak
 		if (Tweaks.setupSettings.CaseGenerator)
 		{
 
+			int minModules = System.Math.Min(Tweaks.userSettings.CaseGeneratorMinModules, 24);
+
 			List<Vector2> caseSizes = new List<Vector2>();
 			for (int x = 1; x <= componentCount; x++)
 				for (int y = 1; y <= componentCount; y++)
@@ -117,7 +119,7 @@ class BetterCasePicker : Tweak
 
 			var caseSize = caseSizes
 				.Where(size => size.y / size.x >= 0.5f && size.x * size.y * (frontFaceOnly ? 1 : 2) >= componentCount)
-				.Where(size => size.x * size.y * 2 - 1 >= Tweaks.userSettings.CaseGeneratorMinModules)
+				.Where(size => size.x * size.y * 2 - 1 >= minModules)
 				.OrderBy(size => System.Math.Abs(size.x * size.y * (frontFaceOnly ? 1 : 2) - componentCount))
 				.ThenByDescending(size => size.y / size.x)
 				.FirstOrDefault();
