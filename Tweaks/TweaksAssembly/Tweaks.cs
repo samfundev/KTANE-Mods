@@ -186,7 +186,7 @@ class Tweaks : MonoBehaviour
 
 					ReflectedTypes.UpdateTypes();
 
-					foreach(var patchType in AllModulePatches)
+					foreach (var patchType in AllModulePatches)
 						Patching.EnsurePatch(patchType.Name, patchType);
 
 					break;
