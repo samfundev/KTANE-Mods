@@ -16,6 +16,7 @@ using HarmonyLib;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using TweaksAssembly.Patching;
+using TweaksAssembly.Patching.NativeMethods;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -31,6 +32,8 @@ class Tweaks : MonoBehaviour
 	public static TweakSettings userSettings; // This stores exactly what the user has in their settings file unlike the settings variable which includes overrides.
 	public static TweakSettings setupSettings; // The settings when the user entered the setup room. Many settings don't actually change until the user enters the setup room again.
 
+	public static NativeMethodProvider nativeMethods;
+	
 	public static bool TwitchPlaysActive => GameObject.Find("TwitchPlays_Info") != null;
 	public static Mode CurrentMode => TwitchPlaysActive ? Mode.Normal : settings.Mode;
 	public static bool TwitchPlaysActiveCache;
@@ -55,6 +58,32 @@ class Tweaks : MonoBehaviour
 	public void Awake()
 	{
 		Instance = this;
+		
+		switch (Application.platform)
+		{
+			case RuntimePlatform.WindowsEditor:
+			case RuntimePlatform.WindowsPlayer:
+				nativeMethods = new WindowsMethodProvider();
+				break;
+			case RuntimePlatform.LinuxEditor:
+			case RuntimePlatform.LinuxPlayer:
+				nativeMethods = new LinuxMethodProvider();
+				break;
+			case RuntimePlatform.OSXEditor: 
+			case RuntimePlatform.OSXPlayer:
+				nativeMethods = new OSXMethodProvider();
+				break;
+			default:
+				Debug.LogError($"[Tweaks] Unsupported platform for native methods: {Application.platform}");
+				nativeMethods = null;
+				break;
+		}
+
+		if (nativeMethods != null && !nativeMethods.Test())
+		{
+			Debug.LogError($"[Tweaks] Native method test failed on platform: {Application.platform}");
+			nativeMethods = null;
+		}
 
 		MainThreadQueue.Initialize();
 
@@ -929,6 +958,7 @@ class Tweaks : MonoBehaviour
 					new Dictionary<string, object> { { "Key", "InstantSkip" }, { "Text", "Instant Skip" }, { "Description", "Skips the gameplay loading screen as soon as possible." } },
 					new Dictionary<string, object> { { "Key", "SkipGameplayDelay" }, { "Text", "Skip Gameplay Delay" }, { "Description", "Skips the delay at the beginning of a round when the lights are out." } },
 					new Dictionary<string, object> { { "Key", "ModuleTweaks" }, { "Text", "Module Tweaks" }, { "Description", "Controls all module related tweaks like fixing status light positions." } },
+					new Dictionary<string, object> { {"Key", "FillExceptionLines"}, {"Text", "Fill exception lines"}, {"Description", "Fills in source code information in exceptions when possible"} },
 					new Dictionary<string, object> { { "Key", "ShowTips" }, { "Text", "Show Tips" }, { "Description", "Shows tips about Tweaks features that you may not know about." } },
 					new Dictionary<string, object> { { "Key", "PinnedSettings" }, { "Type", "Hidden" } },
 
@@ -996,6 +1026,7 @@ class TweakSettings
 {
 	public float FadeTime = 1f;
 	public bool InstantSkip = true;
+	public bool FillExceptionLines = true;
 	public bool ManageHarmonyMods = false;
 	public bool SkipGameplayDelay = false;
 	public bool BetterCasePicker = true;
