@@ -1,10 +1,10 @@
-using UnityEngine;
 using System;
-using System.Linq;
-using System.Text;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using BombInfoExtensions;
+using UnityEngine;
 
 public class SkewedModule : MonoBehaviour
 {
@@ -72,6 +72,8 @@ public class SkewedModule : MonoBehaviour
 			Selectable.AddInteractionPunch();
 			BombAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
 			if (moduleActivated && !solved) action(); // !solved added to hide the warning
+
+			throw new Exception("wow");
 
 			return false;
 		};

@@ -1,0 +1,10 @@
+{
+  "name": "SkewedSlotsModule-Editor",
+  "references": [
+    "SkewedSlotsModule"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": []
+}

@@ -25,6 +25,7 @@ const Shared_Assetsless = [
 const junctions = [
 	join("Assets", "Editor", "Scripts"),
 	join("Assets", "Editor", "Steamworks.NET"),
+	join("Assets", "Editor", "Plugins"),
 	join("Assets", "Plugins"),
 	join("Assets", "Scripts"),
 	join("Assets", "KM_Assets"),

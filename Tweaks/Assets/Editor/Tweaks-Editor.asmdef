@@ -1,0 +1,10 @@
+{
+  "name": "Tweaks-Editor",
+  "references": [
+    "Tweaks"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": []
+}
