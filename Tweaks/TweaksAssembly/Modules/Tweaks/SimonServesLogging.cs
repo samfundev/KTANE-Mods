@@ -5,12 +5,15 @@ using System.Linq;
 using UnityEngine;
 internal class SimonServesLogging : ModuleLogging
 {
+	private readonly List<GameObject> foodcolorblindList = new List<GameObject>();
+	private KMSelectable[] buttons;
+	private Renderer[] food;
+	private KMSelectable table;
+	private int[] foods;
 	private readonly List<int> lastPeoplePressed = new List<int>();
 	private int lastFoodPressed = -1;
 	private readonly List<List<string[]>> answers = new List<List<string[]>>() { null, null, null, null };
 	private readonly string[][] foodDisplayed = new string[][] { null, null, null, null };
-	private Renderer[] food;
-	private KMSelectable[] buttons;
 	private int stage = -1;
 	private bool moduleSolved = false;
 	private readonly string[] peopleOrder = new string[] { "Riley", "Brandon", "Gabriel", "Veronica", "Wendy", "Kayle" };
@@ -21,8 +24,19 @@ internal class SimonServesLogging : ModuleLogging
 	{
 		bombComponent.GetComponent<KMBombModule>().OnActivate += () =>
 		{
+			if (ColorblindMode.IsActive("simonServes"))
+			{
+				Material[] colorFood = component.GetValue<Material[]>("colorFood");
+				colorFood[6].color = new Color(0.96f, .28f, .15f);
+			}
+
 			bombComponent.StartCoroutine(HandleLogging());
+
+			buttons = component.GetValue<KMSelectable[]>("buttons");
 			food = component.GetValue<Renderer[]>("food");
+			table = component.GetValue<KMSelectable>("table");
+			foods = component.GetValue<int[]>("foods");
+			InitializeColorblind();
 
 			for (int i = 0; i < 6; i++)
 			{
@@ -33,7 +47,6 @@ internal class SimonServesLogging : ModuleLogging
 					return false;
 				};
 			}
-			buttons = component.GetValue<KMSelectable[]>("buttons");
 
 			for (int i = 0; i < 6; i++)
 			{
@@ -127,8 +140,8 @@ internal class SimonServesLogging : ModuleLogging
 
 	private string[] GetFoodColors()
 	{
-		int[] foods = component.GetValue<int[]>("foods");
-		int[] actualFoods = foods.Select(i => i == -1 ? 8 : i).ToArray();
+		int[] foodNums = component.GetValue<int[]>("foods");
+		int[] actualFoods = foodNums.Select(i => i == -1 ? 8 : i).ToArray();
 		return actualFoods.Select(i => foodColors[i]).ToArray();
 	}
 
@@ -215,7 +228,7 @@ internal class SimonServesLogging : ModuleLogging
 	private List<string[]> GetServingAnswers()
 	{
 		int[] servingOrder = GetServingOrder();
-		int[] foods = component.GetValue<int[]>("foods");
+		int[] foodNums = component.GetValue<int[]>("foods");
 		List<int> takenFoods = new List<int>();
 		for (int personIndex = 0; personIndex < 6; personIndex++)
 		{
@@ -225,7 +238,7 @@ internal class SimonServesLogging : ModuleLogging
 			{
 				int mostDesiredFood = component.GetValue<int[,,]>("people")[personNum, stage, i];
 
-				if (foods.Contains(mostDesiredFood) && !takenFoods.Contains(mostDesiredFood))
+				if (foodNums.Contains(mostDesiredFood) && !takenFoods.Contains(mostDesiredFood))
 				{
 					takenFoods.Add(mostDesiredFood);
 					break;
@@ -300,5 +313,104 @@ internal class SimonServesLogging : ModuleLogging
 			}
 		}
 		return payingBillIndex;
+	}
+
+	private void InitializeColorblind()
+	{
+		Debug.Log("InitializeColorblind called");
+		InitializePeopleColorBlind();
+		InitializeFoodColorBlind();
+	}
+
+	private void InitializePeopleColorBlind()
+	{
+		string[] colors = new[] { "R", "B", "G", "V", "W", "K" };
+		bool[] blackLetters = new bool[] { true, false, false, true, true, false };
+		var list = new List<GameObject>();
+		//Make the text for the people
+		for (int i = 0; i < buttons.Length; i++)
+			MakeText(buttons[i].gameObject, colors[i], list, blackLetters[i]);
+	}
+
+	private void InitializeFoodColorBlind()
+	{
+		//Make the text for the food
+		for (int i = 0; i < food.Length; i++)
+			MakeText(food[i].gameObject, "W", foodcolorblindList, false);
+
+		//Set the food to inactive
+		foreach (var cb in foodcolorblindList)
+		{
+			cb.SetActive(false);
+		}
+
+		//if something is interacted with, update the food cb activity to be the same as the corresponding food
+		table.OnInteract += () =>
+		{
+			bombComponent.StartCoroutine(UpdateFoodColorBlindText());
+			return false;
+		};
+
+		for (int i = 0; i < food.Length; i++)
+		{
+			food[i].GetComponent<KMSelectable>().OnInteract += () =>
+			{
+				bombComponent.StartCoroutine(UpdateFoodColorBlindText());
+				return false;
+			};
+
+			buttons[i].OnInteract += () =>
+			{
+				bombComponent.StartCoroutine(UpdateFoodColorBlindText());
+				return false;
+			};
+		}
+	}
+
+	private IEnumerator UpdateFoodColorBlindText()
+	{
+		yield return new WaitForEndOfFrame();
+		string[] colors = GetFoodColors().Select(c => c == "Brown" ? "N" : c == "Pink" ? "I" : "" + c[0]).ToArray();
+		Dictionary<string, bool> isBlack = new Dictionary<string, bool>()
+		{
+			{ "R", false },
+			{ "W", true },
+			{ "B", false },
+			{ "N", false },
+			{ "G",  false},
+			{ "Y", true },
+			{ "O", true },
+			{ "I", true }
+		};
+
+		for (int i = 0; i < food.Length; i++)
+		{
+			GameObject gameObject = foodcolorblindList[i];
+			TextMesh textMesh = gameObject.GetComponent<TextMesh>();
+			gameObject.SetActive(food[i].GetComponent<MeshRenderer>().isVisible);
+			string color = colors[i];
+			textMesh.text = color;
+			textMesh.color = isBlack.ContainsKey(color) && isBlack[color] ? Color.black : Color.white;
+		}
+	}
+
+	private void MakeText(GameObject gameobject, string letter, List<GameObject> colorblindTextList, bool black)
+	{
+		var text = new GameObject("ColorblindText");
+		text.transform.SetParent(gameobject.transform, false);
+		colorblindTextList.Add(text);
+
+		var mesh = text.AddComponent<TextMesh>();
+		mesh.transform.localPosition = new Vector3(0, 0, 0.0052f);
+		mesh.transform.localEulerAngles = new Vector3(0, 180, 180);
+		const float scale = 0.01480103f;
+		mesh.transform.localScale = new Vector3(scale, scale, scale);
+		mesh.characterSize = 0.08f;
+		mesh.fontSize = 70;
+		mesh.anchor = TextAnchor.MiddleCenter;
+		mesh.GetComponent<MeshRenderer>().sharedMaterial.shader = Shader.Find("GUI/KT 3D Text");
+
+		mesh.text = letter;
+		mesh.color = black ? Color.black : Color.white;
 	}
 }
