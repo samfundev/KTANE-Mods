@@ -18,4 +18,6 @@ public abstract class ModuleLogging : ModuleTweak
 	{
 		Debug.Log($"[{logName} #{moduleID}] {message}");
 	}
+
+	public virtual int GetModuleID() => moduleID;
 }

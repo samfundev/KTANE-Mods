@@ -229,6 +229,7 @@ class BombWrapper : MonoBehaviour
 			{ "conditionalButtons", bombComponent => new ConditionalButtonsTweak(bombComponent) },
 			{ "lookLookAway", bombComponent => new LookLookAwayTweak(bombComponent) },
 			{ "parallel_mazes", bombComponent => new ParallelMazesTweak(bombComponent) },
+			{ "theCodeModule", bombComponent => new TheCodeLogging(bombComponent) },
 
 			{ "Wires", bombComponent => new WiresLogging(bombComponent) },
 			{ "Keypad", bombComponent => new KeypadLogging(bombComponent) }
@@ -543,7 +544,7 @@ class BombWrapper : MonoBehaviour
 		// From logging implemented by Tweaks
 		if (moduleTweak is ModuleLogging moduleLogging)
 		{
-			moduleID = moduleLogging.moduleID;
+			moduleID = moduleLogging.GetModuleID();
 		}
 
 		if (moduleID != -1)
