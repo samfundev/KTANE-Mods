@@ -1,0 +1,10 @@
+{
+  "name": "MinesweeperModule-Editor",
+  "references": [
+    "MinesweeperModule"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": []
+}

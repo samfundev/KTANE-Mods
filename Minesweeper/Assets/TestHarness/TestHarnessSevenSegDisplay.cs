@@ -2,6 +2,7 @@
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+using KM_Scripts;
 
 public class TestHarnessSevenSegDisplay : MonoBehaviour
 {
