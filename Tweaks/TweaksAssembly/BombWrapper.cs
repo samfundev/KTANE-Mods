@@ -498,14 +498,15 @@ class BombWrapper : MonoBehaviour
 	{
 		int moduleID = -1;
 		KMBombModule bombModule = bombComponent.GetComponent<KMBombModule>();
+		KMNeedyModule needyModule = bombComponent.GetComponent<KMNeedyModule>();
 		string moduleType = bombComponent.GetModuleID();
 
 		displayNames[moduleType] = bombComponent.GetModuleDisplayName();
 
-		if (bombModule != null)
+		if (bombModule != null || needyModule != null)
 		{
 			// Try to find a module ID from a field
-			ReflectionHelper.Gettable idField = ReflectedTypes.GetModuleIDNumber(bombModule, out Component targetComponent);
+			ReflectionHelper.Gettable idField = ReflectedTypes.GetModuleIDNumber(bombComponent, out Component targetComponent);
 			if (idField != null)
 			{
 				// Find the module ID from reflection
@@ -518,8 +519,8 @@ class BombWrapper : MonoBehaviour
 			}
 
 			// From the object name.
-			string prefix = bombModule.ModuleDisplayName + " #";
-			if (moduleID == -1 && bombModule.gameObject.name.StartsWith(prefix) && !int.TryParse(bombModule.gameObject.name.Substring(prefix.Length), out moduleID))
+			string prefix = (bombModule != null ? bombModule.ModuleDisplayName : needyModule.ModuleDisplayName) + " #";
+			if (moduleID == -1 && bombComponent.name.StartsWith(prefix) && !int.TryParse(bombComponent.name.Substring(prefix.Length), out moduleID))
 			{
 				moduleID = -1;
 			}
