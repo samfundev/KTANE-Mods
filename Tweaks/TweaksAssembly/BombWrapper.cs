@@ -503,7 +503,7 @@ class BombWrapper : MonoBehaviour
 
 		displayNames[moduleType] = bombComponent.GetModuleDisplayName();
 
-		if (bombModule != null || needyModule != null)
+		if (bombModule || needyModule)
 		{
 			// Try to find a module ID from a field
 			ReflectionHelper.Gettable idField = ReflectedTypes.GetModuleIDNumber(bombComponent, out Component targetComponent);
@@ -519,7 +519,7 @@ class BombWrapper : MonoBehaviour
 			}
 
 			// From the object name.
-			string prefix = (bombModule != null ? bombModule.ModuleDisplayName : needyModule.ModuleDisplayName) + " #";
+			string prefix = (bombModule ? bombModule.ModuleDisplayName : needyModule.ModuleDisplayName) + " #";
 			if (moduleID == -1 && bombComponent.name.StartsWith(prefix) && !int.TryParse(bombComponent.name.Substring(prefix.Length), out moduleID))
 			{
 				moduleID = -1;
